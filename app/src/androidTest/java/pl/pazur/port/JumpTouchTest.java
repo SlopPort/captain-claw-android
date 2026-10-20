@@ -40,12 +40,23 @@ public class JumpTouchTest extends Instrumentation {
         if (!temporary.renameTo(new File(folder,"combat-command.txt")))
             throw new IllegalStateException("Cannot publish test command");
         File response=new File(folder,"combat-response.txt");
-        long deadline=SystemClock.uptimeMillis()+8000;
+        long deadline=SystemClock.uptimeMillis()+45000;
+        long retryAt=0;
         while (SystemClock.uptimeMillis()<deadline) {
             focus();
             if (response.exists()) {
                 try (java.io.BufferedReader reader=new java.io.BufferedReader(new java.io.FileReader(response))) {
-                    if ((key+"|done").equals(reader.readLine())) return;
+                    String reply=reader.readLine();
+                    if ((key+"|done").equals(reply)) return;
+                    if (reply!=null && reply.startsWith(key+"|rejected:") && SystemClock.uptimeMillis()>=retryAt) {
+                        // Slow devices may still be loading when the first fixture is requested.
+                        retryAt=SystemClock.uptimeMillis()+1000;
+                        try(FileOutputStream out=new FileOutputStream(temporary)) {
+                            out.write((key+"|"+command+"\n").getBytes(StandardCharsets.US_ASCII));
+                        }
+                        if(!temporary.renameTo(new File(folder,"combat-command.txt")))
+                            throw new IllegalStateException("Cannot retry test command");
+                    }
                 }
             }
             SystemClock.sleep(20);

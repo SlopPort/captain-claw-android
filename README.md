@@ -2,7 +2,7 @@
 
 [English README](README.en.md)
 
-Natywna adaptacja [OpenClaw](https://github.com/pjasicek/OpenClaw) na Androida, z polskimi zasobami dostarczanymi przez użytkownika. Silnik C++/SDL budowany dla ARM64 i ARMv7. Aktualna wersja: 0.4.4-dev w walidacji; ostatnia podstawa z zakończonymi próbami dotyku: 0.4.3-dev. Minimum API 21.
+Natywna adaptacja [OpenClaw](https://github.com/pjasicek/OpenClaw) na Androida, z polskimi zasobami dostarczanymi przez użytkownika. Silnik C++/SDL budowany dla ARM64 i ARMv7. Aktualna wersja: 0.4.5-dev w walidacji; ostatnia podstawa z zakończonymi próbami dotyku: 0.4.3-dev. Minimum API 21.
 
 Gałka dotykowa, większe przyciski i regulowana wysokość skoku, szeroki widok planszy z zachowaniem proporcji, muzyka MIDI w APK, uzupełnienia poziomu 14 oraz walka z Omarem i inscenizacja zakończenia. Port korzysta z istniejącego silnika i rozgrywki OpenClaw.
 
@@ -40,6 +40,8 @@ python tools/pack_assets.py --game-root '/sciezka/do/wlasnej/instalacji'
 Zainstaluj APK i wybierz przygotowany `build/game-data.zip` w aplikacji. Dane i zapis są przechowywane w katalogu aplikacji. Odinstalowanie usuwa dane aplikacji.
 
 ## Sterowanie dotykowe
+
+**Pad:** dotknij przycisku **PAD** w rogu gry, aby przypisać fizyczne przyciski do czynności. [Instrukcja PL/EN](docs/CONTROLLER.md). Domyślne nazwy Androida mogą różnić się od nadruków na padzie.
 
 Gałka po lewej służy do ruchu, wspinania i kucania. Skok jest na dole po prawej; atak obok niego, strzał wyżej. Szybki tap daje użyteczny niski skok, dłuższe trzymanie zwiększa wysokość. BRON zmienia broń; PAUZA lub systemowy Wstecz otwiera menu.
 

@@ -15,8 +15,8 @@ Previously observed on Redmi: GameSir Nova 2 Lite in a mode identified by Androi
 | Left stick and D-pad | Both directions, diagonals, climbing and crouch; no movement at rest |
 | A / bottom face | Jump; longer hold raises jump height |
 | X / left face | Melee |
-| B / right face, RT | Shoot; trigger releases correctly |
-| Y / top face, LB, RB | Change weapon once per press |
+| Android BUTTON_B, or a configured trigger | Shoot; configured trigger releases correctly |
+| Android BUTTON_Y, or a configured shoulder | Change weapon once per press |
 | Start | Pause; release, press again to resume |
 | Menu D-pad / stick | Selection and controlled repeat; A confirms, B goes back |
 | Disconnect while moving | Movement stops; touch controls become available |
@@ -25,6 +25,16 @@ Previously observed on Redmi: GameSir Nova 2 Lite in a mode identified by Androi
 | Touch + pad | Releasing one source does not release a key still held by the other |
 
 Record APK hash, device/Android, controller mode and transport for each run. Record failures as failures; do not mark a check passed from code inspection or a successful pairing. Never inject global Android key events for these checks: use the actual controller or app-local diagnostics.
+
+## Version 0.4.5: configurable physical buttons
+
+The user reported no sword attack on any physical button. Earlier logs contained jump/fire/weapon actions but no attack=1; the exact original hardware mapping defect was not isolated. Android button events now enter an app-local JNI/SDL queue before device-specific SDL button translation, and the user can capture the desired physical key in the PAD screen. Axes/D-pad remain handled by SDL. The game combines all input through PlatformInput ownership; a Java event is not also dispatched as an SDL controller button. Bindings are global for this installation, not per-device profiles.
+
+Automated capture test on Huawei: open PAD, choose sword, capture Android BUTTON_L1 (102), save, return to the game, reload the file and dispatch that key through GameActivity/JNI. Native logs show attack=1, fire=0, followed by Soldier defeated in an isolated passive fixture. This is evidence of UI capture, persistence, routing and actual sword damage, not confirmation that every physical GameSir button now works. Settings/config/saves were restored after the test. Local evidence: `reports/controller-bindings-0.4.5/`.
+
+Build the capture test with `-PtestRunner=pl.pazur.port.ControllerBindingsTest :app:assembleDebugAndroidTest`, install both APKs and run `python tools/controller_bindings_smoke.py`. Without that property the default test runner remains JumpTouchTest. `tools/gamepad_pause_smoke.py --raw-buttons` exercises pause/resume via raw Android codes; the ordinary mode retains SDL virtual-controller button coverage. [User binding guide](../CONTROLLER.md).
+
+The raw-button pause test passed three cycles on Huawei. Touch instrumentation also completed, with useful short jumps and full held jumps, but the host regression failed its 65 ms latency threshold: first takeoff 124 ms, subsequent measurements 47–51 ms. There is no pre-0.4.5 Huawei touch latency comparison establishing whether this is a new regression. This remains an open performance finding, not a fully passed touch regression. Raw evidence: `reports/jump-touch-huawei-0.4.5/`.
 
 ## Natural playthrough / Zwykłe przejście
 

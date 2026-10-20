@@ -47,6 +47,9 @@ try:
     assert len(rows)==6,rows
     result={'baseline':args.baseline,'size':args.size or 'physical','cases':rows,
         'apk_sha256':hashlib.file_digest((PORT/'app/build/outputs/apk/debug/app-debug.apk').open('rb'),'sha256').hexdigest()}
+    # Preserve measurements even when a slower device fails the latency threshold.
+    result['passed']=False
+    (REPORT/'results.json').write_text(json.dumps(result,indent=2),encoding='utf-8')
     if not args.baseline:
         by_name={r['label']:r for r in rows}
         assert all(by_name[n]['rise']>=50 and by_name[n]['jumps']==1 for n in ('hold10','hold100','drift100')),rows

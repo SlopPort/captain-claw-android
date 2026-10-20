@@ -4,6 +4,7 @@ Only app-local commands are used; no global Android input injection.
 """
 from pathlib import Path
 import json
+import argparse
 import subprocess
 import time
 import xml.etree.ElementTree as ET
@@ -13,6 +14,12 @@ REPORT=PORT/'reports/gamepad-pause-0.4.4'
 
 
 def main():
+    global REPORT
+    parser=argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--raw-buttons',action='store_true',help='Exercise Android raw button codes through the SDL queue')
+    args=parser.parse_args()
+    if args.raw_buttons: REPORT=PORT/'reports/gamepad-pause-raw-0.4.5'
+    start='raw 108' if args.raw_buttons else 'button start'
     REPORT.mkdir(parents=True,exist_ok=True)
     for name in ('combat-command.txt','combat-response.txt'):
         if subprocess.run(['adb','shell','ls',REMOTE+name],capture_output=True).returncode==0:
@@ -63,20 +70,20 @@ def main():
         command('padvirtual button dpright 0')
         for attempt in range(3):
             before=logs()
-            command('padvirtual button start 1')
+            command('padvirtual '+start+' 1')
             time.sleep(.3)
             paused=logs()[len(before):]
             assert 'Pazur pad context: mode=2' in paused,paused
             # Held Start must not bounce repeatedly between play and menu.
             assert 'Pazur pad context: mode=1' not in paused,paused
-            command('padvirtual button start 0')
+            command('padvirtual '+start+' 0')
             command('padvirtual button dpdown 1')
             command('padvirtual button dpdown 0')
             menu_log=logs()[len(before):]
             assert 'up=0 down=1' in menu_log,menu_log
             before_resume=logs()
-            command('padvirtual button start 1')
-            command('padvirtual button start 0')
+            command('padvirtual '+start+' 1')
+            command('padvirtual '+start+' 0')
             time.sleep(.3)
             resumed=logs()[len(before_resume):]
             assert 'Pazur pad context: mode=1' in resumed,resumed

@@ -20,9 +20,11 @@ Previous hardware measurements used a Redmi Note 8 with Android 16: approximatel
 
 ## Controls
 
+Tap **PAD** at the top right to bind physical buttons or triggers to gameplay/menu actions. Changes save automatically; Restore defaults is available. [Detailed instructions, English and Polish](docs/CONTROLLER.md).
+
 Touch: left stick moves, climbs and crouches. Jump is at the bottom right, attack beside it and shoot above. A short tap produces a useful low jump; holding increases height. BRON changes weapon; PAUZA opens the menu.
 
-Proposed controller bindings under validation: left stick/D-pad for movement, bottom face button for jump, left face button for melee, right face button or right trigger for shooting, top face button/shoulders for weapon change, Start for pause. Button labels depend on the controller mode. Do not assume the printed labels match Android's mapping.
+Default Android key names: BUTTON_A for jump, BUTTON_X for melee, BUTTON_B for shooting, BUTTON_Y for weapon change, BUTTON_START for pause. Left stick/D-pad moves. Buttons and triggers can be assigned in PAD; labels depend on the controller mode. Do not assume printed labels match Android's mapping.
 
 ## Build from source
 

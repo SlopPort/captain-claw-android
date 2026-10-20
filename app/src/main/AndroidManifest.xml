@@ -6,5 +6,6 @@
       <intent-filter><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/></intent-filter>
     </activity>
     <activity android:name=".GameActivity" android:exported="false" android:launchMode="singleTask" android:screenOrientation="sensorLandscape" android:configChanges="keyboard|keyboardHidden|orientation|screenSize|screenLayout|uiMode|navigation|smallestScreenSize|density" />
+    <activity android:name=".ControllerSettingsActivity" android:exported="false" />
   </application>
 </manifest>
