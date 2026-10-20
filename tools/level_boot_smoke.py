@@ -16,6 +16,7 @@ parser.add_argument('--combat-audit', action='store_true', help='Read actual reg
 parser.add_argument('--report', default='level-boot')
 parser.add_argument('--hold-seconds', type=int, default=16)
 parser.add_argument('--levels', nargs='+', type=int, default=[1,2,3])
+parser.add_argument('--display-size', help='Temporary Android display size, e.g. 720x1280; restored afterwards')
 parser.add_argument('--preview-level14', action='store_true', help='Enable level 14 diagnostics (legacy flag name)')
 parser.add_argument('--teleport', nargs=2, type=int, metavar=('X', 'Y'), help='Controlled collision fixture; requires one preview level')
 parser.add_argument('--expect-log', action='append', default=[], help='Require this literal marker in final process log; repeatable')
@@ -134,6 +135,10 @@ def fight_omar(pid):
 
 def main():
     REPORT.mkdir(parents=True, exist_ok=True)
+    if args.display_size and not re.fullmatch(r'[1-9][0-9]*x[1-9][0-9]*', args.display_size):
+        raise ValueError('Invalid display size')
+    original_display = adb('shell', 'wm', 'size').stdout
+    previous_override = re.search(r'Override size:\s*(\d+x\d+)', original_display)
     if (args.teleport or args.combat_audit) and adb('shell', 'ls', REMOTE+'startup_commands.txt', check=False).returncode == 0:
         raise RuntimeError('Existing startup commands: preserve them before running this test')
     adb('shell', 'am', 'force-stop', 'pl.pazur.port')
@@ -155,6 +160,8 @@ def main():
     results = []
     fixture_created = False
     try:
+        if args.display_size:
+            adb('shell', 'wm', 'size', args.display_size)
         if args.teleport or args.combat_audit:
             fixture = REPORT/'startup_commands.txt'
             commands = 'invincible 1\n' if args.invincible_fixture else ''
@@ -226,10 +233,14 @@ def main():
                 adb('pull', REMOTE+'level-test.png', str(REPORT/f'level-{number}.png'))
                 memory = adb('shell', 'dumpsys', 'meminfo', 'pl.pazur.port').stdout
                 (REPORT/f'memory-{number}.txt').write_text(memory, encoding='utf-8')
-                match = re.search(r'TOTAL PSS:\s+(\d+)', memory)
+                # Android 10 uses TOTAL:, newer Android releases use TOTAL PSS:.
+                match = re.search(r'TOTAL(?: PSS)?:\s+(\d+)', memory)
                 if match: result['pss_kib'] = int(match.group(1))
                 log = adb('logcat', '-d', '--pid='+pid, '-s', 'SDL/APP', 'libc', 'AndroidRuntime').stdout
                 (REPORT/f'level-{number}.log').write_text(log, encoding='utf-8')
+                result['frame_samples'] = [dict(fps=float(f), p95_ms=int(p), max_ms=int(m))
+                    for f,p,m in re.findall(r'Pazur frame sample: fps=([\d.]+) p95=(\d+) ms max=(\d+) ms', log)]
+                result['display_size'] = args.display_size or 'unchanged'
             alive = pid in adb('shell', 'pidof', 'pl.pazur.port', check=False).stdout.split()
             result['crash_free'] = alive and 'Fatal signal' not in log and 'FATAL EXCEPTION' not in log
             result['expected_log_markers'] = {marker: marker in log for marker in args.expect_log}
@@ -238,6 +249,8 @@ def main():
             print(json.dumps(result), flush=True)
     finally:
         adb('shell', 'am', 'force-stop', 'pl.pazur.port')
+        if args.display_size:
+            adb('shell', 'wm', 'size', previous_override.group(1) if previous_override else 'reset')
         if fixture_created: adb('shell', 'rm', REMOTE+'startup_commands.txt')
         adb('push', str(REPORT/'config-before.xml'), REMOTE+'config.xml')
         adb('push', str(REPORT/'saves-before.xml'), REMOTE+'SAVES.XML')
