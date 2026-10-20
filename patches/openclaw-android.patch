@@ -574,6 +574,94 @@ index cb989c1..02d284f 100644
 -}
 \ No newline at end of file
 +}
+diff --git a/OpenClaw/Engine/Actor/Components/PhysicsComponent.cpp b/OpenClaw/Engine/Actor/Components/PhysicsComponent.cpp
+index ade3b61..5520b89 100644
+--- a/OpenClaw/Engine/Actor/Components/PhysicsComponent.cpp
++++ b/OpenClaw/Engine/Actor/Components/PhysicsComponent.cpp
+@@ -433,26 +433,20 @@ void PhysicsComponent::VUpdate(uint32 msDiff)
+     // I will give 100$ to someone who will refactor this method so that it is extendable
+     // and does not contain uncomprehandable state machine
+ 
+-    //LOG("Climbing: " + ToStr(m_IsClimbing));
++    // A ladder sensor may still overlap the feet when standing on its cap.
++    // Finish ascent once no overlapping ladder extends above the feet; otherwise
++    // held Up repeatedly reattaches and pumps the actor above the platform.
++    if (m_IsClimbing && m_ClimbingSpeed.y < -DBL_EPSILON && !HasClimbSpaceAbove())
++    {
++        m_IsClimbing = false;
++        m_IgnoreJump = false;
++        m_HeightInAir = 0;
++        m_pPhysics->VSetGravityScale(m_pOwner->GetGUID(), m_GravityScale);
++        m_pPhysics->VSetLinearSpeedEx(m_pOwner->GetGUID(), Point(0, 0));
++        m_pControllableComponent->VOnStopMoving();
++    }
+     if (m_IsClimbing)
+     {
+-        // TODO: Climbing up when on top of the ladder should be disabled
+-        /*if (m_ClimbingSpeed.y < (-1.0 * DBL_EPSILON) && m_pTopLadderContact && m_OverlappingLaddersList.size() > 0)
+-        {
+-            LOG(".");
+-            m_ClimbingSpeed.Set(0, 0);
+-            m_CurrentSpeed.Set(0, 0);
+-            m_IgnoreJump = false;
+-            m_IsClimbing = false;
+-            m_IsJumping = false;
+-            m_IsFalling = false;
+-            m_HeightInAir = 0;
+-            m_pPhysics->VSetGravityScale(m_pOwner->GetGUID(), m_GravityScale);
+-            //m_pControllableComponent->VOnStopMoving();
+-            m_pPhysics->VSetLinearSpeedEx(m_pOwner->GetGUID(), Point(0,0));
+-            return;
+-        }*/
+-
+         if (fabs(m_ClimbingSpeed.y) > DBL_EPSILON)
+         {
+             m_CurrentSpeed = Point(0, 0);
+@@ -977,6 +971,23 @@ void PhysicsComponent::SetJumping(bool jumping)
+     }
+ }
+ 
++bool PhysicsComponent::HasClimbSpaceAbove() const
++{
++    const auto box = m_pPhysics->VGetAABB(m_pOwner->GetGUID(), true);
++    const double feet = box.y + box.h;
++    const double x = m_pOwner->GetPositionComponent()->GetX();
++    for (const auto* ladder : m_OverlappingLaddersList)
++    {
++        const auto bounds = ladder->GetAABB(0);
++        const auto top = MetersToPixels(bounds.lowerBound);
++        const auto bottom = MetersToPixels(bounds.upperBound);
++        // Two pixels cover Box2D skin/rounded integer bounds. Consider every
++        // overlapping segment so stacked ladder tiles remain traversable.
++        if (x > top.x && x < bottom.x && feet > top.y + 2.0) return true;
++    }
++    return false;
++}
++
+ bool PhysicsComponent::AttachToLadder()
+ {
+     if (!m_CanClimb)
+@@ -989,6 +1000,8 @@ bool PhysicsComponent::AttachToLadder()
+         return false;
+     }
+ 
++    if (m_ClimbingSpeed.y < -DBL_EPSILON && !HasClimbSpaceAbove()) return false;
++
+     // Unit can attach to ladder but check if it is standing on ground and that the ground
+     // is not the top-side ladder ground patch
+     if (m_ClimbingSpeed.y > DBL_EPSILON)
+diff --git a/OpenClaw/Engine/Actor/Components/PhysicsComponent.h b/OpenClaw/Engine/Actor/Components/PhysicsComponent.h
+index 261ed61..2c69e2a 100644
+--- a/OpenClaw/Engine/Actor/Components/PhysicsComponent.h
++++ b/OpenClaw/Engine/Actor/Components/PhysicsComponent.h
+@@ -120,6 +120,7 @@ public:
+     void SetExternalConveyorBeltSpeed(const Point& extSpeed) { m_ExternalConveyorBeltSpeed = extSpeed; }
+ 
+ private:
++    bool HasClimbSpaceAbove() const;
+     // Configurable data read from XML
+     bool m_CanClimb;
+     bool m_CanBounce;
 diff --git a/OpenClaw/Engine/Actor/Components/ProjectileSpawnerComponent.cpp b/OpenClaw/Engine/Actor/Components/ProjectileSpawnerComponent.cpp
 index 340580a..94745b9 100644
 --- a/OpenClaw/Engine/Actor/Components/ProjectileSpawnerComponent.cpp
@@ -1521,7 +1609,7 @@ index 49c7f1e..78d568c 100644
          customData.tap = tap;
          sdlEvent.user.code = type;
 diff --git a/OpenClaw/Engine/UserInterface/UserInterface.cpp b/OpenClaw/Engine/UserInterface/UserInterface.cpp
-index 9966337..b6c2f05 100644
+index 9966337..82a2c54 100644
 --- a/OpenClaw/Engine/UserInterface/UserInterface.cpp
 +++ b/OpenClaw/Engine/UserInterface/UserInterface.cpp
 @@ -109,6 +109,9 @@ std::map<std::string, MenuItemType> g_StringToMenuItemType =
@@ -1580,7 +1668,29 @@ index 9966337..b6c2f05 100644
  
      return true;
  }
-@@ -765,7 +786,11 @@ bool ScreenElementMenuPage::VOnEvent(SDL_Event& evt)
+@@ -709,15 +730,19 @@ bool ScreenElementMenuPage::VOnEvent(SDL_Event& evt)
+         assert(activeMenuItemIdx >= 0);
+     }
+ 
+-    // Cannot be switch-case since I have to check the "repeat" aswell
++    // Repeat only navigation, never a confirmation or page-changing action.
+     if (evt.type == SDL_KEYDOWN)
+     {
++        SDL_Keycode keyCode = SDL_GetScancodeFromKey(evt.key.keysym.sym);
+         if (evt.key.repeat != 0)
+         {
++#ifdef __ANDROID__
++            if (keyCode != SDL_SCANCODE_UP && keyCode != SDL_SCANCODE_DOWN) return false;
++#else
+             return false;
++#endif
+         }
+ 
+-        SDL_Keycode keyCode = SDL_GetScancodeFromKey(evt.key.keysym.sym);
+         if (keyCode == SDL_SCANCODE_DOWN)
+         {
+             MoveToMenuItemIdx(activeMenuItemIdx, 1);
+@@ -765,7 +790,11 @@ bool ScreenElementMenuPage::VOnEvent(SDL_Event& evt)
          if (evt.button.button == SDL_BUTTON_LEFT)
          {
              SDL_Rect clickRect;
@@ -1592,7 +1702,19 @@ index 9966337..b6c2f05 100644
              clickRect.y = (int)(evt.button.y / g_MenuScale.y);
              clickRect.w = 1;
              clickRect.h = 1;
-@@ -1380,4 +1405,4 @@ SDL_Rect ScreenElementMenuItem::GetMenuItemRect()
+@@ -926,6 +955,11 @@ bool ScreenElementMenuPage::MoveToMenuItemIdx(int oldIdx, int idxIncrement, bool
+         tryCount++;
+     }
+ 
++#ifdef __ANDROID__
++    SDL_Log("Pazur menu selection: page=%d item=%s index=%d", int(m_PageType),
++        m_MenuItems[buttonIdx]->GetName().c_str(), buttonIdx);
++#endif
++
+     if (playSound)
+     {
+         // Play sound
+@@ -1380,4 +1414,4 @@ SDL_Rect ScreenElementMenuItem::GetMenuItemRect()
      itemRect.h = itemHeight;
  
      return itemRect;

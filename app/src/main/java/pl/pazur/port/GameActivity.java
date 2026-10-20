@@ -48,8 +48,9 @@ public class GameActivity extends SDLActivity {
         pad.setOnClickListener(v -> startActivity(new android.content.Intent(this,ControllerSettingsActivity.class)));
         android.widget.RelativeLayout.LayoutParams position = new android.widget.RelativeLayout.LayoutParams(
             (int)(64*getResources().getDisplayMetrics().density), (int)(44*getResources().getDisplayMetrics().density));
-        position.addRule(android.widget.RelativeLayout.ALIGN_PARENT_TOP);
-        position.addRule(android.widget.RelativeLayout.ALIGN_PARENT_RIGHT);
+        position.addRule(android.widget.RelativeLayout.ALIGN_PARENT_BOTTOM);
+        position.addRule(android.widget.RelativeLayout.CENTER_HORIZONTAL);
+        position.bottomMargin=(int)(8*getResources().getDisplayMetrics().density);
         mLayout.addView(pad,position);
     }
     @Override protected String[] getLibraries() {

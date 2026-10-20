@@ -1,5 +1,17 @@
 # Historia adaptacji
 
+## 0.4.6 — drabiny i dostęp do ustawień pada
+
+Zakończenie wspinania, gdy drabina nie sięga już ponad stopy; blokada ponownego zaczepiania przy trzymaniu góry na szczycie. PAD przeniesiony z licznika życia na dół ekranu. Menu Androida przyjmuje powtarzane kierunki góra/dół z pada, nadal bez powtarzania zatwierdzania. Szczegóły i granice porównania z oryginałem: `validation/LADDERS.md`.
+
+## 0.4.5 — własne przypisania pada
+
+Ekran przechwytywania fizycznych przycisków/spustów, zapis i przywracanie przypisań, osobne czynności w menu. Kolejka Java/JNI/SDL omija niejednoznaczne tłumaczenie przycisków urządzenia. Test potwierdził obrażenia szabli po przypisaniu L1; użytkownik następnie potwierdził dobre działanie.
+
+## 0.4.4 — obsługa padów i uporządkowanie źródeł
+
+SDL_GameControllerDB, obsługa podłączania i odłączania, martwa strefa, poprawki wejścia w pauzie i zamykania Androida, instrukcje instalacji PL/EN oraz lokalny projekt Git bez komercyjnych danych gry.
+
 ## 0.4.3 — dotyk i skok
 
 Większe przyciski w łuku pod kciukiem, symbole akcji, utrzymanie palca na przypisanym przycisku, bezpośrednia obsługa zdarzeń, minimalne podtrzymanie krótkiego tapnięcia 110 ms oraz cache rysowania przycisków. Porównanie pomiarów jest w `validation/JUMP-TOUCH.md`.

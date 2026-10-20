@@ -17,6 +17,8 @@ Całą pracę nad adaptacją w tej sesji — zmiany kodu, dokumentację, rozpozn
 
 ## Open checks / Otwarte sprawdzenia
 
+User feedback after 0.4.5: configurable controller input works well. The next reported bug was repeated climbing at the top of level 1's first ladder, plus PAD obscuring health. Version 0.4.6 fixes the ladder attachment/exit condition and moves PAD to bottom centre. Actual-map and isolated checks passed; exact original Windows behavior remains unverified. A separate held-direction menu repeat defect was found and fixed. Detailed evidence and intermediate failed fixtures: [LADDERS.md](validation/LADDERS.md).
+
 - Finish real GameSir Nova 2 Lite gameplay button, axis, pause, disconnect and reconnect checks. Redmi identified Wireless Controller; Huawei paired in red Switch mode as Pro Controller, and the user confirmed menu navigation. A connected device is not yet a passed gameplay test.
 - A Huawei menu-exit test exposed a crash from Android process-wide exit inside the event callback. The Android path now unwinds the loop and releases controller/touch state. Three automated exit/relaunch cycles passed; other shutdown scenarios still need coverage.
 - The user also found that the controller stopped responding after opening pause on level 1. Rendering continued: the input context missed the engine's SetRunning(false) pause flag while GameState remained IngameRunning. That flag combination now selects menu input. Three automated pause/menu-direction/resume cycles passed; physical confirmation after the fix is pending. The test checks actual direction events, not just mailbox acknowledgements.

@@ -3,7 +3,7 @@
 ## Polski
 
 1. Połącz pada w ustawieniach Androida i otwórz grę. GameSir Nova 2 Lite został sparowany na testowym Huawei w czerwonym trybie jako Pro Controller. Inne tryby i telefony mogą zgłaszać inne nazwy przycisków.
-2. Dotknij **PAD** w prawym górnym rogu gry.
+2. Dotknij **PAD** na dole, pośrodku ekranu gry. Od wersji 0.4.6 przycisk nie zasłania licznika życia.
 3. Wybierz np. **Atak szablą**. Puść przyciski, potem naciśnij ten, którym chcesz atakować. Możesz wybrać także spust.
 4. Przypisanie zapisuje się automatycznie. Jeżeli przycisk zajmuje inna czynność w tej samej grupie, obie zamieniają się przyciskami. Czynności w grze i czynności w menu są osobnymi grupami.
 5. Wybierz **Wróć do gry**. Puść pada na chwilę przed testem: powrót z ustawień wymaga neutralnego położenia, żeby przytrzymany przycisk nie wywołał niechcianej akcji.
@@ -15,7 +15,7 @@ Przypisania są wspólne dla padów na danej instalacji aplikacji, zapisane w je
 ## English
 
 1. Pair the controller in Android Settings and open the game. The test Huawei paired a GameSir Nova 2 Lite in red Switch mode as Pro Controller; names can differ by controller mode/device.
-2. Tap **PAD** at the top right of the game.
+2. Tap **PAD** at the bottom centre of the game. Since 0.4.6 it no longer covers the health display.
 3. Choose an action such as **Sword attack**, release the controls, then press the desired button or trigger.
 4. Changes save automatically. If that button already belongs to another action in the same group, their assignments swap. Gameplay and menu actions are separate groups.
 5. Tap **Return to game** and release all controls briefly. Returning from settings requires neutral controls to prevent unintended actions.

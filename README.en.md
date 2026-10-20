@@ -20,7 +20,7 @@ Previous hardware measurements used a Redmi Note 8 with Android 16: approximatel
 
 ## Controls
 
-Tap **PAD** at the top right to bind physical buttons or triggers to gameplay/menu actions. Changes save automatically; Restore defaults is available. [Detailed instructions, English and Polish](docs/CONTROLLER.md).
+Tap **PAD** at the bottom centre to bind physical buttons or triggers to gameplay/menu actions. Changes save automatically; Restore defaults is available. [Detailed instructions, English and Polish](docs/CONTROLLER.md).
 
 Touch: left stick moves, climbs and crouches. Jump is at the bottom right, attack beside it and shoot above. A short tap produces a useful low jump; holding increases height. BRON changes weapon; PAUZA opens the menu.
 

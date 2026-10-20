@@ -5,6 +5,7 @@
 #include "Engine/Actor/ActorTemplates.h"
 #include "Engine/Actor/Components/PositionComponent.h"
 #include "Engine/Actor/Components/PhysicsComponent.h"
+#include "Engine/Actor/Components/AnimationComponent.h"
 #include "Engine/Actor/Components/ControllableComponent.h"
 #include "Engine/Actor/Components/ControllerComponents/HealthComponent.h"
 #include "Engine/Actor/Components/ControllerComponents/AmmoComponent.h"
@@ -17,6 +18,7 @@
 #include "Engine/Events/Events.h"
 #include <fstream>
 #include <cstdio>
+#include <libwap.h>
 
 namespace {
 WeakActorPtr fixtureClaw, target;
@@ -32,6 +34,7 @@ struct JumpTrace {
 } jumpTrace;
 
 void keyEvent(SDL_Keycode key, bool down) {
+    if (key==SDLK_SPACE) PazurCombatProbe::JumpInput(down,0);
     SDL_Event event{};
     event.type = down ? SDL_KEYDOWN : SDL_KEYUP;
     event.key.state = down ? SDL_PRESSED : SDL_RELEASED;
@@ -64,6 +67,54 @@ bool PazurCombatProbe::Handle(const std::vector<std::string>& args, const ActorM
     auto claw = logic->GetClawActor();
     if (!claw) return false;
     auto physics = logic->VGetGamePhysics();
+    if (args[0]=="laddermap") {
+        const int level=logic->GetCurrentLevelData()->GetLevelNumber();
+        auto archive=WAP_LoadRezArchive("CLAW.REZ");
+        if (!archive) return true;
+        const auto path="/LEVEL"+std::to_string(level)+"/WORLDS/WORLD.WWD";
+        auto world=WAP_WwdLoadFromRezArchive(archive,path.c_str());
+        auto metadata=g_pApp->GetLevelMetadata(level);
+        if (world) {
+            for (unsigned p=0;p<world->planesCount;++p) {
+                const auto& plane=world->planes[p];
+                if (!(plane.properties.flags&WAP_PLANE_FLAG_MAIN_PLANE)) continue;
+                for (unsigned y=0;y<plane.properties.tilesOnAxisY;++y)
+                    for (unsigned x=0;x<plane.properties.tilesOnAxisX;++x) {
+                        const int tile=plane.tiles[y*plane.properties.tilesOnAxisX+x];
+                        const auto end=metadata->tileIdToTopLadderEndMap.find(tile);
+                        if (end!=metadata->tileIdToTopLadderEndMap.end())
+                            SDL_Log("Pazur ladder map: level=%d x=%d top=%d tile=%d",level,
+                                int(x*64+end->second.x),int(y*64+end->second.y),tile);
+                    }
+            }
+            WAP_WwdDestroy(world);
+        }
+        WAP_DestroyRezArchive(archive);
+        return true;
+    }
+    if (args[0]=="ladderstage") {
+        // Isolated static ladder and its one-way cap, using the production fixtures.
+        Handle({"combatstage","-1","80","0"},actors);
+        static WeakActorPtr ladderClaw;
+        if (ladderClaw.lock()!=claw) {
+            physics->VAddStaticGeometry(Point(199968,768),Point(64,320),CollisionType_Climb,FixtureType_Climb);
+            physics->VAddStaticGeometry(Point(199968,768),Point(64,10),CollisionType_Ground,FixtureType_TopLadderGround);
+            ladderClaw=claw;
+        }
+        SDL_Log("Pazur ladder fixture: x=200000 top=768 bottom=1088");
+        return true;
+    }
+    if (args[0]=="ladderstatus") {
+        auto pc=claw->GetPhysicsComponent();
+        auto anim=claw->GetRawComponent<AnimationComponent>(true);
+        const auto box=physics->VGetAABB(claw->GetGUID(),true);
+        const auto position=claw->GetPositionComponent()->GetPosition();
+        const auto velocity=pc->GetVelocity();
+        SDL_Log("Pazur ladder status: x=%.1f y=%.1f bottom=%d climb=%d ladder=%d ground=%d vy=%.2f animation=%s paused=%d",
+            position.x,position.y,box.y+box.h,pc->IsClimbing(),pc->IsOnLadder(),pc->IsOnGround(),velocity.y,
+            anim->GetCurrentAnimationName().c_str(),anim->GetCurrentAnimation()->IsPaused());
+        return true;
+    }
     if (args[0] == "combatmap") {
         int count=0;
         for (const auto& pair : actors) {
