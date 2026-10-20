@@ -1,0 +1,25 @@
+plugins { id 'com.android.application' }
+def runtimePython = System.getenv('PYTHON') ?: (System.getProperty('os.name').toLowerCase().contains('windows') ? 'python' : 'python3')
+tasks.register('prepareRuntimeAssets', Exec) {
+    workingDir rootDir
+    commandLine runtimePython, 'tools/prepare_music_bank.py'
+}
+tasks.configureEach { if (name == 'preBuild') dependsOn 'prepareRuntimeAssets' }
+android {
+    namespace 'pl.pazur.port'
+    compileSdk 35
+    ndkVersion '27.2.12479018'
+    defaultConfig {
+        applicationId 'pl.pazur.port'
+        minSdk 21
+        targetSdk 35
+        versionCode 15
+        versionName '0.4.3-dev'
+        testInstrumentationRunner 'pl.pazur.port.JumpTouchTest'
+        ndk { abiFilters((project.findProperty('abis') ?: 'arm64-v8a').split(',')) }
+        externalNativeBuild { cmake { arguments '-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON', '-DANDROID_STL=c++_shared'; targets 'openclaw' } }
+    }
+    externalNativeBuild { cmake { path '../CMakeLists.txt'; version '3.22.1' } }
+    sourceSets.main.java.srcDirs += '../upstream/SDL/android-project/app/src/main/java'
+    buildTypes { debug { jniDebuggable true }; release { minifyEnabled false } }
+}

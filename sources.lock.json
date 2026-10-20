@@ -1,0 +1,37 @@
+[
+  {
+    "name": "OpenClaw",
+    "url": "https://github.com/pjasicek/OpenClaw.git",
+    "commit": "5ee5740ca98377c76b13b50c84f610b0066a4717"
+  },
+  {
+    "name": "SDL",
+    "url": "https://github.com/libsdl-org/SDL.git",
+    "commit": "5d249570393f7a37e037abf22cd6012a4cc56a71"
+  },
+  {
+    "name": "SDL_image",
+    "url": "https://github.com/libsdl-org/SDL_image.git",
+    "commit": "c1bf2245b0ba63a25afe2f8574d305feca25af77"
+  },
+  {
+    "name": "SDL_mixer",
+    "url": "https://github.com/libsdl-org/SDL_mixer.git",
+    "commit": "171eb2d420d5643e4ee11514a06e04a41a463bbd"
+  },
+  {
+    "name": "SDL_ttf",
+    "url": "https://github.com/libsdl-org/SDL_ttf.git",
+    "commit": "2a891473eaf05ba1707a4b7913e6c4db7de7458a"
+  },
+  {
+    "name": "SDL2_gfx",
+    "url": "https://github.com/ferzkopp/SDL2_gfx.git",
+    "commit": "c4aca6b9700ec0db0abd316809e7e6038c511ce2"
+  },
+  {
+    "name": "freepats",
+    "url": "https://github.com/feross/freepats.git",
+    "commit": "79cd6f0076ff6c9bbc692bf29b6a4574fe4cc725"
+  }
+]

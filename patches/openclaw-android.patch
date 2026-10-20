@@ -1,0 +1,1714 @@
+diff --git a/OpenClaw/Engine/Actor/ActorFactory.cpp b/OpenClaw/Engine/Actor/ActorFactory.cpp
+index d219dde..858b52f 100644
+--- a/OpenClaw/Engine/Actor/ActorFactory.cpp
++++ b/OpenClaw/Engine/Actor/ActorFactory.cpp
+@@ -2,6 +2,10 @@
+ 
+ #include "ActorFactory.h"
+ #include "Actor.h"
++#ifdef __ANDROID__
++#include "LavaGeyserComponent.h"
++#include "OmarEncounterComponent.h"
++#endif
+ #include "../Logger/Logger.h"
+ #include "../SharedDefines.h"
+ #include "../Util/Util.h"
+@@ -62,6 +66,12 @@
+ 
+ ActorFactory::ActorFactory()
+ {
++#ifdef __ANDROID__
++    _componentFactory.Register<LavaGeyserComponent>(LavaGeyserComponent::GetIdFromName(LavaGeyserComponent::g_Name));
++    _componentFactory.Register<LavaMouthComponent>(LavaMouthComponent::GetIdFromName(LavaMouthComponent::g_Name));
++    _componentFactory.Register<OmarEncounterComponent>(OmarEncounterComponent::GetIdFromName(OmarEncounterComponent::g_Name));
++    _componentFactory.Register<ChameleonFadeComponent>(ChameleonFadeComponent::GetIdFromName(ChameleonFadeComponent::g_Name));
++#endif
+     _lastActorGUID = 0;
+ 
+     _componentFactory.Register<PositionComponent>(ActorComponent::GetIdFromName(PositionComponent::g_Name));
+diff --git a/OpenClaw/Engine/Actor/Components/AIComponents/CrumblingPegAIComponent.cpp b/OpenClaw/Engine/Actor/Components/AIComponents/CrumblingPegAIComponent.cpp
+index 2df1194..d7020fd 100644
+--- a/OpenClaw/Engine/Actor/Components/AIComponents/CrumblingPegAIComponent.cpp
++++ b/OpenClaw/Engine/Actor/Components/AIComponents/CrumblingPegAIComponent.cpp
+@@ -63,6 +63,8 @@ void CrumblingPegAIComponent::VOnAnimationFrameChanged(Animation* pAnimation, An
+     if (pNewFrame->idx == m_Properties.crumbleFrameIdx)
+     {
+         m_pPhysics->VDeactivate(m_pOwner->GetGUID());
++        if (g_pApp->GetDebugOptions()->bPreviewIncompleteLevel14)
++            SDL_Log("Pazur trap: crumble solid=0 frame=%d", pNewFrame->idx);
+     }
+     // TODO: VOnAnimationLooped not working prop
+     if (pAnimation->IsAtLastAnimFrame())
+@@ -80,6 +82,8 @@ void CrumblingPegAIComponent::VOnAnimationLooped(Animation* pAnimation)
+ 
+ void CrumblingPegAIComponent::OnContact(b2Body* pBody)
+ {
++    if (g_pApp->GetDebugOptions()->bPreviewIncompleteLevel14)
++        SDL_Log("Pazur trap: crumble contact at %s", m_pOwner->GetPositionComponent()->GetPosition().ToString().c_str());
+     shared_ptr<AnimationComponent> pAnimationComponent =
+         MakeStrongPtr(m_pOwner->GetComponent<AnimationComponent>(AnimationComponent::g_Name));
+     assert(pAnimationComponent && pAnimationComponent->GetCurrentAnimation());
+@@ -104,4 +108,4 @@ void CrumblingPegAIComponent::ClawDiedDelegate(IEventDataPtr pEventData)
+     pARC->SetImage(pAnimationComponent->GetCurrentAnimation()->GetCurrentAnimationFrame()->imageName);
+ 
+     m_pPhysics->VActivate(m_pOwner->GetGUID());
+-}
+\ No newline at end of file
++}
+diff --git a/OpenClaw/Engine/Actor/Components/AIComponents/ProjectileAIComponent.cpp b/OpenClaw/Engine/Actor/Components/AIComponents/ProjectileAIComponent.cpp
+index 07ecfdb..3f5681d 100644
+--- a/OpenClaw/Engine/Actor/Components/AIComponents/ProjectileAIComponent.cpp
++++ b/OpenClaw/Engine/Actor/Components/AIComponents/ProjectileAIComponent.cpp
+@@ -131,6 +131,17 @@ void ProjectileAIComponent::VUpdate(uint32 msDiff)
+     assert(g_pApp->GetHumanView() && g_pApp->GetHumanView()->GetCamera());
+ 
+     Point projectilePos = m_pOwner->GetPositionComponent()->GetPosition();
++    static int lavaArcLogs = 0;
++    if (g_pApp->GetDebugOptions()->bPreviewIncompleteLevel14 &&
++        m_pOwner->GetName() == "Level14_LavaHandProjectile" && lavaArcLogs < 6)
++    {
++        const Point velocity = m_pPhysics->VGetVelocity(m_pOwner->GetGUID());
++        if (velocity.y > -4.0)
++        {
++            ++lavaArcLogs;
++            SDL_Log("Pazur lava hand arc: vx=%.2f vy=%.2f x=%.0f y=%.0f", velocity.x, velocity.y, projectilePos.x, projectilePos.y);
++        }
++    }
+     if (!g_pApp->GetHumanView()->GetCamera()->IntersectsWithPoint(projectilePos, 1.25f))
+     {
+         shared_ptr<EventData_Destroy_Actor> pEvent(new EventData_Destroy_Actor(m_pOwner->GetGUID()));
+@@ -181,6 +192,10 @@ void ProjectileAIComponent::OnCollidedWithSolidTile()
+ {
+     if (m_IsActive && !m_bHasDetonationTime)
+     {
++        static int lavaLogs = 0;
++        if (g_pApp->GetDebugOptions()->bPreviewIncompleteLevel14 &&
++            m_pOwner->GetName() == "Level14_LavaHandProjectile" && lavaLogs++ < 8)
++            SDL_Log("Pazur lava hand projectile removed: collision");
+         Detonate();
+     }
+ 
+@@ -189,6 +204,12 @@ void ProjectileAIComponent::OnCollidedWithSolidTile()
+ 
+ void ProjectileAIComponent::OnCollidedWithActor(Actor* pActorWhoWasShot)
+ {
++    // Several fixtures can contact one projectile in a single physics step.
++    // A consumed projectile and a piercing projectile both hit a given actor only once.
++    if (!m_IsActive || !pActorWhoWasShot ||
++        pActorWhoWasShot->GetGUID() == (uint32)m_SourceActorId ||
++        !m_HitActors.insert(pActorWhoWasShot->GetGUID()).second) return;
++
+     shared_ptr<HealthComponent> pHealthComponent =
+         MakeStrongPtr(pActorWhoWasShot->GetComponent<HealthComponent>(HealthComponent::g_Name));
+     if (pHealthComponent)
+@@ -202,13 +223,27 @@ void ProjectileAIComponent::OnCollidedWithActor(Actor* pActorWhoWasShot)
+             dir = Direction_Left;
+         }
+ 
+-        Point contactPoint = Point(areaDamageAABB.x + areaDamageAABB.w / 2, areaDamageAABB.y);
++        Point contactPoint = Point(areaDamageAABB.x + areaDamageAABB.w, areaDamageAABB.y + areaDamageAABB.h / 2);
+         if (dir == Direction_Left)
+         {
+-            contactPoint.x = areaDamageAABB.x - areaDamageAABB.w / 2;
++            contactPoint.x = areaDamageAABB.x;
+         }
+ 
++        const int healthBefore = pHealthComponent->GetHealth();
+         pHealthComponent->AddHealth((-1) * m_Damage, m_DamageType, contactPoint, m_SourceActorId);
++        static int combatHitLogs = 0;
++        if (g_pApp->GetDebugOptions()->bPreviewIncompleteLevel14 && combatHitLogs++ < 2000)
++            SDL_Log("Pazur projectile hit: projectile=%s source=%d target=%s damage=%d type=%d health=%d->%d",
++                m_pOwner->GetName().c_str(),m_SourceActorId,pActorWhoWasShot->GetName().c_str(),m_Damage,
++                (int)m_DamageType,healthBefore,pHealthComponent->GetHealth());
++        static int lavaHitLogs = 0;
++        if (g_pApp->GetDebugOptions()->bPreviewIncompleteLevel14 &&
++            m_pOwner->GetName() == "Level14_LavaHandProjectile" && lavaHitLogs++ < 8)
++            SDL_Log("Pazur lava hand hit: health=%d->%d", healthBefore, pHealthComponent->GetHealth());
++        static int previewLogs = 0;
++        if (m_pOwner->GetName() == "Level14_Fireball" &&
++            g_pApp->GetDebugOptions()->bPreviewIncompleteLevel14 && previewLogs++ < 8)
++            SDL_Log("Pazur fireball hit: health=%d->%d", healthBefore, pHealthComponent->GetHealth());
+     }
+ 
+     if (m_DamageType == DamageType_Bullet)
+diff --git a/OpenClaw/Engine/Actor/Components/AIComponents/ProjectileAIComponent.h b/OpenClaw/Engine/Actor/Components/AIComponents/ProjectileAIComponent.h
+index fed3a58..4b2efd3 100644
+--- a/OpenClaw/Engine/Actor/Components/AIComponents/ProjectileAIComponent.h
++++ b/OpenClaw/Engine/Actor/Components/AIComponents/ProjectileAIComponent.h
+@@ -2,6 +2,7 @@
+ #define __PROJECTILE_AI_COMPONENT_H__
+ 
+ #include "../../../SharedDefines.h"
++#include <set>
+ #include "../../ActorComponent.h"
+ #include "../Animation.h"
+ #include "../AnimationComponent.h"
+@@ -42,6 +43,7 @@ private:
+     // Internal state
+     shared_ptr<IGamePhysics> m_pPhysics;
+     bool m_IsActive;
++    std::set<uint32> m_HitActors;
+     std::vector<StrongActorPtr> m_PowerupSparkles;
+     bool m_bHasDetonationTime;
+ };
+diff --git a/OpenClaw/Engine/Actor/Components/AIComponents/TogglePegAIComponent.cpp b/OpenClaw/Engine/Actor/Components/AIComponents/TogglePegAIComponent.cpp
+index 5dd2581..ad5586d 100644
+--- a/OpenClaw/Engine/Actor/Components/AIComponents/TogglePegAIComponent.cpp
++++ b/OpenClaw/Engine/Actor/Components/AIComponents/TogglePegAIComponent.cpp
+@@ -130,12 +130,18 @@ void TogglePegAIComponent::VOnAnimationFrameChanged(Animation* pAnimation, Anima
+         (pNewFrame->idx == m_Properties.toggleFrameIdx))
+     {
+         m_pPhysics->VDeactivate(m_pOwner->GetGUID());
++        static int previewLogs = 0;
++        if (g_pApp->GetDebugOptions()->bPreviewIncompleteLevel14 && previewLogs++ < 4)
++            SDL_Log("Pazur trap: slider solid=0 frame=%d", pNewFrame->idx);
+         didToggle = true;
+     }
+     else if ((pLastFrame->idx == m_Properties.toggleFrameIdx) && 
+             (pNewFrame->idx == (m_Properties.toggleFrameIdx - 1)))
+     {
+         m_pPhysics->VActivate(m_pOwner->GetGUID());
++        static int previewLogs = 0;
++        if (g_pApp->GetDebugOptions()->bPreviewIncompleteLevel14 && previewLogs++ < 4)
++            SDL_Log("Pazur trap: slider solid=1 frame=%d", pNewFrame->idx);
+         didToggle = true;
+     }
+ 
+@@ -162,4 +168,4 @@ void TogglePegAIComponent::VOnAnimationFrameChanged(Animation* pAnimation, Anima
+ void TogglePegAIComponent::VOnAnimationLooped(Animation* pAnimation)
+ {
+ 
+-}
+\ No newline at end of file
++}
+diff --git a/OpenClaw/Engine/Actor/Components/ControllableComponent.cpp b/OpenClaw/Engine/Actor/Components/ControllableComponent.cpp
+index a131374..8d4f585 100644
+--- a/OpenClaw/Engine/Actor/Components/ControllableComponent.cpp
++++ b/OpenClaw/Engine/Actor/Components/ControllableComponent.cpp
+@@ -227,6 +227,7 @@ void ClawControllableComponent::VPostPostInit()
+ 
+ void ClawControllableComponent::VUpdate(uint32 msDiff)
+ {
++    if (m_State == ClawState_Dying) return;
+     if (m_State == ClawState_Standing ||
+         m_State == ClawState_Idle)
+     {
+@@ -274,6 +275,9 @@ void ClawControllableComponent::VUpdate(uint32 msDiff)
+     assert(g_pApp->GetHumanView() && g_pApp->GetHumanView()->GetCamera());
+     shared_ptr<CameraNode> pCamera = g_pApp->GetHumanView()->GetCamera();
+ 
++    // Boss staging owns both camera axes while the player is frozen.
++    if (!m_bFrozen)
++    {
+     if (m_DuckingTime > g_pApp->GetGlobalOptions()->startLookUpOrDownTime)
+     {
+         if (pCamera->GetCameraOffsetY() < g_pApp->GetGlobalOptions()->maxLookUpOrDownDistance)
+@@ -330,6 +334,8 @@ void ClawControllableComponent::VUpdate(uint32 msDiff)
+         }
+     }
+ 
++    }
++
+     if (m_bFrozen)
+     {
+         m_pClawAnimationComponent->SetAnimation("stand");
+@@ -384,6 +390,8 @@ void ClawControllableComponent::VUpdate(uint32 msDiff)
+ // Interface for subclasses
+ void ClawControllableComponent::VOnStartFalling()
+ {
++    // Physics and released controls must not cancel the death animation.
++    if (m_State == ClawState_Dying) return;
+     if (m_State == ClawState_JumpShooting ||
+         m_State == ClawState_JumpAttacking)
+     {
+@@ -396,6 +404,8 @@ void ClawControllableComponent::VOnStartFalling()
+ 
+ void ClawControllableComponent::VOnLandOnGround(float fromHeight)
+ {
++    // Physics and released controls must not cancel the death animation.
++    if (m_State == ClawState_Dying) return;
+     if (fromHeight > g_pApp->GetGlobalOptions()->clawMinFallHeight)
+     {
+         m_pClawAnimationComponent->SetAnimation("land");
+@@ -415,6 +425,8 @@ void ClawControllableComponent::VOnLandOnGround(float fromHeight)
+ 
+ void ClawControllableComponent::VOnStartJumping()
+ {
++    // Physics and released controls must not cancel the death animation.
++    if (m_State == ClawState_Dying) return;
+     if (m_State == ClawState_JumpShooting ||
+         m_State == ClawState_JumpAttacking ||
+         m_bFrozen)
+@@ -441,6 +453,8 @@ bool ClawControllableComponent::VOnDirectionChange(Direction direction)
+ 
+ void ClawControllableComponent::VOnStopMoving()
+ {
++    // Physics and released controls must not cancel the death animation.
++    if (m_State == ClawState_Dying) return;
+     if (m_State == ClawState_Shooting ||
+         m_State == ClawState_Idle ||
+         IsDucking())
+@@ -458,6 +472,8 @@ void ClawControllableComponent::VOnStopMoving()
+ 
+ void ClawControllableComponent::VOnRun()
+ {
++    // Physics and released controls must not cancel the death animation.
++    if (m_State == ClawState_Dying) return;
+     if (m_State == ClawState_Shooting ||
+         m_pClawAnimationComponent->GetCurrentAnimationName() == "land")
+     {
+@@ -471,6 +487,8 @@ void ClawControllableComponent::VOnRun()
+ 
+ void ClawControllableComponent::VOnClimb(bool bIsClimbingUp, bool bIsOnTopEdge)
+ {
++    // Physics and released controls must not cancel the death animation.
++    if (m_State == ClawState_Dying) return;
+     // TODO: Decide whether to keep it
+     static bool useAlternativeClimbAnim = true;
+     if (bIsOnTopEdge && useAlternativeClimbAnim)
+@@ -502,6 +520,8 @@ void ClawControllableComponent::VOnClimb(bool bIsClimbingUp, bool bIsOnTopEdge)
+ 
+ void ClawControllableComponent::VOnStopClimbing()
+ {
++    // Physics and released controls must not cancel the death animation.
++    if (m_State == ClawState_Dying) return;
+     m_pClawAnimationComponent->PauseAnimation();
+ }
+ 
+@@ -759,6 +779,8 @@ bool ClawControllableComponent::IsActorFrozen()
+ 
+ void ClawControllableComponent::SetCurrentPhysicsState()
+ {
++    // Physics and released controls must not cancel the death animation.
++    if (m_State == ClawState_Dying) return;
+     if (m_pPhysicsComponent->IsFalling())
+     {
+         m_pClawAnimationComponent->SetAnimation("fall");
+@@ -981,6 +1003,7 @@ void ClawControllableComponent::VOnAnimationLooped(Animation* pAnimation)
+             pClawLifeComponent->GetLives() - 1));
+         IEventMgr::Get()->VTriggerEvent(pEvent);
+ 
++        m_State = ClawState_None;
+         SetCurrentPhysicsState();
+         m_pPhysicsComponent->RestoreGravityScale();
+         m_pRenderComponent->SetVisible(true);
+@@ -1136,6 +1159,8 @@ bool ClawControllableComponent::IsDucking()
+ 
+ void ClawControllableComponent::OnDuck()
+ {
++    // Physics and released controls must not cancel the death animation.
++    if (m_State == ClawState_Dying) return;
+     if (!IsDucking())
+     {
+         m_pClawAnimationComponent->SetAnimation("duck");
+@@ -1145,6 +1170,8 @@ void ClawControllableComponent::OnDuck()
+ 
+ void ClawControllableComponent::OnStand()
+ {
++    // Physics and released controls must not cancel the death animation.
++    if (m_State == ClawState_Dying) return;
+     m_State = ClawState_Standing;
+     SetCurrentPhysicsState();
+ }
+diff --git a/OpenClaw/Engine/Actor/Components/ControllerComponents/HealthComponent.cpp b/OpenClaw/Engine/Actor/Components/ControllerComponents/HealthComponent.cpp
+index a0cfe72..f68f42c 100644
+--- a/OpenClaw/Engine/Actor/Components/ControllerComponents/HealthComponent.cpp
++++ b/OpenClaw/Engine/Actor/Components/ControllerComponents/HealthComponent.cpp
+@@ -38,7 +38,7 @@ void HealthComponent::VPostInit()
+         m_IsController = true;
+     }
+ 
+-    BroadcastHealthChanged(0, m_CurrentHealth, DamageType_None, Point(0, 0), true);
++    BroadcastHealthChanged(0, m_CurrentHealth, DamageType_None, Point(0, 0), INVALID_ACTOR_ID, true);
+ }
+ 
+ TiXmlElement* HealthComponent::VGenerateXml()
+@@ -49,6 +49,8 @@ TiXmlElement* HealthComponent::VGenerateXml()
+ 
+ void HealthComponent::AddHealth(int32 health, DamageType damageType, Point impactPoint, int sourceActorId)
+ {
++    if (health < 0 && m_CurrentHealth <= 0) return;
++
+     if ((m_bInvulnerable && health < 0) && (damageType != DamageType_DeathTile))
+     {
+         return;
+@@ -63,7 +65,7 @@ void HealthComponent::AddHealth(int32 health, DamageType damageType, Point impac
+     }
+ 
+     // TODO: Is this against subject-observer pattern ? Seems odd.
+-    if (AskCanResistDamage(damageType, impactPoint))
++    if (health <= 0 && AskCanResistDamage(damageType, impactPoint))
+     {
+         NotifyResistDamage(damageType, impactPoint);
+         return;
+@@ -100,6 +102,9 @@ void HealthComponent::SetCurrentHealth(int32 health)
+ 
+ void HealthComponent::BroadcastHealthChanged(int32 oldHealth, int32 newHealth, DamageType damageType, Point impactPoint, int sourceActorId, bool isInitial)
+ {
++    static int previewLogs = 0;
++    if (!isInitial && newHealth < oldHealth && g_pApp->GetDebugOptions()->bPreviewIncompleteLevel14 && previewLogs++ < 2000)
++        SDL_Log("Pazur combat: actor=%s health=%d->%d source=%d", m_pOwner->GetName().c_str(), oldHealth, newHealth, sourceActorId);
+     NotifyHealthChanged(oldHealth, newHealth, damageType, impactPoint, sourceActorId);
+     if (newHealth <= 0)
+     {
+@@ -153,4 +158,4 @@ bool HealthSubject::AskCanResistDamage(DamageType damageType, Point impactPoint)
+     }
+ 
+     return false;
+-}
+\ No newline at end of file
++}
+diff --git a/OpenClaw/Engine/Actor/Components/EnemyAI/EnemyAIComponent.cpp b/OpenClaw/Engine/Actor/Components/EnemyAI/EnemyAIComponent.cpp
+index beef2e6..3c6a06c 100644
+--- a/OpenClaw/Engine/Actor/Components/EnemyAI/EnemyAIComponent.cpp
++++ b/OpenClaw/Engine/Actor/Components/EnemyAI/EnemyAIComponent.cpp
+@@ -158,6 +158,9 @@ void EnemyAIComponent::VUpdate(uint32 msDiff)
+ 
+ void EnemyAIComponent::VOnHealthBelowZero(DamageType damageType, int sourceActorId)
+ {
++    if (m_bDead) return;
++    if (g_pApp->GetDebugOptions()->bPreviewIncompleteLevel14)
++        SDL_Log("Pazur enemy defeated: %s", m_pOwner->GetName().c_str());
+     m_bDead = true;
+     for (const auto &stateComponentIter : m_StateMap)
+     {
+@@ -191,7 +194,7 @@ void EnemyAIComponent::VOnHealthBelowZero(DamageType damageType, int sourceActor
+ void EnemyAIComponent::VOnHealthChanged(int32 oldHealth, int32 newHealth, DamageType damageType, Point impactPoint, int sourceActorId)
+ {
+     // If he died we do not care
+-    if (newHealth >= 0)
++    if (newHealth > 0 && newHealth < oldHealth)
+     {
+         if (HasState("TakeDamageState"))
+         {
+@@ -287,6 +290,7 @@ void EnemyAIComponent::AcquireStateLock(BaseEnemyAIStateComponent* pNewState)
+ 
+ bool EnemyAIComponent::EnterBestState(bool canForceEnter)
+ {
++    if (m_bDead) return false;
+     BaseEnemyAIStateComponent* pCurrentState = GetCurrentState();
+ 
+     // If some other state has state lock we will not force him to exit.
+@@ -422,4 +426,4 @@ bool EnemyAIComponent::TryPlaySpeechSound(int chance, const SoundList& speechSou
+     }
+ 
+     return found;
+-}*/
+\ No newline at end of file
++}*/
+diff --git a/OpenClaw/Engine/Actor/Components/EnemyAI/EnemyAIStateComponent.cpp b/OpenClaw/Engine/Actor/Components/EnemyAI/EnemyAIStateComponent.cpp
+index 5520bba..90d6445 100644
+--- a/OpenClaw/Engine/Actor/Components/EnemyAI/EnemyAIStateComponent.cpp
++++ b/OpenClaw/Engine/Actor/Components/EnemyAI/EnemyAIStateComponent.cpp
+@@ -433,6 +433,9 @@ void PatrolEnemyAIStateComponent::VPostInit()
+ {
+     BaseEnemyAIStateComponent::VPostInit();
+ 
++    // Honor the initial facing authored in the world object before starting patrol.
++    m_Direction = m_pRenderComponent->IsMirrored() ? Direction_Right : Direction_Left;
++
+     m_pAnimationComponent->AddObserver(this);
+ 
+     Point noSpeed(0, 0);
+@@ -576,14 +579,14 @@ void PatrolEnemyAIStateComponent::CalculatePatrolBorders()
+         LOG_WARNING("Did not find raycastResultLeft intersection for actor: " + m_pOwner->GetName() +
+             " with position: " + m_pOwner->GetPositionComponent()->GetPosition().ToString());
+         // Dummy large value, should be sufficient
+-        raycastResultLeft.deltaX = center.x - 10000;
++        raycastResultLeft.deltaX = toLeftRay.x - center.x;
+     }
+     if (!raycastResultRight.foundIntersection)
+     {
+         LOG_WARNING("Did not find raycastResultRight intersection for actor: " + m_pOwner->GetName() +
+             " with position: " + m_pOwner->GetPositionComponent()->GetPosition().ToString());
+         // Dummy large value, should be sufficient
+-        raycastResultRight.deltaX = center.x + 10000;
++        raycastResultRight.deltaX = toRightRay.x - center.x;
+     }
+ 
+     double patrolLeftBorder = 0.0;
+@@ -1090,6 +1093,10 @@ void BaseAttackAIStateComponent::VOnAnimationFrameChanged(
+             offset = Point(offset.x * -1.0, offset.y);
+         }
+ 
++        static int attackFrameLogs = 0;
++        if (g_pApp->GetDebugOptions()->bPreviewIncompleteLevel14 && attackFrameLogs++ < 2000)
++            SDL_Log("Pazur attack frame: actor=%s animation=%s frame=%u direction=%d damage=%u",
++                m_pOwner->GetName().c_str(),pAttack->animation.c_str(),pNewFrame->idx,(int)dir,pAttack->damage);
+         VOnAttackFrame(pAttack, dir, offset);
+ 
+         m_CurrentAttackActionIdx++;
+@@ -1173,7 +1180,7 @@ Point BaseAttackAIStateComponent::FindClosestHostileActorOffset()
+ 
+ bool BaseAttackAIStateComponent::VCanEnter()
+ {
+-    if (m_EnemyAgroList.empty())
++    if (m_EnemyAgroList.empty() || m_AttackActions.empty())
+     {
+         return false;
+     }
+@@ -1182,7 +1189,9 @@ bool BaseAttackAIStateComponent::VCanEnter()
+     // Since the first found actor is picked
+ 
+     // TODO: Revisit this if enemy ever has more than one attack action per AttackAIStateComponent
+-    EnemyAttackAction& action = *m_AttackActions[m_CurrentAttackActionIdx];
++    // The animation advances the action index past the last action before it loops.
++    // LOS belongs to the first action sensor, which is the one installed on the body.
++    EnemyAttackAction& action = *m_AttackActions.front();
+ 
+     // Check if enemy is within line of sight
+     Point fromPoint = m_pOwner->GetPositionComponent()->GetPosition() + action.agroSensorFixture.offset;
+@@ -1238,6 +1247,9 @@ bool MeleeAttackAIStateComponent::VDelegateInit(TiXmlElement* pData)
+ 
+ void MeleeAttackAIStateComponent::VOnAttackFrame(std::shared_ptr<EnemyAttackAction> pAttack, Direction dir, const Point& offset)
+ {
++    static int previewLogs = 0;
++    if (g_pApp->GetDebugOptions()->bPreviewIncompleteLevel14 && previewLogs++ < 1000)
++        SDL_Log("Pazur enemy attack: %s", m_pOwner->GetName().c_str());
+     ActorTemplates::CreateAreaDamage(
+         m_pPositionComponent->GetPosition() + offset,
+         pAttack->attackAreaSize,
+@@ -1893,6 +1905,8 @@ bool RollEnemyAIStateComponent::VDelegateInit(TiXmlElement* pData)
+     assert(m_pPhysics);
+ 
+     DO_AND_CHECK(ParseValueFromXmlElem(&m_RollSpeed, pData->FirstChildElement("RollSpeed")));
++    ParseValueFromXmlElem(&m_RollJumpSpeed, pData->FirstChildElement("JumpSpeed"));
++    ParseValueFromXmlElem(&m_RollReuseTime, pData->FirstChildElement("ReuseTime"));
+     DO_AND_CHECK(ParseValueFromXmlElem(&m_ForwardRollAnimation, pData->FirstChildElement("ForwardRollAnimation")));
+     DO_AND_CHECK(ParseValueFromXmlElem(&m_BackwardRollAnimation, pData->FirstChildElement("BackwardRollAnimation")));
+     m_RollSensorFixtureDef = ActorTemplates::XmlToActorFixtureDef(pData->FirstChildElement("RollSensorFixtureDef"));
+@@ -1920,7 +1934,10 @@ void RollEnemyAIStateComponent::VPostPostInit()
+ 
+ void RollEnemyAIStateComponent::VUpdate(uint32 msDiff)
+ {
++    const int previousReuse = m_ReuseTimeLeft;
+     m_ReuseTimeLeft -= msDiff;
++    if (m_RollJumpSpeed > 0 && !m_IsActive && previousReuse > 0 && m_ReuseTimeLeft <= 0)
++        m_pEnemyAIComponent->EnterBestState(true);
+ 
+     if (m_IsActive)
+     {
+@@ -1937,7 +1954,7 @@ void RollEnemyAIStateComponent::VUpdate(uint32 msDiff)
+ 
+ bool RollEnemyAIStateComponent::VCanEnter()
+ {
+-    bool bCanEnter = (!m_ActorsInLosList.empty() && m_ReuseTimeLeft <= 0);
++    bool bCanEnter = (!m_ActorsInLosList.empty() && m_ReuseTimeLeft <= 0 && (m_RollJumpSpeed <= 0 || !m_pPhysicsComponent->IsInAir()));
+     return bCanEnter;
+ }
+ 
+@@ -1950,7 +1967,11 @@ void RollEnemyAIStateComponent::VOnStateEnter(BaseEnemyAIStateComponent* pPrevio
+    
+     Direction rollDirection = DetermineRollDirection();
+ 
+-    Point speed(m_RollSpeed, 0);
++    Point speed(m_RollSpeed, -m_RollJumpSpeed);
++    if (m_RollJumpSpeed > 0 && g_pApp->GetDebugOptions()->bPreviewIncompleteLevel14) {
++        static int traces = 0;
++        if (traces++ < 8) SDL_Log("Pazur tiger acrobatics: speed=%.1f jump=%.1f", m_RollSpeed, m_RollJumpSpeed);
++    }
+     if (rollDirection == Direction_Left)
+     {
+         speed.x *= -1.0;
+@@ -1967,8 +1988,9 @@ void RollEnemyAIStateComponent::VOnStateEnter(BaseEnemyAIStateComponent* pPrevio
+ void RollEnemyAIStateComponent::VOnStateLeave(BaseEnemyAIStateComponent* pNextState)
+ {
+     m_IsActive = false;
++    if (m_RollJumpSpeed > 0) m_ReuseTimeLeft = m_RollReuseTime;
+ 
+-    Point zeroSpeed(0, 0);
++    Point zeroSpeed(0, m_RollJumpSpeed > 0 ? m_pPhysicsComponent->GetVelocity().y : 0);
+     m_pPhysics->VSetLinearSpeed(m_pOwner->GetGUID(), zeroSpeed);
+ }
+ 
+@@ -2012,7 +2034,7 @@ void RollEnemyAIStateComponent::VOnAnimationLooped(Animation* pAnimation)
+         return;
+     }
+ 
+-    m_ReuseTimeLeft = 650;
++    m_ReuseTimeLeft = m_RollReuseTime;
+ 
+     m_pEnemyAIComponent->EnterBestState(true);
+ }
+diff --git a/OpenClaw/Engine/Actor/Components/EnemyAI/EnemyAIStateComponent.h b/OpenClaw/Engine/Actor/Components/EnemyAI/EnemyAIStateComponent.h
+index f120148..9651e21 100644
+--- a/OpenClaw/Engine/Actor/Components/EnemyAI/EnemyAIStateComponent.h
++++ b/OpenClaw/Engine/Actor/Components/EnemyAI/EnemyAIStateComponent.h
+@@ -298,6 +298,8 @@ public:
+ private:
+     // XML Data
+     double m_RollSpeed;
++    double m_RollJumpSpeed = 0;
++    int m_RollReuseTime = 650;
+     std::string m_ForwardRollAnimation;
+     std::string m_BackwardRollAnimation;
+     ActorFixtureDef m_RollSensorFixtureDef;
+diff --git a/OpenClaw/Engine/Actor/Components/FloorSpikeComponent.cpp b/OpenClaw/Engine/Actor/Components/FloorSpikeComponent.cpp
+index cb989c1..02d284f 100644
+--- a/OpenClaw/Engine/Actor/Components/FloorSpikeComponent.cpp
++++ b/OpenClaw/Engine/Actor/Components/FloorSpikeComponent.cpp
+@@ -65,6 +65,9 @@ void FloorSpikeComponent::VOnAnimationFrameChanged(Animation* pAnimation, Animat
+         if (pNewFrame->idx == m_ActiveFrameIdx)
+         {
+             m_pDamageAuraComponent->SetEnabled(true);
++            static int previewLogs = 0;
++            if (g_pApp->GetDebugOptions()->bPreviewIncompleteLevel14 && previewLogs++ < 4)
++                SDL_Log("Pazur trap: floor damage=1 frame=%d", pNewFrame->idx);
+         }
+     }
+     else
+@@ -72,6 +75,9 @@ void FloorSpikeComponent::VOnAnimationFrameChanged(Animation* pAnimation, Animat
+         if (pNewFrame->idx == m_ActiveFrameIdx - 1)
+         {
+             m_pDamageAuraComponent->SetEnabled(false);
++            static int previewLogs = 0;
++            if (g_pApp->GetDebugOptions()->bPreviewIncompleteLevel14 && previewLogs++ < 4)
++                SDL_Log("Pazur trap: floor damage=0 frame=%d", pNewFrame->idx);
+         }
+     }
+ 
+@@ -100,4 +106,4 @@ void FloorSpikeComponent::VOnAnimationFrameChanged(Animation* pAnimation, Animat
+             IEventMgr::Get()->VTriggerEvent(IEventDataPtr(new EventData_Request_Play_Sound(sound)));
+         }
+     }
+-}
+\ No newline at end of file
++}
+diff --git a/OpenClaw/Engine/Actor/Components/ProjectileSpawnerComponent.cpp b/OpenClaw/Engine/Actor/Components/ProjectileSpawnerComponent.cpp
+index 340580a..94745b9 100644
+--- a/OpenClaw/Engine/Actor/Components/ProjectileSpawnerComponent.cpp
++++ b/OpenClaw/Engine/Actor/Components/ProjectileSpawnerComponent.cpp
+@@ -138,6 +138,18 @@ void ProjectileSpawnerComponent::SpawnProjectile()
+     {
+         // Spawn the projectile
+         Point projectilePosition = m_pOwner->GetPositionComponent()->GetPosition() + m_Properties.projectileSpawnOffset;
++        static int previewLogs = 0;
++        if (m_Properties.projectileProto == ActorPrototype_Level14_Fireball &&
++            g_pApp->GetDebugOptions()->bPreviewIncompleteLevel14 && previewLogs++ < 8)
++            SDL_Log("Pazur shooter: launch %s x=%.0f y=%.0f frame=%d",
++                m_Properties.projectileDirection == Direction_Left ? "left" : "right",
++                projectilePosition.x, projectilePosition.y, m_Properties.projectileSpawnAnimFrameIdx);
++        static int lavaLogs = 0;
++        if (m_Properties.projectileProto == ActorPrototype_Level14_LavaHandProjectile &&
++            g_pApp->GetDebugOptions()->bPreviewIncompleteLevel14 && lavaLogs++ < 8)
++            SDL_Log("Pazur lava hand: launch %s x=%.0f y=%.0f frame=%d",
++                m_Properties.projectileDirection == Direction_Left ? "left" : "right",
++                projectilePosition.x, projectilePosition.y, m_Properties.projectileSpawnAnimFrameIdx);
+         ActorTemplates::CreateActor_Projectile(
+             m_Properties.projectileProto,
+             projectilePosition,
+@@ -228,4 +240,4 @@ bool ProjectileSpawnerComponent::IsFiring()
+ { 
+     return (m_pAnimationComponent->GetCurrentAnimationName() == m_Properties.fireAnim) &&
+         !m_pAnimationComponent->GetCurrentAnimation()->IsPaused();
+-}
+\ No newline at end of file
++}
+diff --git a/OpenClaw/Engine/Actor/Components/TriggerComponents/BossStagerTriggerComponent.cpp b/OpenClaw/Engine/Actor/Components/TriggerComponents/BossStagerTriggerComponent.cpp
+index 2dc615f..edaa1ab 100644
+--- a/OpenClaw/Engine/Actor/Components/TriggerComponents/BossStagerTriggerComponent.cpp
++++ b/OpenClaw/Engine/Actor/Components/TriggerComponents/BossStagerTriggerComponent.cpp
+@@ -1,4 +1,5 @@
+ #include "BossStagerTriggerComponent.h"
++#include <cmath>
+ #include "../ControllableComponent.h"
+ #include "../FollowableComponent.h"
+ #include "../PositionComponent.h"
+@@ -52,6 +53,8 @@ bool BossStagerTriggerComponent::VInit(TiXmlElement* pData)
+     assert(pData);
+ 
+     DO_AND_CHECK(ParseValueFromXmlElem(&m_BossDistance, pData->FirstChildElement("BossDistance")));
++    ParseValueFromXmlElem(&m_BossDistanceY, pData->FirstChildElement("BossDistanceY"));
++    ParseValueFromXmlElem(&m_BossActorName, pData->FirstChildElement("BossActorName"));
+     DO_AND_CHECK(ParseValueFromXmlElem(&m_CameraSpeed, pData->FirstChildElement("CameraSpeed")));
+     DO_AND_CHECK(ParseValueFromXmlElem(&m_ClawDialogSound, pData->FirstChildElement("ClawDialogSound")));
+     DO_AND_CHECK(ParseValueFromXmlElem(&m_BossDialogSound, pData->FirstChildElement("BossDialogSound")));
+@@ -94,8 +97,20 @@ void BossStagerTriggerComponent::VUpdate(uint32 msDiff)
+     else if (m_State == BossStagerState_MovingToBoss)
+     {
+         double offsetIncrement = (double)m_CameraSpeed * ((double)msDiff / 1000.0);
+-        m_pCamera->AddCameraOffsetX(offsetIncrement);
+-        if (m_pCamera->GetCameraOffsetX() > m_BossDistance)
++        m_pCamera->SetCameraOffsetX(std::fmin((double)m_BossDistance, m_pCamera->GetCameraOffsetX()+offsetIncrement));
++        bool verticalDone = true;
++        if (m_BossDistanceY != 0) {
++            double targetY = m_BossDistanceY;
++            if (!m_BossActorName.empty()) {
++                auto boss = g_pApp->GetGameLogic()->FindActorByName(m_BossActorName, true);
++                auto claw = g_pApp->GetGameLogic()->GetClawActor();
++                if (boss && claw) targetY = boss->GetPositionComponent()->GetY()-claw->GetPositionComponent()->GetY();
++            }
++            double current = m_pCamera->GetCameraOffsetY();
++            m_pCamera->SetCameraOffsetY(current < targetY ? std::fmin(targetY, current+offsetIncrement) : std::fmax(targetY, current-offsetIncrement));
++            verticalDone = fabs(m_pCamera->GetCameraOffsetY()-targetY) < 1;
++        }
++        if (m_pCamera->GetCameraOffsetX() >= m_BossDistance && verticalDone)
+         {
+             m_pCamera->SetCameraOffsetX((double)m_BossDistance);
+             m_CurrentDelay = Util::GetSoundDurationMs(m_BossDialogSound);
+@@ -116,8 +131,12 @@ void BossStagerTriggerComponent::VUpdate(uint32 msDiff)
+     else if (m_State == BossStagerState_MovingToClaw)
+     {
+         double offsetIncrement = -1.0 * (double)m_CameraSpeed * ((double)msDiff / 1000.0);
+-        m_pCamera->AddCameraOffsetX(offsetIncrement);
+-        if (m_pCamera->GetCameraOffsetX() < 0)
++        m_pCamera->SetCameraOffsetX(std::fmax(0.0, m_pCamera->GetCameraOffsetX()+offsetIncrement));
++        if (m_BossDistanceY != 0) {
++            double current = m_pCamera->GetCameraOffsetY();
++            m_pCamera->SetCameraOffsetY(current > 0 ? std::fmax(0.0, current+offsetIncrement) : std::fmin(0.0, current-offsetIncrement));
++        }
++        if (m_pCamera->GetCameraOffsetX() <= 0 && (m_BossDistanceY == 0 || fabs(m_pCamera->GetCameraOffsetY()) < 1))
+         {
+             m_pCamera->SetCameraOffsetX(0);
+             m_CurrentDelay = Util::GetSoundDurationMs(m_ClawDialogSound);
+@@ -275,6 +294,7 @@ void BossStagerTriggerComponent::BossFightEndedDelegate(IEventDataPtr pEvent)
+     if (!pCastEventData->GetIsBossDead())
+     {
+         m_bActivated = false;
++        if (m_BossDistanceY != 0) m_pCamera->SetCameraOffset(0, 0);
+         m_State = BossStagerState_Done;
+     }
+     else
+diff --git a/OpenClaw/Engine/Actor/Components/TriggerComponents/BossStagerTriggerComponent.h b/OpenClaw/Engine/Actor/Components/TriggerComponents/BossStagerTriggerComponent.h
+index 4619a3b..5b7fd9c 100644
+--- a/OpenClaw/Engine/Actor/Components/TriggerComponents/BossStagerTriggerComponent.h
++++ b/OpenClaw/Engine/Actor/Components/TriggerComponents/BossStagerTriggerComponent.h
+@@ -47,6 +47,8 @@ private:
+ 
+     // XML Data
+     int m_BossDistance;
++    int m_BossDistanceY = 0;
++    std::string m_BossActorName;
+     int m_CameraSpeed;
+     std::string m_ClawDialogSound;
+     std::string m_BossDialogSound;
+diff --git a/OpenClaw/Engine/Audio/Audio.cpp b/OpenClaw/Engine/Audio/Audio.cpp
+index 97c8d19..e011679 100644
+--- a/OpenClaw/Engine/Audio/Audio.cpp
++++ b/OpenClaw/Engine/Audio/Audio.cpp
+@@ -1,6 +1,7 @@
+ #include <SDL2/SDL.h>
+ #include <fstream>
+ #include <vector>
++#include <atomic>
+ 
+ #include "Audio.h"
+ #include "../Events/EventMgr.h"
+@@ -19,6 +20,20 @@
+ 
+ using namespace std;
+ 
++#ifdef __ANDROID__
++static std::atomic<bool> s_MusicOutputPending(false);
++static void AuditMusicOutput(void*, Uint8* stream, int bytes) {
++    if (!s_MusicOutputPending.load(std::memory_order_relaxed)) return;
++    const Sint16* samples = reinterpret_cast<const Sint16*>(stream);
++    int peak = 0;
++    for (int i = 0; i < bytes / int(sizeof(Sint16)); ++i) {
++        const int value = samples[i] < 0 ? -int(samples[i]) : int(samples[i]);
++        if (value > peak) peak = value;
++    }
++    if (peak && s_MusicOutputPending.exchange(false)) SDL_Log("Pazur audio PCM: peak=%d", peak);
++}
++#endif
++
+ const uint32_t MIDI_RPC_MAX_HANDSHAKE_TRIES = 250;
+ 
+ //############################################
+@@ -54,6 +69,9 @@ bool Audio::Initialize(const GameOptions& config)
+     }
+ 
+     // Setup audio mode
++#ifdef __ANDROID__
++    Mix_SetTimidityCfg("music/freepats.cfg");
++#endif
+     if (Mix_OpenAudio(config.frequency, MIX_DEFAULT_FORMAT, config.soundChannels, config.chunkSize) != 0)
+     {
+         LOG_ERROR(std::string(Mix_GetError()));
+@@ -61,6 +79,9 @@ bool Audio::Initialize(const GameOptions& config)
+     }
+ 
+     Mix_AllocateChannels(config.mixingChannels);
++#ifdef __ANDROID__
++    Mix_SetPostMix(AuditMusicOutput, nullptr);
++#endif
+ 
+     int reservedChannels = Mix_ReserveChannels(16);
+ #ifndef __EMSCRIPTEN__
+@@ -107,6 +128,13 @@ bool Audio::Initialize(const GameOptions& config)
+ 
+ void Audio::Terminate()
+ {
++#ifdef __ANDROID__
++    if (m_bIsAudioInitialized) {
++        StopAllSounds();
++        Mix_CloseAudio();
++        m_bIsAudioInitialized = false;
++    }
++#endif
+ #ifdef _WIN32
+     TerminateMidiRPC();
+ #endif //_WIN32
+@@ -179,11 +207,37 @@ static int SetupPlayMusicThread(void* pData)
+ 
+ void Audio::PlayMusic(const char* musicData, size_t musicSize, bool looping)
+ {
++#ifdef __ANDROID__
++    // Own both the song and its input until playback is stopped. Keeping this
++    // on the game thread also serializes level changes and music replacement.
++    StopMusic();
++    m_AndroidMusicBytes.assign(musicData, musicData + musicSize);
++    SDL_RWops* input = SDL_RWFromConstMem(m_AndroidMusicBytes.data(), m_AndroidMusicBytes.size());
++    if (!input) return;
++    m_AndroidMusic = Mix_LoadMUS_RW(input, 1);
++    if (!m_AndroidMusic) {
++        LOG_ERROR("MIDI load failed: " + std::string(Mix_GetError()));
++        m_AndroidMusicBytes.clear();
++        return;
++    }
++    Mix_VolumeMusic(m_MusicVolume);
++    s_MusicOutputPending = true;
++    if (Mix_PlayMusic(m_AndroidMusic, looping ? -1 : 0) != 0) {
++        LOG_ERROR("MIDI play failed: " + std::string(Mix_GetError()));
++        StopMusic();
++        return;
++    }
++    if (!m_bMusicOn) Mix_PauseMusic();
++    SDL_Log("Pazur MIDI: loaded %u bytes, playing=%d paused=%d",
++        unsigned(musicSize), Mix_PlayingMusic(), Mix_PausedMusic());
++#else
++    if (!m_bMusicOn) return;
+     _MusicInfo* pMusicInfo = new _MusicInfo(musicData, musicSize, looping, m_bMusicOn ? m_MusicVolume : -1);
+ 
+     // Playing music track takes ALOT of time for some reason so play it in another thread
+     SDL_Thread* pThread = SDL_CreateThread(SetupPlayMusicThread, "SetupPlayMusicThread", (void*)pMusicInfo);
+     SDL_DetachThread(pThread);
++#endif
+ }
+ 
+ void Audio::PauseMusic()
+@@ -223,6 +277,14 @@ void Audio::ResumeMusic()
+ 
+ void Audio::StopMusic()
+ {
++#ifdef __ANDROID__
++    Mix_HaltMusic();
++    if (m_AndroidMusic) {
++        Mix_FreeMusic(m_AndroidMusic);
++        m_AndroidMusic = nullptr;
++    }
++    m_AndroidMusicBytes.clear();
++#else
+ #ifdef _WIN32
+     RpcTryExcept
+     {
+@@ -236,6 +298,7 @@ void Audio::StopMusic()
+ #else
+     Mix_HaltMusic();
+ #endif //_WIN32
++#endif // __ANDROID__
+ }
+ 
+ void Audio::SetMusicVolume(int volumePercentage)
+@@ -270,6 +333,7 @@ int Audio::GetMusicVolume()
+ 
+ bool Audio::PlaySound(const char* soundData, size_t soundSize, const SoundProperties& soundProperties)
+ {
++    if (!m_bSoundOn) return true;
+     SDL_RWops* soundRwOps = SDL_RWFromMem((void*)soundData, soundSize);
+     Mix_Chunk* soundChunk = Mix_LoadWAV_RW(soundRwOps, 1);
+ 
+@@ -278,6 +342,7 @@ bool Audio::PlaySound(const char* soundData, size_t soundSize, const SoundProper
+ 
+ bool Audio::PlaySound(Mix_Chunk* sound, const SoundProperties& soundProperties)
+ {
++    if (!m_bSoundOn) return true;
+ #ifndef __EMSCRIPTEN__
+     int chunkVolume = (int)((((float)soundProperties.volume) / 100.0f) * (float)m_SoundVolume);
+ 
+diff --git a/OpenClaw/Engine/Audio/Audio.h b/OpenClaw/Engine/Audio/Audio.h
+index d12e28d..186fb90 100644
+--- a/OpenClaw/Engine/Audio/Audio.h
++++ b/OpenClaw/Engine/Audio/Audio.h
+@@ -2,6 +2,7 @@
+ #define AUDIO_H_
+ 
+ #include <stdint.h>
++#include <vector>
+ #include <SDL2/SDL_mixer.h>
+ 
+ #include "../GameApp/BaseGameApp.h"
+@@ -58,6 +59,10 @@ private:
+     int m_MusicVolume;
+     bool m_bSoundOn;
+     bool m_bMusicOn;
++#ifdef __ANDROID__
++    Mix_Music* m_AndroidMusic = nullptr;
++    std::vector<char> m_AndroidMusicBytes;
++#endif
+ };
+ 
+-#endif
+\ No newline at end of file
++#endif
+diff --git a/OpenClaw/Engine/GameApp/BaseGameApp.cpp b/OpenClaw/Engine/GameApp/BaseGameApp.cpp
+index 64533c3..db10fe0 100644
+--- a/OpenClaw/Engine/GameApp/BaseGameApp.cpp
++++ b/OpenClaw/Engine/GameApp/BaseGameApp.cpp
+@@ -21,6 +21,9 @@
+ #include "../Resource/Loaders/PngLoader.h"
+ 
+ #include "BaseGameApp.h"
++#ifdef __ANDROID__
++#include "TouchControls.h"
++#endif
+ 
+ #include <cctype>
+ 
+@@ -78,11 +81,13 @@ bool BaseGameApp::Initialize(int argc, char** argv)
+         return false;
+     }
+ 
++#ifndef __ANDROID__
+     m_pResourceMgr->VPreload("/CLAW/*", NULL, ORIGINAL_RESOURCE);
+     m_pResourceMgr->VPreload("/GAME/*", NULL, ORIGINAL_RESOURCE);
+     m_pResourceMgr->VPreload("/STATES/*", NULL, ORIGINAL_RESOURCE);
+ 
+     m_pResourceMgr->VPreload("*", NULL, CUSTOM_RESOURCE);
++#endif
+ 
+     if (!VPerformStartupTests())
+     {
+@@ -212,12 +217,34 @@ void BaseGameApp::StepLoop() {
+         }
+         consecutiveLagSpikes = 0;
+ 
++#ifdef __ANDROID__
++        // A bounded sample of actual loop intervals, including presentation.
++        static std::vector<uint32> frameTimes;
++        if (m_pGame && m_pGame->GetGameState() == GameState_IngameRunning) {
++            frameTimes.push_back(elapsedTime);
++            if (frameTimes.size() == 300) {
++                uint32 total = 0;
++                for (uint32 interval : frameTimes) total += interval;
++                std::sort(frameTimes.begin(), frameTimes.end());
++                SDL_Log("Pazur frame sample: fps=%.1f p95=%u ms max=%u ms",
++                    total ? 300000.0 / total : 0.0,
++                    frameTimes[284], frameTimes.back());
++                frameTimes.clear();
++            }
++        } else {
++            frameTimes.clear();
++        }
++#endif
++
+         // Handle all input events
+         while (SDL_PollEvent(&event))
+         {
+             OnEvent(event);
+         }
+ 
++#ifdef __ANDROID__
++        PazurTouch::Update();
++#endif
+         // Handle all touch events
+         if (m_pTouchManager) {
+             m_pTouchManager->Update();
+@@ -284,6 +311,9 @@ int32 BaseGameApp::Run()
+ 
+ void BaseGameApp::OnEvent(SDL_Event& event)
+ {
++#ifdef __ANDROID__
++    if (PazurTouch::Handle(event)) return;
++#endif
+     switch (event.type)
+     {
+         case SDL_QUIT:
+@@ -317,6 +347,12 @@ void BaseGameApp::OnEvent(SDL_Event& event)
+             break;
+         }
+ 
++        case SDL_APP_WILLENTERBACKGROUND:
++        {
++            Mix_Pause(-1);
++            Mix_PauseMusic();
++            break;
++        }
+         case SDL_APP_DIDENTERBACKGROUND:
+         {
+             LOG("Entered background");
+@@ -325,6 +361,8 @@ void BaseGameApp::OnEvent(SDL_Event& event)
+ 
+         case SDL_APP_DIDENTERFOREGROUND:
+         {
++            Mix_Resume(-1);
++            if (m_GameOptions.musicOn) Mix_ResumeMusic();
+             LOG("Entered foreground");
+             break;
+         }
+@@ -555,6 +593,11 @@ bool BaseGameApp::LoadGameOptions(const char* inConfigFile)
+     {
+         ParseValueFromXmlElem(&m_GameOptions.assetsFolder,
+             assetsElem->FirstChildElement("AssetsFolder"));
++#ifdef __ANDROID__
++        // SDL_RWFromFile resolves relative names against APK assets on Android.
++        // Use the same imported-data directory as native std::ifstream reads.
++        m_GameOptions.assetsFolder = std::string(SDL_AndroidGetExternalStoragePath()) + "/";
++#endif
+         DO_AND_CHECK(ParseValueFromXmlElem(&m_GameOptions.rezArchive,
+             assetsElem->FirstChildElement("RezArchive")));
+         DO_AND_CHECK(ParseValueFromXmlElem(&m_GameOptions.customArchive,
+@@ -713,6 +756,8 @@ bool BaseGameApp::LoadGameOptions(const char* inConfigFile)
+     //-------------------------------------------------------------------------
+     if (TiXmlElement* pDebugOptionsRootElem = configRoot->FirstChildElement("DebugOptions"))
+     {
++        ParseValueFromXmlElem(&m_DebugOptions.bPreviewIncompleteLevel14,
++            pDebugOptionsRootElem->FirstChildElement("PreviewIncompleteLevel14"));
+         ParseValueFromXmlElem(&m_DebugOptions.bSkipBossFightIntro,
+             pDebugOptionsRootElem->FirstChildElement("SkipBossFightIntro"));
+         ParseValueFromXmlElem(&m_DebugOptions.bSkipMenu,
+@@ -721,6 +766,10 @@ bool BaseGameApp::LoadGameOptions(const char* inConfigFile)
+             pDebugOptionsRootElem->FirstChildElement("CpuDelay"));
+         ParseValueFromXmlElem(&m_DebugOptions.lastImplementedLevel,
+             pDebugOptionsRootElem->FirstChildElement("LastImplementedLevel"));
++#ifdef __ANDROID__
++        // Upgrade the ceiling stored by previous Android builds.
++        if (m_DebugOptions.lastImplementedLevel == 13) m_DebugOptions.lastImplementedLevel = 14;
++#endif
+         ParseValueFromXmlElem(&m_DebugOptions.skipMenuToLevel,
+             pDebugOptionsRootElem->FirstChildElement("SkipMenuToLevel"));
+     }
+@@ -799,6 +848,15 @@ bool BaseGameApp::InitializeDisplay(GameOptions& gameOptions)
+         SDL_GetWindowSize(m_pWindow, &m_GameOptions.windowWidth, &m_GameOptions.windowHeight);
+     }
+ 
++#ifdef __ANDROID__
++    // Keep simulation/render coordinates independent of the phone's pixel density.
++    int drawableWidth = 640, drawableHeight = 480;
++    SDL_GetWindowSize(m_pWindow, &drawableWidth, &drawableHeight);
++    // Expand the world horizontally; use one scale for both axes and keep pixel art sharp.
++    gameOptions.windowWidth = (std::max)(640, (int)(480.0 * drawableWidth / (std::max)(1, drawableHeight) + 0.5));
++    gameOptions.windowHeight = 480;
++    SDL_Log("Pazur display: physical=%dx%d logical=%dx480 nearest", drawableWidth, drawableHeight, gameOptions.windowWidth);
++#endif
+     m_WindowSize.Set(gameOptions.windowWidth, gameOptions.windowHeight);
+ 
+     uint32 rendererFlags = SDL_RENDERER_ACCELERATED;
+@@ -815,6 +873,9 @@ bool BaseGameApp::InitializeDisplay(GameOptions& gameOptions)
+     }
+ 
+     SDL_RenderSetScale(m_pRenderer, (float)gameOptions.scale, (float)gameOptions.scale);
++#ifdef __ANDROID__
++    SDL_RenderSetLogicalSize(m_pRenderer, (int)m_WindowSize.x, (int)m_WindowSize.y);
++#endif
+ 
+     LOG("Display successfully initialized.");
+ 
+@@ -918,7 +979,7 @@ bool BaseGameApp::InitializeFont(GameOptions& gameOptions)
+     m_pConsoleFont = TTF_OpenFont(gameOptions.consoleFontName.c_str(), gameOptions.consoleFontSize);
+     if (m_pConsoleFont == NULL)
+     {
+-        LOG_ERROR("Failed to load TTF font");
++        LOG_ERROR("Failed to load TTF font: " + gameOptions.consoleFontName + ": " + TTF_GetError());
+         return false;
+     }
+ 
+@@ -1234,7 +1295,11 @@ Point BaseGameApp::GetScale()
+     uint32 windowFlags = GetWindowFlags();
+     Point scale(1.0, 1.0);
+ 
++#ifdef __ANDROID__
++    return Point(1.0, 1.0);
++#else
+     SDL_RenderGetScale(m_pRenderer, &scaleX, &scaleY);
++#endif
+     
+     scale.Set((double)scaleX, (double)scaleY);
+ 
+@@ -1243,7 +1308,11 @@ Point BaseGameApp::GetScale()
+ 
+ void BaseGameApp::SetScale(Point scale)
+ {
++#ifdef __ANDROID__
++    SDL_RenderSetLogicalSize(m_pRenderer, (int)m_WindowSize.x, (int)m_WindowSize.y);
++#else
+     SDL_RenderSetScale(m_pRenderer, (float)scale.x, (float)scale.y);
++#endif
+ }
+ 
+ uint32 BaseGameApp::GetWindowFlags()
+diff --git a/OpenClaw/Engine/GameApp/BaseGameApp.h b/OpenClaw/Engine/GameApp/BaseGameApp.h
+index 731f317..c9c67df 100644
+--- a/OpenClaw/Engine/GameApp/BaseGameApp.h
++++ b/OpenClaw/Engine/GameApp/BaseGameApp.h
+@@ -193,12 +193,14 @@ struct DebugOptions
+         cpuDelayMs = 0;
+         bSkipBossFightIntro = false;
+         bSkipMenu = false;
++        bPreviewIncompleteLevel14 = false;
+         lastImplementedLevel = 7;
+         skipMenuToLevel = 9;
+     }
+ 
+     int cpuDelayMs;
+     bool bSkipMenu;
++    bool bPreviewIncompleteLevel14;
+     int lastImplementedLevel;
+     int skipMenuToLevel;
+     bool bSkipBossFightIntro;
+diff --git a/OpenClaw/Engine/GameApp/BaseGameLogic.cpp b/OpenClaw/Engine/GameApp/BaseGameLogic.cpp
+index 5d8dc7d..4e93547 100644
+--- a/OpenClaw/Engine/GameApp/BaseGameLogic.cpp
++++ b/OpenClaw/Engine/GameApp/BaseGameLogic.cpp
+@@ -196,7 +196,9 @@ bool BaseGameLogic::VLoadGame(const char* xmlLevelResource)
+ 
+     // Preload level resources
+     std::string levelPath = "/LEVEL" + ToStr(m_pCurrentLevel->GetLevelNumber()) + "/*";
++#ifndef __ANDROID__
+     g_pApp->GetResourceCache()->Preload(levelPath, NULL);
++#endif
+ 
+     // ============== LOADING SCREEN RENDERING ==============
+ 
+@@ -493,8 +495,8 @@ bool BaseGameLogic::VLoadScoreScreen(const char* xmlScoreScreenResource)
+     int finishedLevelNumber = m_pCurrentLevel->GetLevelNumber();
+     int nextLevelNumber = m_pCurrentLevel->GetLevelNumber() + 1;
+ 
+-    // Level 11 is the last implemented level
+-    if (nextLevelNumber <= 11)
++    // Never create a checkpoint for an invented level 15.
++    if (nextLevelNumber <= 14)
+     {
+         m_pGameSaveMgr->AddCheckpointSave(nextLevelNumber, nextLevelCheckpoint);
+ 
+@@ -751,9 +753,6 @@ void BaseGameLogic::VOnUpdate(uint32 msDiff)
+     {
+         case GameState_Initializing:
+         {
+-#ifdef ANDROID
+-            VChangeState(GameState_LoadingLevel);
+-#else
+             if (g_pApp->GetDebugOptions()->bSkipMenu)
+             {
+                 VChangeState(GameState_LoadingLevel);
+@@ -762,7 +761,6 @@ void BaseGameLogic::VOnUpdate(uint32 msDiff)
+             {
+                 VChangeState(GameState_Menu);
+             }
+-#endif
+             break;
+         }
+ 
+diff --git a/OpenClaw/Engine/GameApp/CommandHandler.cpp b/OpenClaw/Engine/GameApp/CommandHandler.cpp
+index 11bce59..437b122 100644
+--- a/OpenClaw/Engine/GameApp/CommandHandler.cpp
++++ b/OpenClaw/Engine/GameApp/CommandHandler.cpp
+@@ -1,3 +1,6 @@
++#ifdef __ANDROID__
++#include "CombatProbe.h"
++#endif
+ #include "BaseGameApp.h"
+ #include "BaseGameLogic.h"
+ #include "../UserInterface/Console.h"
+@@ -60,6 +63,7 @@ bool CommandHandler::AddPowerup(PowerupType type, int duration, bool& executed,
+ 
+ void CommandHandler::HandleCommand(const char* command, void* userdata)
+ {
++    if (g_pApp->GetDebugOptions()->bPreviewIncompleteLevel14) SDL_Log("Pazur console command: %s", command);
+     Console* pConsole = static_cast<Console*>(userdata);
+     assert(pConsole);
+ 
+@@ -76,6 +80,11 @@ void CommandHandler::HandleCommand(const char* command, void* userdata)
+     std::vector<std::string> commandArgs;
+     Util::SplitStringIntoVector(commandStr, commandArgs);
+ 
++#ifdef __ANDROID__
++    if (g_pApp->GetDebugOptions()->bPreviewIncompleteLevel14 &&
++        PazurCombatProbe::Handle(commandArgs, g_pApp->GetGameLogic()->m_ActorMap)) return;
++#endif
++
+     COMMAND_SET_BOOL_VALUE("InfiniteAmmo", g_pApp->m_GameCheats.clawInfiniteAmmo);
+     COMMAND_SET_BOOL_VALUE("Invincible", g_pApp->m_GameCheats.clawInvincible);
+     COMMAND_SET_BOOL_VALUE("InfiniteJump", g_pApp->m_GameCheats.clawInfiniteJump);
+diff --git a/OpenClaw/Engine/Graphics2D/Image.cpp b/OpenClaw/Engine/Graphics2D/Image.cpp
+index b6a6159..96b618b 100644
+--- a/OpenClaw/Engine/Graphics2D/Image.cpp
++++ b/OpenClaw/Engine/Graphics2D/Image.cpp
+@@ -123,6 +123,7 @@ Image* Image::CreatePcxImage(char* rawBuffer, uint32_t size, SDL_Renderer* rende
+     Image* pImage = new Image();
+     SDL_RWops* pRWops = SDL_RWFromMem((void*)rawBuffer, size);
+     SDL_Surface* pSurface = IMG_LoadPCX_RW(pRWops);
++    SDL_RWclose(pRWops);
+     if (pSurface == NULL)
+     {
+         LOG_ERROR(IMG_GetError());
+@@ -132,7 +133,9 @@ Image* Image::CreatePcxImage(char* rawBuffer, uint32_t size, SDL_Renderer* rende
+ 
+     if (useColorKey)
+     {
+-        SDL_SetColorKey(pSurface, SDL_TRUE, SDL_MapRGB(pSurface->format, colorKey.r, colorKey.g, colorKey.b));
++        // Polish menu assets use a pink palette entry zero for transparency.
++        Uint32 key = pSurface->format->palette ? 0 : SDL_MapRGB(pSurface->format, colorKey.r, colorKey.g, colorKey.b);
++        SDL_SetColorKey(pSurface, SDL_TRUE, key);
+     }
+ 
+     SDL_Texture* pTexture = SDL_CreateTextureFromSurface(renderer, pSurface);
+@@ -250,4 +253,4 @@ bool Image::Initialize(SDL_Texture* pTexture)
+     m_pTexture = pTexture;
+ 
+     return true;
+-}
+\ No newline at end of file
++}
+diff --git a/OpenClaw/Engine/Interfaces.cpp b/OpenClaw/Engine/Interfaces.cpp
+index a3c1ab1..5cda1a6 100644
+--- a/OpenClaw/Engine/Interfaces.cpp
++++ b/OpenClaw/Engine/Interfaces.cpp
+@@ -238,6 +238,26 @@ std::string EnumToString_ActorPrototype(ActorPrototype actorProto)
+         { ActorPrototype_Level13_BossGem, "ActorPrototype_Level13_BossGem" },
+         { ActorPrototype_Level13_BossStager, "ActorPrototype_Level13_BossStager" },
+ 
++        { ActorPrototype_Level14_CrumblingPeg, "ActorPrototype_Level14_CrumblingPeg" },
++        { ActorPrototype_Level14_TogglePeg, "ActorPrototype_Level14_TogglePeg" },
++        { ActorPrototype_Level14_FloorSpike, "ActorPrototype_Level14_FloorSpike" },
++
++        { ActorPrototype_Level14_FireballSpawner, "ActorPrototype_Level14_FireballSpawner" },
++        { ActorPrototype_Level14_Fireball, "ActorPrototype_Level14_Fireball" },
++
++        { ActorPrototype_Level14_TigerGuard, "ActorPrototype_Level14_TigerGuard" },
++        { ActorPrototype_Level13_Chameleon, "ActorPrototype_Level13_Chameleon" },
++        { ActorPrototype_Level14_Chameleon, "ActorPrototype_Level14_Chameleon" },
++
++        { ActorPrototype_Level14_LavaGeyser, "ActorPrototype_Level14_LavaGeyser" },
++
++        { ActorPrototype_Level14_LavaHand, "ActorPrototype_Level14_LavaHand" },
++        { ActorPrototype_Level14_LavaHandProjectile, "ActorPrototype_Level14_LavaHandProjectile" },
++
++        { ActorPrototype_Level14_LavaMouth, "ActorPrototype_Level14_LavaMouth" },
++
++        { ActorPrototype_Level14_Omar, "ActorPrototype_Level14_Omar" },
++        { ActorPrototype_Level14_BossStager, "ActorPrototype_Level14_BossStager" },
+         //=======================================
+         // Menu
+         //=======================================
+@@ -489,6 +509,26 @@ ActorPrototype StringToEnum_ActorPrototype(const std::string& actorProtoStr)
+         { "ActorPrototype_Level13_BossGem", ActorPrototype_Level13_BossGem },
+         { "ActorPrototype_Level13_BossStager", ActorPrototype_Level13_BossStager },
+ 
++        { "ActorPrototype_Level14_CrumblingPeg", ActorPrototype_Level14_CrumblingPeg },
++        { "ActorPrototype_Level14_TogglePeg", ActorPrototype_Level14_TogglePeg },
++        { "ActorPrototype_Level14_FloorSpike", ActorPrototype_Level14_FloorSpike },
++
++        { "ActorPrototype_Level14_FireballSpawner", ActorPrototype_Level14_FireballSpawner },
++        { "ActorPrototype_Level14_Fireball", ActorPrototype_Level14_Fireball },
++
++        { "ActorPrototype_Level14_TigerGuard", ActorPrototype_Level14_TigerGuard },
++        { "ActorPrototype_Level13_Chameleon", ActorPrototype_Level13_Chameleon },
++        { "ActorPrototype_Level14_Chameleon", ActorPrototype_Level14_Chameleon },
++
++        { "ActorPrototype_Level14_LavaGeyser", ActorPrototype_Level14_LavaGeyser },
++
++        { "ActorPrototype_Level14_LavaHand", ActorPrototype_Level14_LavaHand },
++        { "ActorPrototype_Level14_LavaHandProjectile", ActorPrototype_Level14_LavaHandProjectile },
++
++        { "ActorPrototype_Level14_LavaMouth", ActorPrototype_Level14_LavaMouth },
++
++        { "ActorPrototype_Level14_Omar", ActorPrototype_Level14_Omar },
++        { "ActorPrototype_Level14_BossStager", ActorPrototype_Level14_BossStager },
+         //=======================================
+         // Menu
+         //=======================================
+diff --git a/OpenClaw/Engine/Interfaces.h b/OpenClaw/Engine/Interfaces.h
+index 2bb4694..74a47c3 100644
+--- a/OpenClaw/Engine/Interfaces.h
++++ b/OpenClaw/Engine/Interfaces.h
+@@ -516,6 +516,26 @@ enum ActorPrototype
+     ActorPrototype_Level13_BossGem,
+     ActorPrototype_Level13_BossStager,
+ 
++    ActorPrototype_Level14_CrumblingPeg,
++    ActorPrototype_Level14_TogglePeg,
++    ActorPrototype_Level14_FloorSpike,
++
++    ActorPrototype_Level14_FireballSpawner,
++    ActorPrototype_Level14_Fireball,
++
++    ActorPrototype_Level14_TigerGuard,
++    ActorPrototype_Level14_Chameleon,
++
++    ActorPrototype_Level14_LavaGeyser,
++
++    ActorPrototype_Level14_LavaHand,
++    ActorPrototype_Level14_LavaHandProjectile,
++
++    ActorPrototype_Level14_LavaMouth,
++
++    ActorPrototype_Level14_Omar,
++    ActorPrototype_Level14_BossStager,
++    ActorPrototype_Level13_Chameleon,
+     ActorPrototype_Max
+ };
+ 
+diff --git a/OpenClaw/Engine/Physics/ClawPhysics.cpp b/OpenClaw/Engine/Physics/ClawPhysics.cpp
+index 0c037b8..1f12854 100644
+--- a/OpenClaw/Engine/Physics/ClawPhysics.cpp
++++ b/OpenClaw/Engine/Physics/ClawPhysics.cpp
+@@ -119,7 +119,7 @@ b2AABB GetBodyAABB(b2Body* pBody, bool discardSensors)
+     b2Fixture* fixture = pBody->GetFixtureList();
+     while (fixture != NULL)
+     {
+-        if (discardSensors && fixture->IsSensor())
++        if (discardSensors && (fixture->IsSensor() || fixture->GetFilterData().maskBits == 0))
+         {
+             fixture = fixture->GetNext();
+             continue;
+@@ -1431,6 +1431,16 @@ void ClawPhysics::VScaleActor(uint32_t actorId, double scale)
+ // Private implementations
+ //=====================================================================================================================
+ 
++bool ClawPhysics::IsRegisteredBody(const b2Body* body) const
++{
++    if (!body || !body->GetUserData()) return false;
++    auto reverse = m_BodyToActorMap.find(const_cast<b2Body*>(body));
++    if (reverse == m_BodyToActorMap.end()) return false;
++    auto forward = m_ActorToBodyMap.find(reverse->second);
++    return forward != m_ActorToBodyMap.end() && forward->second == body &&
++        static_cast<Actor*>(body->GetUserData())->GetGUID() == reverse->second;
++}
++
+ b2Body* ClawPhysics::FindBox2DBody(uint32 actorId)
+ {
+     ActorIDToBox2DBodyMap::const_iterator found = m_ActorToBodyMap.find(actorId);
+diff --git a/OpenClaw/Engine/Physics/ClawPhysics.h b/OpenClaw/Engine/Physics/ClawPhysics.h
+index 4a75abc..5db0385 100644
+--- a/OpenClaw/Engine/Physics/ClawPhysics.h
++++ b/OpenClaw/Engine/Physics/ClawPhysics.h
+@@ -74,6 +74,8 @@ public:
+ 
+     virtual void VScaleActor(uint32_t actorId, double scale) override;
+ 
++    bool IsRegisteredBody(const b2Body* body) const;
++
+ private:
+     b2Body* FindBox2DBody(uint32 actorId);
+     uint32 FindActorId(b2Body* pBody);
+diff --git a/OpenClaw/Engine/Physics/PhysicsContactListener.cpp b/OpenClaw/Engine/Physics/PhysicsContactListener.cpp
+index 5d4796a..6c1344b 100644
+--- a/OpenClaw/Engine/Physics/PhysicsContactListener.cpp
++++ b/OpenClaw/Engine/Physics/PhysicsContactListener.cpp
+@@ -1,5 +1,8 @@
++#include "../GameApp/BaseGameLogic.h"
++#include "../GameApp/BaseGameApp.h"
+ #include <cstdint>
+ #include "PhysicsContactListener.h"
++#include "../Actor/Components/AreaDamageComponent.h"
+ #include "ClawPhysics.h"
+ #include "../SharedDefines.h"
+ #include "../Actor/Actor.h"
+@@ -106,10 +109,23 @@ static bool IsTriggerFixture(FixtureType fixtureType)
+ // PhysicsContactListener::BeginContact
+ //
+ 
++// The support sensor extends below Claw's physical feet. It detects ground,
++// but must never receive projectile, melee, or contact-aura damage.
++static bool IsFootDamageContact(b2Fixture* a, b2Fixture* b)
++{
++    if (b->GetUserData() == (void*)FixtureType_FootSensor) std::swap(a,b);
++    if (a->GetUserData() != (void*)FixtureType_FootSensor) return false;
++    if (b->GetUserData() == (void*)FixtureType_Projectile ||
++        b->GetUserData() == (void*)FixtureType_DamageAura) return true;
++    auto actor = static_cast<Actor*>(b->GetBody()->GetUserData());
++    return actor && actor->GetRawComponent<AreaDamageComponent>(false);
++}
++
+ void PhysicsContactListener::BeginContact(b2Contact* pContact)
+ {
+     b2Fixture* pFixtureA = pContact->GetFixtureA();
+     b2Fixture* pFixtureB = pContact->GetFixtureB();
++    if (IsFootDamageContact(pFixtureA, pFixtureB)) return;
+ 
+     // Foot contact
+     {
+@@ -426,6 +442,16 @@ void PhysicsContactListener::BeginContact(b2Contact* pContact)
+ 
+         if (pFixtureA->GetUserData() == (void*)FixtureType_Projectile)
+         {
++            // Box2D callbacks must refer to the body's current actor registration.
++            // A stale or replaced body must not query another actor's bounds or deal damage.
++            auto physics = static_cast<ClawPhysics*>(g_pApp->GetGameLogic()->VGetGamePhysics().get());
++            if (!physics->IsRegisteredBody(pFixtureA->GetBody()))
++            {
++                static int staleProjectileLogs = 0;
++                if (g_pApp->GetDebugOptions()->bPreviewIncompleteLevel14 && staleProjectileLogs++ < 16)
++                    SDL_Log("Pazur ignored unregistered projectile contact");
++                return;
++            }
+             // Collided with some actor
+             if (pFixtureB->GetBody()->GetUserData() != (void*)NULL)
+             {
+@@ -562,6 +588,7 @@ void PhysicsContactListener::EndContact(b2Contact* pContact)
+ {
+     b2Fixture* pFixtureA = pContact->GetFixtureA();
+     b2Fixture* pFixtureB = pContact->GetFixtureB();
++    if (IsFootDamageContact(pFixtureA, pFixtureB)) return;
+ 
+     {
+         // Make it in predictable order
+diff --git a/OpenClaw/Engine/Resource/Loaders/WavLoader.cpp b/OpenClaw/Engine/Resource/Loaders/WavLoader.cpp
+index 8042f57..6b94448 100644
+--- a/OpenClaw/Engine/Resource/Loaders/WavLoader.cpp
++++ b/OpenClaw/Engine/Resource/Loaders/WavLoader.cpp
+@@ -71,6 +71,7 @@ shared_ptr<Mix_Chunk> WavResourceLoader::LoadAndReturnSound(const char* resource
+     Resource resource(resourceString);
+ 
+     shared_ptr<ResourceHandle> handle = g_pApp->GetResourceCache()->GetHandle(&resource);
++    if (!handle) return nullptr;
+     shared_ptr<WavResourceExtraData> extraData = std::static_pointer_cast<WavResourceExtraData>(handle->GetExtraData());
+ 
+     if (!extraData)
+diff --git a/OpenClaw/Engine/UserInterface/HumanView.cpp b/OpenClaw/Engine/UserInterface/HumanView.cpp
+index ec64d79..4d66e7a 100644
+--- a/OpenClaw/Engine/UserInterface/HumanView.cpp
++++ b/OpenClaw/Engine/UserInterface/HumanView.cpp
+@@ -1,4 +1,7 @@
+ #include "HumanView.h"
++#ifdef __ANDROID__
++#include "TouchControls.h"
++#endif
+ #include "../GameApp/BaseGameApp.h"
+ #include "../GameApp/BaseGameLogic.h"
+ #include "../Events/EventMgr.h"
+@@ -101,6 +104,10 @@ void HumanView::VOnRender(uint32 msDiff)
+ 
+         m_pConsole->OnRender(renderer);
+ 
++#ifdef __ANDROID__
++        PazurTouch::Draw(renderer);
++#endif
++
+         if (!m_bPostponeRenderPresent)
+         {
+             SDL_RenderPresent(renderer);
+@@ -443,7 +450,9 @@ void HumanView::AmmoUpdatedDelegate(IEventDataPtr pEventData)
+         { 
+             m_pHUD->UpdateAmmo(pCastEventData->GetAmmoCount());
+         }
+-        else if (pCastEventData->GetAmmoType() <= AmmoType_None || pCastEventData->GetAmmoType() >= AmmoType_Max)
++        // The event stores uint32: comparing it with None=-1 promotes -1 to
++        // UINT_MAX and incorrectly labels every inactive ammo type as invalid.
++        else if (pCastEventData->GetAmmoType() >= static_cast<uint32>(AmmoType_Max))
+         {
+             LOG_ERROR("Unknown ammo type: " + ToStr(pCastEventData->GetAmmoType()));
+         }
+@@ -1340,4 +1349,4 @@ void TeleportFadeInOutProcess::VRender(uint32 msDiff)
+     SDL_DestroyTexture(pRightRectTexture);
+ 
+     Util::RenderForcePresent(pRenderer);
+-}
+\ No newline at end of file
++}
+diff --git a/OpenClaw/Engine/UserInterface/ScoreScreen/EndLevelScoreScreen.cpp b/OpenClaw/Engine/UserInterface/ScoreScreen/EndLevelScoreScreen.cpp
+index 88c97c9..8053170 100644
+--- a/OpenClaw/Engine/UserInterface/ScoreScreen/EndLevelScoreScreen.cpp
++++ b/OpenClaw/Engine/UserInterface/ScoreScreen/EndLevelScoreScreen.cpp
+@@ -287,6 +287,9 @@ uint8_t g_ScoreScreenPalette[] =
+ 
+ static SDL_Rect GetScreenRect()
+ {
++#ifdef __ANDROID__
++    return { 0, 0, 640, 480 };
++#endif
+     Point windowSize = g_pApp->GetWindowSize();
+     Point scale = g_pApp->GetScale();
+     int targetWidth = (int)(windowSize.x / scale.x);
+@@ -367,6 +370,12 @@ void ScreenElementScoreScreen::VOnUpdate(uint32 msDiff)
+ 
+ void ScreenElementScoreScreen::VOnRender(uint32 msDiff)
+ {
++#ifdef __ANDROID__
++    SDL_Rect previousViewport;
++    SDL_RenderGetViewport(m_pRenderer, &previousViewport);
++    SDL_Rect scoreViewport{(int)(g_pApp->GetWindowSizeScaled().x-640)/2, 0, 640, 480};
++    SDL_RenderSetViewport(m_pRenderer, &scoreViewport);
++#endif
+     assert(m_pBackground != nullptr);
+ 
+     SDL_Rect backgroundRect = GetScreenRect();
+@@ -374,6 +383,9 @@ void ScreenElementScoreScreen::VOnRender(uint32 msDiff)
+     //LOG("Rendered. Image width: " + ToStr(m_pBackground->GetWidth()));
+ 
+     Scene::OnRender();
++#ifdef __ANDROID__
++    SDL_RenderSetViewport(m_pRenderer, &previousViewport);
++#endif
+ }
+ 
+ bool ScreenElementScoreScreen::VOnEvent(SDL_Event& evt)
+@@ -484,7 +496,9 @@ void ScreenElementScoreScreen::LoadNextLevel()
+     SAFE_DELETE(m_pProcessMgr);
+     IEventMgr::Get()->VAbortAllEvents();
+ 
+-    IEventDataPtr pEvent(new EventData_Menu_LoadGame(nextLevelNum, false, 0));
++    IEventDataPtr pEvent = nextLevelNum > 14
++        ? IEventDataPtr(new EventData_Enter_Menu())
++        : IEventDataPtr(new EventData_Menu_LoadGame(nextLevelNum, false, 0));
+     IEventMgr::Get()->VQueueEvent(pEvent);
+ }
+ 
+diff --git a/OpenClaw/Engine/UserInterface/Touch/TouchEvents.h b/OpenClaw/Engine/UserInterface/Touch/TouchEvents.h
+index 49c7f1e..78d568c 100644
+--- a/OpenClaw/Engine/UserInterface/Touch/TouchEvents.h
++++ b/OpenClaw/Engine/UserInterface/Touch/TouchEvents.h
+@@ -99,6 +99,17 @@ struct Touch_Event {
+         recognizerId = 0;
+     };
+ 
++    // Events pass by value through the queue. The SDL payload must point to
++    // the destination object, never to a temporary or a popped queue entry.
++    Touch_Event(const Touch_Event& other) { *this = other; }
++    Touch_Event& operator=(const Touch_Event& other) {
++        sdlEvent = other.sdlEvent;
++        recognizerId = other.recognizerId;
++        customData = other.customData;
++        sdlEvent.user.data1 = this;
++        return *this;
++    }
++
+     Touch_Event(int recognizerId, Touch_EventType type, const Touch_TapEvent &tap) : Touch_Event() {
+         customData.tap = tap;
+         sdlEvent.user.code = type;
+diff --git a/OpenClaw/Engine/UserInterface/UserInterface.cpp b/OpenClaw/Engine/UserInterface/UserInterface.cpp
+index 9966337..b6c2f05 100644
+--- a/OpenClaw/Engine/UserInterface/UserInterface.cpp
++++ b/OpenClaw/Engine/UserInterface/UserInterface.cpp
+@@ -109,6 +109,9 @@ std::map<std::string, MenuItemType> g_StringToMenuItemType =
+ 
+ static SDL_Rect GetScreenRect()
+ {
++#ifdef __ANDROID__
++    return { 0, 0, 640, 480 };
++#endif
+     Point windowSize = g_pApp->GetWindowSize();
+     Point scale = g_pApp->GetScale();
+     int targetWidth = (int)(windowSize.x / scale.x);
+@@ -427,8 +430,17 @@ void ScreenElementMenu::VOnUpdate(uint32 msDiff)
+ 
+ void ScreenElementMenu::VOnRender(uint32 msDiff)
+ {
++#ifdef __ANDROID__
++    // Original menu artwork stays centered at its original proportions.
++    SDL_Rect previousViewport;
++    SDL_RenderGetViewport(m_pRenderer, &previousViewport);
++    SDL_Rect menuViewport{(int)(g_pApp->GetWindowSizeScaled().x-640)/2, 0, 640, 480};
++    SDL_RenderSetViewport(m_pRenderer, &menuViewport);
++#endif
+     // Menu DOES NOT use renderer scaling
++#ifndef __ANDROID__
+     SDL_RenderSetScale(m_pRenderer, 1.0f, 1.0f);
++#endif
+ 
+     assert(m_pBackground != nullptr);
+     assert(m_pBackground->GetTexture() != NULL);
+@@ -438,10 +450,15 @@ void ScreenElementMenu::VOnRender(uint32 msDiff)
+ 
+     assert(m_pActiveMenuPage);
+     m_pActiveMenuPage->VOnRender(msDiff);
++#ifdef __ANDROID__
++    SDL_RenderSetViewport(m_pRenderer, &previousViewport);
++#endif
+ 
+     // Restore scale
+     Point scale = Point(g_pApp->GetGameConfig()->scale, g_pApp->GetGameConfig()->scale);
++#ifndef __ANDROID__
+     SDL_RenderSetScale(m_pRenderer, (float)scale.x, (float)scale.y);
++#endif
+ }
+ 
+ bool ScreenElementMenu::VOnEvent(SDL_Event& evt)
+@@ -580,7 +597,11 @@ bool ScreenElementMenu::Initialize(TiXmlElement* pElem)
+     // Lets just assume that the background will take the whole screen
+     // From that we can calculate current scale (can't use predefined scale here)
+     Point windowSize = g_pApp->GetWindowSize();
++#ifdef __ANDROID__
++    g_MenuScale.Set(640.0 / m_pBackground->GetWidth(), 480.0 / m_pBackground->GetHeight());
++#else
+     g_MenuScale.Set(windowSize.x / m_pBackground->GetWidth(), windowSize.y / m_pBackground->GetHeight());
++#endif
+ 
+     return true;
+ }
+@@ -765,7 +786,11 @@ bool ScreenElementMenuPage::VOnEvent(SDL_Event& evt)
+         if (evt.button.button == SDL_BUTTON_LEFT)
+         {
+             SDL_Rect clickRect;
++#ifdef __ANDROID__
++            clickRect.x = (int)((evt.button.x - (int)(g_pApp->GetWindowSizeScaled().x-640)/2) / g_MenuScale.x);
++#else
+             clickRect.x = (int)(evt.button.x / g_MenuScale.x);
++#endif
+             clickRect.y = (int)(evt.button.y / g_MenuScale.y);
+             clickRect.w = 1;
+             clickRect.h = 1;
+@@ -1380,4 +1405,4 @@ SDL_Rect ScreenElementMenuItem::GetMenuItemRect()
+     itemRect.h = itemHeight;
+ 
+     return itemRect;
+-}
+\ No newline at end of file
++}
+diff --git a/OpenClaw/Engine/Util/Converters.cpp b/OpenClaw/Engine/Util/Converters.cpp
+index c51d2ee..a69020b 100644
+--- a/OpenClaw/Engine/Util/Converters.cpp
++++ b/OpenClaw/Engine/Util/Converters.cpp
+@@ -353,7 +353,14 @@ TiXmlElement* WwdToXml(WapWwd* wapWwd, int levelNumber)
+             LOG_ERROR("NOT LOADED: " + actorLogic);
+         }
+ 
+-        FAIL("Failed to load level " + ToStr(levelNumber) + " due to unimplemented actor prototypes");
++        if (levelNumber == 14 && g_pApp->GetDebugOptions()->bPreviewIncompleteLevel14)
++        {
++            LOG_WARNING("Pazur LEVEL14 PREVIEW: missing actors; completion and boss fight unavailable");
++        }
++        else
++        {
++            FAIL("Failed to load level " + ToStr(levelNumber) + " due to unimplemented actor prototypes");
++        }
+     }
+ 
+     root->LinkEndChild(CreateClawActor(wapWwd));
+diff --git a/OpenClaw/Engine/Util/Converters.h b/OpenClaw/Engine/Util/Converters.h
+index e03c1b2..f1bd20c 100644
+--- a/OpenClaw/Engine/Util/Converters.h
++++ b/OpenClaw/Engine/Util/Converters.h
+@@ -230,7 +230,8 @@ inline TiXmlElement* WwdObjectToXml(WwdObject* wwdObject, std::string& imagesRoo
+     // DoNothing logic only has one single frame which has to be assigned
+     // We cant use general wildcard here
+     // Example: We want "/LEVEL1/IMAGES/ARCHESFRONT/*1.PID"
+-    if (logic == "DoNothing" || logic == "DoNothingNormal")
++    if ((logic == "DoNothing" || logic == "DoNothingNormal") &&
++        !(levelNumber == 14 && (std::string(wwdObject->imageSet) == "LEVEL_GONG" || std::string(wwdObject->imageSet) == "LEVEL_WALL" || std::string(wwdObject->imageSet) == "LEVEL_SIAMESE" || std::string(wwdObject->imageSet) == "LEVEL_AMULET")))
+     {
+         // Unfortunately, this hack IS NOT ENOUGH, index "i" == -1 means "i" should be 1
+         // I really have no clue how could Claw's level parsing code should be sane by any
+@@ -243,7 +244,7 @@ inline TiXmlElement* WwdObjectToXml(WwdObject* wwdObject, std::string& imagesRoo
+     }
+ 
+     // Level 9 and 10 SHOOTERS_PUFFDARTLEFT is screwed
+-    if ((levelNumber == 9 || levelNumber == 10 || levelNumber == 13) &&
++    if ((levelNumber == 9 || levelNumber == 10 || levelNumber == 13 || levelNumber == 14) &&
+             tmpImageSet.find("SHOOTERS") != std::string::npos)
+     {
+         std::replace(tmpImageSet.begin(), tmpImageSet.end(), '_', '/');
+@@ -726,7 +727,7 @@ inline TiXmlElement* WwdObjectToXml(WwdObject* wwdObject, std::string& imagesRoo
+             spawnAreaSize,
+             spawnedActorInfoList);
+     }
+-    else if (logic == "Officer" ||
++    else if (logic == "TigerGuard" || logic == "Chameleon" || logic == "Officer" ||
+              logic == "Soldier" ||
+              logic == "Rat" ||
+              logic == "PunkRat" ||
+@@ -902,7 +903,21 @@ inline TiXmlElement* WwdObjectToXml(WwdObject* wwdObject, std::string& imagesRoo
+         std::string shootAnim;
+         Point projectileSpawnOffset;
+ 
+-        if (imageSet.find("UP") != std::string::npos)
++        if (levelNumber == 14)
++        {
++            // LEFT/RIGHT describes the wall, not the direction of flight.
++            const bool launchRight = imageSet.find("LAUNCHLEFT") != std::string::npos;
++            assert(launchRight || imageSet.find("LAUNCHRIGHT") != std::string::npos);
++            shootAnim = launchRight ? "launchleft" : "launchright";
++            projectileProto = ActorPrototype_Level14_Fireball;
++            projectileSpawnOffset.Set(launchRight ? 60 : -60, 0);
++            xmlOverrideList.push_back(XmlNodeOverride("Actor.ProjectileSpawnerComponent.ProjectileDirection",
++                launchRight ? "Direction_Right" : "Direction_Left"));
++            const int delay = wwdObject->speed > 0 ? wwdObject->speed : 1500;
++            xmlOverrideList.push_back(XmlNodeOverride("Actor.ProjectileSpawnerComponent.MinSpawnDelay", delay));
++            xmlOverrideList.push_back(XmlNodeOverride("Actor.ProjectileSpawnerComponent.MaxSpawnDelay", delay));
++        }
++        else if (imageSet.find("UP") != std::string::npos)
+         {
+             shootAnim = "puffdartup";
+             projectileProto = ActorPrototype_Level9_DartProjectile_Up;
+@@ -943,6 +958,11 @@ inline TiXmlElement* WwdObjectToXml(WwdObject* wwdObject, std::string& imagesRoo
+         
+         return ActorTemplates::CreateXmlData_Actor(actorProto, xmlOverrideList);
+     }
++    else if (logic == "Omar")
++    {
++        SAFE_DELETE(pActorElem);
++        return ActorTemplates::CreateXmlData_Actor(actorProto, actorPosition);
++    }
+     else if (logic == "BossStager")
+     {
+         SAFE_DELETE(pActorElem);
+@@ -1017,6 +1037,37 @@ inline TiXmlElement* WwdObjectToXml(WwdObject* wwdObject, std::string& imagesRoo
+             tmpImageSet,
+             pathElevatorDef);
+     }
++    else if (logic == "LavaHand")
++    {
++        SAFE_DELETE(pActorElem);
++        if (actorProto == ActorPrototype_None) return NULL;
++        const bool right = (wwdObject->drawFlags & WAP_OBJECT_DRAW_FLAG_MIRROR) != 0;
++        const int delay = wwdObject->speed > 0 ? wwdObject->speed : 1500;
++        xmlOverrideList.push_back(XmlNodeOverride("Actor.ProjectileSpawnerComponent.ProjectileDirection", right ? "Direction_Right" : "Direction_Left"));
++        xmlOverrideList.push_back(XmlNodeOverride("Actor.ProjectileSpawnerComponent.ProjectileSpawnOffset", "x", right ? 35 : -35, "y", -45));
++        xmlOverrideList.push_back(XmlNodeOverride("Actor.ProjectileSpawnerComponent.StartSpawnDelay", delay));
++        xmlOverrideList.push_back(XmlNodeOverride("Actor.ProjectileSpawnerComponent.MinSpawnDelay", delay));
++        xmlOverrideList.push_back(XmlNodeOverride("Actor.ProjectileSpawnerComponent.MaxSpawnDelay", delay));
++        return ActorTemplates::CreateXmlData_Actor(actorProto, xmlOverrideList);
++    }
++    else if (logic == "LavaMouth")
++    {
++        SAFE_DELETE(pActorElem);
++        if (actorProto == ActorPrototype_None) return NULL;
++        xmlOverrideList.push_back(XmlNodeOverride("Actor.LavaMouthComponent.StartDelay", wwdObject->speed > 0 ? wwdObject->speed : 0));
++        if (wwdObject->damage > 0)
++            xmlOverrideList.push_back(XmlNodeOverride("Actor.LavaMouthComponent.Damage", wwdObject->damage));
++        return ActorTemplates::CreateXmlData_Actor(actorProto, xmlOverrideList);
++    }
++    else if (logic == "LavaGeyser")
++    {
++        SAFE_DELETE(pActorElem);
++        if (actorProto == ActorPrototype_None) return NULL;
++        xmlOverrideList.push_back(XmlNodeOverride("Actor.LavaGeyserComponent.StartDelay", wwdObject->speed > 0 ? wwdObject->speed : 0));
++        if (wwdObject->damage > 0)
++            xmlOverrideList.push_back(XmlNodeOverride("Actor.LavaGeyserComponent.Damage", wwdObject->damage));
++        return ActorTemplates::CreateXmlData_Actor(actorProto, xmlOverrideList);
++    }
+     else if (logic.find("FloorSpike") != std::string::npos)
+     {
+         SAFE_DELETE(pActorElem);
+@@ -1215,8 +1266,9 @@ inline TiXmlElement* WwdObjectToXml(WwdObject* wwdObject, std::string& imagesRoo
+             position,
+             def);
+     }
+-    else
++    else if (logic != "DoNothing" && logic != "DoNothingNormal")
+     {
++        // Static decorations already received their render component above.
+         static std::vector<std::string> s_ReportedUnknownLogicsList;
+ 
+         bool isAlreadyReported = false;
+diff --git a/OpenClaw/Engine/Util/Util.cpp b/OpenClaw/Engine/Util/Util.cpp
+index 98f94d0..a25d6a7 100644
+--- a/OpenClaw/Engine/Util/Util.cpp
++++ b/OpenClaw/Engine/Util/Util.cpp
+@@ -426,13 +426,14 @@ namespace Util
+     int GetSoundDurationMs(const std::string& soundPath)
+     {
+         shared_ptr<Mix_Chunk> pSound = WavResourceLoader::LoadAndReturnSound(soundPath.c_str());
+-        assert(pSound != nullptr);
++        if (!pSound) return 0;
+         return GetSoundDurationMs(pSound.get());
+     }
+ 
+ #ifndef __EMSCRIPTEN__
+     int GetSoundDurationMs(Mix_Chunk* pSound)
+     {
++        if (!pSound) return 0;
+         uint32 points = 0;
+         uint32 frames = 0;
+         int frequency = 0;

@@ -1,0 +1,9 @@
+<Actor Type="Level14_FireballSpawner" Parent="ActorPrototype_BaseProjectileSpawner" ActorPrototypeName="ActorPrototype_Level14_FireballSpawner">
+<ActorRenderComponent><Palette>/LEVEL14/PALETTES/MAIN.PAL</Palette></ActorRenderComponent>
+<AnimationComponent><AnimationPath>/LEVEL14/ANIS/SHOOTERS/*.ANI</AnimationPath></AnimationComponent>
+<ProjectileSpawnerComponent>
+<IdleAnim>INVISIBLE</IdleAnim><FireAnim>OVERRIDDEN_IN_CODE</FireAnim><IsAlwaysOn>false</IsAlwaysOn>
+<StartSpawnDelay>0</StartSpawnDelay><MinSpawnDelay>1500</MinSpawnDelay><MaxSpawnDelay>1500</MaxSpawnDelay>
+<TriggerCollisionMask>2</TriggerCollisionMask><ProjectileSpawnAnimFrameIdx>7</ProjectileSpawnAnimFrameIdx>
+<ProjectilePrototype>ActorPrototype_Level14_Fireball</ProjectilePrototype><ProjectileDirection>Direction_Right</ProjectileDirection>
+</ProjectileSpawnerComponent></Actor>

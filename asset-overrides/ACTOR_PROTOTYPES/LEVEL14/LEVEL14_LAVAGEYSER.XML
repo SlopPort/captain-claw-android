@@ -1,0 +1,6 @@
+<Actor Type="Level14_LavaGeyser" ActorPrototypeName="ActorPrototype_Level14_LavaGeyser">
+<PositionComponent><Position x="-1" y="-1" /></PositionComponent>
+<ActorRenderComponent><Visible>true</Visible><Mirrored>false</Mirrored><Inverted>false</Inverted><ZCoord>5000</ZCoord><ImagePath>/LEVEL14/IMAGES/LAVAGEYSER/*</ImagePath><Palette>/LEVEL14/PALETTES/MAIN.PAL</Palette></ActorRenderComponent>
+<AnimationComponent><AnimationPath>/LEVEL14/ANIS/LAVAGEYSER.ANI</AnimationPath><PauseOnStart>false</PauseOnStart></AnimationComponent>
+<LavaGeyserComponent><StartDelay>0</StartDelay><RestMs>1000</RestMs><Damage>10</Damage><FirstActiveFrame>4</FirstActiveFrame><LastActiveFrame>18</LastActiveFrame><PulseMs>1000</PulseMs></LavaGeyserComponent>
+</Actor>

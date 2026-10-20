@@ -1,0 +1,4 @@
+<Actor Type="Level14_LavaHand" Parent="ActorPrototype_BaseProjectileSpawner" ActorPrototypeName="ActorPrototype_Level14_LavaHand">
+<ActorRenderComponent><Palette>/LEVEL14/PALETTES/MAIN.PAL</Palette></ActorRenderComponent>
+<AnimationComponent><AnimationPath>/LEVEL14/ANIS/LAVAHAND.ANI</AnimationPath></AnimationComponent>
+<ProjectileSpawnerComponent><IdleAnim>INVISIBLE</IdleAnim><FireAnim>lavahand</FireAnim><IsAlwaysOn>true</IsAlwaysOn><StartSpawnDelay>0</StartSpawnDelay><MinSpawnDelay>1500</MinSpawnDelay><MaxSpawnDelay>1500</MaxSpawnDelay><TriggerCollisionMask>0</TriggerCollisionMask><ProjectileSpawnAnimFrameIdx>11</ProjectileSpawnAnimFrameIdx><ProjectilePrototype>ActorPrototype_Level14_LavaHandProjectile</ProjectilePrototype><ProjectileDirection>Direction_Left</ProjectileDirection><ProjectileSpawnOffset x="-35" y="-45" /></ProjectileSpawnerComponent></Actor>

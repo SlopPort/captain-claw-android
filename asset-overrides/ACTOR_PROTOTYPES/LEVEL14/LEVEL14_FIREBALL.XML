@@ -1,0 +1,6 @@
+<Actor Type="Level14_Fireball" Parent="ActorPrototype_BaseProjectile" ActorPrototypeName="ActorPrototype_Level14_Fireball">
+<ActorRenderComponent><ImagePath>/LEVEL14/IMAGES/PROJECTILES/1/*</ImagePath><Palette>/LEVEL14/PALETTES/MAIN.PAL</Palette></ActorRenderComponent>
+<AnimationComponent><SpecialAnimation><Type>cycle</Type><FrameDuration>60</FrameDuration><HasPositionDelay>false</HasPositionDelay></SpecialAnimation></AnimationComponent>
+<ProjectileAIComponent><Damage>10</Damage><ProjectileType>DamageType_Bullet</ProjectileType><ProjectileSpeed x="6" y="0" /></ProjectileAIComponent>
+<PhysicsComponent><CollisionFlag>262144</CollisionFlag><CollisionMask>1048834</CollisionMask><CollisionSize width="24" height="16" /></PhysicsComponent>
+</Actor>

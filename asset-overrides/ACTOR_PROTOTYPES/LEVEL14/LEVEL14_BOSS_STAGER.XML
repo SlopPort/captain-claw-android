@@ -1,0 +1,11 @@
+<Actor Type="Level14_BossStager" Parent="ActorPrototype_BaseBossStager" ActorPrototypeName="ActorPrototype_Level14_BossStager">
+    <BossStagerTriggerComponent>
+        <ClawDialogSound>/LEVEL14/SOUNDS/STAGING/CLAW.WAV</ClawDialogSound>
+        <BossDialogSound>/LEVEL14/SOUNDS/STAGING/ENEMY.WAV</BossDialogSound>
+        <PopupTitleImageSet>/LEVEL14/IMAGES/BOSSNAME/*</PopupTitleImageSet>
+        <PopupTitleSound>/LEVEL14/SOUNDS/DEFEAT.WAV</PopupTitleSound>
+        <BossDistance>250</BossDistance>
+        <BossDistanceY>490</BossDistanceY>
+        <BossActorName>Level14_Omar</BossActorName>
+    </BossStagerTriggerComponent>
+</Actor>

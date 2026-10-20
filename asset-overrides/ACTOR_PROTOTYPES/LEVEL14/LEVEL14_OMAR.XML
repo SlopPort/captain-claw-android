@@ -1,0 +1,56 @@
+<Actor Type="Level14_Omar" ActorPrototypeName="ActorPrototype_Level14_Omar">
+  <PositionComponent>
+    <Position x="-1" y="-1" />
+  </PositionComponent>
+  <ActorRenderComponent>
+    <Visible>true</Visible>
+    <Mirrored>false</Mirrored>
+    <Inverted>false</Inverted>
+    <ZCoord>4000</ZCoord>
+    <ImagePath>/LEVEL14/IMAGES/OMAR/*</ImagePath>
+    <Palette>/LEVEL14/PALETTES/MAIN.PAL</Palette>
+  </ActorRenderComponent>
+  <AnimationComponent>
+    <AnimationPath>/LEVEL14/ANIS/OMAR/*.ANI</AnimationPath>
+    <PauseOnStart>false</PauseOnStart>
+  </AnimationComponent>
+  <HealthComponent>
+    <Health>200</Health>
+    <MaxHealth>200</MaxHealth>
+  </HealthComponent>
+  <PhysicsComponent>
+    <BodyType>Kinematic</BodyType>
+    <HasFootSensor>false</HasFootSensor>
+    <HasCapsuleShape>false</HasCapsuleShape>
+    <HasBulletBehaviour>false</HasBulletBehaviour>
+    <HasSensorBehaviour>false</HasSensorBehaviour>
+    <FixtureType>EnemyAI</FixtureType>
+    <PositionOffset x="0" y="0" />
+    <CollisionShape>Rectangle</CollisionShape>
+    <CollisionSize width="50" height="100" />
+    <GravityScale>0</GravityScale>
+    <HasInitialSpeed>false</HasInitialSpeed>
+    <HasInitialImpulse>false</HasInitialImpulse>
+    <InitialSpeed x="0" y="0" />
+    <CollisionFlag>4</CollisionFlag>
+    <CollisionMask>1793</CollisionMask>
+    <Friction>0.000000</Friction>
+    <Density>0.000000</Density>
+    <Restitution>0.000000</Restitution>
+    <PrefabType />
+    <ClampToGround>false</ClampToGround>
+    <ActorFixture>
+      <FixtureType>EnemyAI</FixtureType>
+      <CollisionShape>Rectangle</CollisionShape>
+      <IsSensor>true</IsSensor>
+      <Size width="64" height="110" />
+      <Offset x="0" y="0" />
+      <CollisionFlag>4</CollisionFlag>
+      <CollisionMask>66618</CollisionMask>
+      <Friction>0.000000</Friction>
+      <Density>0.000000</Density>
+      <Restitution>0.000000</Restitution>
+    </ActorFixture>
+  </PhysicsComponent>
+  <OmarEncounterComponent />
+</Actor>

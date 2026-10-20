@@ -1,0 +1,4 @@
+<Actor Type="Level14_TogglePeg" Parent="ActorPrototype_BaseTogglePeg" ActorPrototypeName="ActorPrototype_Level14_TogglePeg">
+<ActorRenderComponent><ImagePath>/LEVEL14/IMAGES/SLIDERPEG/*</ImagePath><Palette>/LEVEL14/PALETTES/MAIN.PAL</Palette></ActorRenderComponent>
+<TogglePegAIComponent><ToggleFrameIdx>4</ToggleFrameIdx><ToggleSound>/LEVEL14/SOUNDS/PEGSLIDE.WAV</ToggleSound></TogglePegAIComponent>
+</Actor>

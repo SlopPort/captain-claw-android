@@ -1,0 +1,180 @@
+{
+  "upstream_commit": "5ee5740ca98377c76b13b50c84f610b0066a4717",
+  "patch_files": 34,
+  "patch_lines_added": 572,
+  "patch_lines_removed": 45,
+  "new_native_source_files": 11,
+  "override_xml_files": 17,
+  "files": [
+    {
+      "file": "OpenClaw/Engine/Actor/ActorFactory.cpp",
+      "added": 10,
+      "removed": 0
+    },
+    {
+      "file": "OpenClaw/Engine/Actor/Components/AIComponents/CrumblingPegAIComponent.cpp",
+      "added": 5,
+      "removed": 1
+    },
+    {
+      "file": "OpenClaw/Engine/Actor/Components/AIComponents/ProjectileAIComponent.cpp",
+      "added": 37,
+      "removed": 2
+    },
+    {
+      "file": "OpenClaw/Engine/Actor/Components/AIComponents/ProjectileAIComponent.h",
+      "added": 2,
+      "removed": 0
+    },
+    {
+      "file": "OpenClaw/Engine/Actor/Components/AIComponents/TogglePegAIComponent.cpp",
+      "added": 7,
+      "removed": 1
+    },
+    {
+      "file": "OpenClaw/Engine/Actor/Components/ControllableComponent.cpp",
+      "added": 27,
+      "removed": 0
+    },
+    {
+      "file": "OpenClaw/Engine/Actor/Components/ControllerComponents/HealthComponent.cpp",
+      "added": 8,
+      "removed": 3
+    },
+    {
+      "file": "OpenClaw/Engine/Actor/Components/EnemyAI/EnemyAIComponent.cpp",
+      "added": 6,
+      "removed": 2
+    },
+    {
+      "file": "OpenClaw/Engine/Actor/Components/EnemyAI/EnemyAIStateComponent.cpp",
+      "added": 30,
+      "removed": 8
+    },
+    {
+      "file": "OpenClaw/Engine/Actor/Components/EnemyAI/EnemyAIStateComponent.h",
+      "added": 2,
+      "removed": 0
+    },
+    {
+      "file": "OpenClaw/Engine/Actor/Components/FloorSpikeComponent.cpp",
+      "added": 7,
+      "removed": 1
+    },
+    {
+      "file": "OpenClaw/Engine/Actor/Components/ProjectileSpawnerComponent.cpp",
+      "added": 13,
+      "removed": 1
+    },
+    {
+      "file": "OpenClaw/Engine/Actor/Components/TriggerComponents/BossStagerTriggerComponent.cpp",
+      "added": 24,
+      "removed": 4
+    },
+    {
+      "file": "OpenClaw/Engine/Actor/Components/TriggerComponents/BossStagerTriggerComponent.h",
+      "added": 2,
+      "removed": 0
+    },
+    {
+      "file": "OpenClaw/Engine/Audio/Audio.cpp",
+      "added": 65,
+      "removed": 0
+    },
+    {
+      "file": "OpenClaw/Engine/Audio/Audio.h",
+      "added": 6,
+      "removed": 1
+    },
+    {
+      "file": "OpenClaw/Engine/GameApp/BaseGameApp.cpp",
+      "added": 70,
+      "removed": 1
+    },
+    {
+      "file": "OpenClaw/Engine/GameApp/BaseGameApp.h",
+      "added": 2,
+      "removed": 0
+    },
+    {
+      "file": "OpenClaw/Engine/GameApp/BaseGameLogic.cpp",
+      "added": 4,
+      "removed": 6
+    },
+    {
+      "file": "OpenClaw/Engine/GameApp/CommandHandler.cpp",
+      "added": 9,
+      "removed": 0
+    },
+    {
+      "file": "OpenClaw/Engine/Graphics2D/Image.cpp",
+      "added": 5,
+      "removed": 2
+    },
+    {
+      "file": "OpenClaw/Engine/Interfaces.cpp",
+      "added": 40,
+      "removed": 0
+    },
+    {
+      "file": "OpenClaw/Engine/Interfaces.h",
+      "added": 20,
+      "removed": 0
+    },
+    {
+      "file": "OpenClaw/Engine/Physics/ClawPhysics.cpp",
+      "added": 11,
+      "removed": 1
+    },
+    {
+      "file": "OpenClaw/Engine/Physics/ClawPhysics.h",
+      "added": 2,
+      "removed": 0
+    },
+    {
+      "file": "OpenClaw/Engine/Physics/PhysicsContactListener.cpp",
+      "added": 27,
+      "removed": 0
+    },
+    {
+      "file": "OpenClaw/Engine/Resource/Loaders/WavLoader.cpp",
+      "added": 1,
+      "removed": 0
+    },
+    {
+      "file": "OpenClaw/Engine/UserInterface/HumanView.cpp",
+      "added": 11,
+      "removed": 2
+    },
+    {
+      "file": "OpenClaw/Engine/UserInterface/ScoreScreen/EndLevelScoreScreen.cpp",
+      "added": 15,
+      "removed": 1
+    },
+    {
+      "file": "OpenClaw/Engine/UserInterface/Touch/TouchEvents.h",
+      "added": 11,
+      "removed": 0
+    },
+    {
+      "file": "OpenClaw/Engine/UserInterface/UserInterface.cpp",
+      "added": 26,
+      "removed": 1
+    },
+    {
+      "file": "OpenClaw/Engine/Util/Converters.cpp",
+      "added": 8,
+      "removed": 1
+    },
+    {
+      "file": "OpenClaw/Engine/Util/Converters.h",
+      "added": 57,
+      "removed": 5
+    },
+    {
+      "file": "OpenClaw/Engine/Util/Util.cpp",
+      "added": 2,
+      "removed": 1
+    }
+  ]
+}
