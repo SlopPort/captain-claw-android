@@ -38,7 +38,7 @@ def console(command):
     command_file.write_text(ticket+'|'+command+'\n',encoding='ascii')
     # One transport round trip; all safety checks still precede writing the mailbox.
     script=f'''[ "$(pidof pl.pazur.port)" = {shlex.quote(pid)} ] || exit 31
-dumpsys activity activities | grep -E 'topResumedActivity=|mResumedActivity=' | grep -F 'pl.pazur.port/.GameActivity' >/dev/null || exit 32
+dumpsys activity activities | grep -E 'topResumedActivity=|mResumedActivity=|ResumedActivity:' | grep -F 'pl.pazur.port/.GameActivity' >/dev/null || exit 32
 printf '%s\\n' {shlex.quote(ticket+'|'+command)} > {REMOTE}combat-command.tmp
 mv {REMOTE}combat-command.tmp {REMOTE}combat-command.txt
 n=0

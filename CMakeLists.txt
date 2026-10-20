@@ -3,6 +3,12 @@ project(PazurAndroid LANGUAGES C CXX)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
+# Debug APKs keep symbols/assertions, but their physics/audio dependencies also
+# need optimization on low-end phones. Deliberately avoid -ffast-math/NDEBUG.
+option(PAZUR_OPTIMIZE_DEPENDENCIES "Optimize native dependencies in debug builds" ON)
+if(PAZUR_OPTIMIZE_DEPENDENCIES)
+  add_compile_options(-O2)
+endif()
 set(SDL_SHARED ON CACHE BOOL "" FORCE)
 set(SDL_STATIC OFF CACHE BOOL "" FORCE)
 set(SDL_TEST OFF CACHE BOOL "" FORCE)

@@ -2,6 +2,7 @@
 #include "CombatPrototypes.h"
 #include "GamepadControls.h"
 #include "Engine/GameApp/BaseGameApp.h"
+#include "Engine/Audio/Audio.h"
 #include "Engine/Actor/ActorTemplates.h"
 #include "Engine/Actor/Components/PositionComponent.h"
 #include "Engine/Actor/Components/PhysicsComponent.h"
@@ -64,6 +65,19 @@ bool PazurCombatProbe::Handle(const std::vector<std::string>& args, const ActorM
     auto logic = g_pApp->GetGameLogic();
     // Virtual input must remain releasable in menus where no hero exists.
     if (PazurGamepad::DebugCommand(args)) return true;
+    // This probe is reachable only through the explicitly enabled test mailbox.
+    if (args[0]=="audiooptions") {
+        auto audio=g_pApp->GetAudio();
+        if (args.size()==5) {
+            audio->SetSoundActive(args[1]=="1");
+            audio->SetMusicActive(args[2]=="1");
+            audio->SetSoundVolume(std::stoi(args[3]));
+            audio->SetMusicVolume(std::stoi(args[4]));
+        }
+        SDL_Log("Pazur audio options: sound=%d music=%d soundVolume=%d musicVolume=%d",
+            audio->IsSoundActive(),audio->IsMusicActive(),audio->GetSoundVolume(),audio->GetMusicVolume());
+        return true;
+    }
     auto claw = logic->GetClawActor();
     if (!claw) return false;
     auto physics = logic->VGetGamePhysics();

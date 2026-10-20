@@ -2,7 +2,7 @@
 
 [English README](README.en.md)
 
-Natywna adaptacja [OpenClaw](https://github.com/pjasicek/OpenClaw) na Androida, z polskimi zasobami dostarczanymi przez użytkownika. Silnik C++/SDL budowany dla ARM64 i ARMv7. Aktualna wersja: 0.4.6-dev w walidacji; ostatnia podstawa z zakończonymi próbami dotyku: 0.4.3-dev. Minimum API 21.
+Natywna adaptacja [OpenClaw](https://github.com/pjasicek/OpenClaw) na Androida, z polskimi zasobami dostarczanymi przez użytkownika. Silnik C++/SDL budowany dla ARM64 i ARMv7. Aktualna wersja: 0.4.7-dev. Minimum API 21. Wyniki krótkich pomiarów na Huawei i zakres audytu błędów: [raport](docs/validation/TODO-AUDIT.md).
 
 Gałka dotykowa, większe przyciski i regulowana wysokość skoku, szeroki widok planszy z zachowaniem proporcji, muzyka MIDI w APK, uzupełnienia poziomu 14 oraz walka z Omarem i inscenizacja zakończenia. Port korzysta z istniejącego silnika i rozgrywki OpenClaw.
 

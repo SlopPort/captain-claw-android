@@ -8,6 +8,7 @@ Punkt odniesienia: [pjasicek/OpenClaw](https://github.com/pjasicek/OpenClaw), co
 | Grafika i polskie zasoby | Obsługa indeksu przezroczystości PCX, poprawki przenośności formatów i ścieżek | `patches/openclaw-android.patch` |
 | Muzyka i mała pamięć | TiMidity/FreePats w APK, zamienniki brakujących instrumentów, profil 22050 Hz/1024, mniejsza pamięć podręczna, poprawki własności bufora i obsługi audio | `tools/prepare_music_bank.py`, `profiles/`, patch |
 | Dotyk | Własna gałka 8 kierunków, niezależne palce, większe przyciski, przechwycenie palca do puszczenia, natychmiastowa obsługa klawisza, minimalny impuls tapnięcia i cache rysowania | `native/TouchControls.cpp` |
+| Ustawienia i FPS | Zapis zmian dźwięku przy przejściu Androida w tło; optymalizacja kompilacji bibliotek i cache gałki; pomiary faz klatki | patch, `CMakeLists.txt`, `docs/validation/TODO-AUDIT.md` |
 | Drabiny i menu | Zakończenie wspinania na szczycie, blokada ponownego zaczepienia przy trzymaniu góry oraz przyjmowanie powtarzanych kierunków menu Androida | patch, `docs/validation/LADDERS.md` |
 | Pad — w walidacji | Obsługa zdarzeń SDL, martwa strefa, mapowanie działań/menu, podłączanie i odłączanie, wspólne posiadanie klawiszy z dotykiem; Androidowe mapowania z SDL_GameControllerDB | `native/GamepadControls.cpp`, `native/PlatformInput.cpp`, `docs/validation/GAMEPAD.md` |
 | Szeroki ekran | Więcej świata przy stałej wysokości 480, bez deformowania grafiki; kotwiczenie HUD, obsługa współrzędnych menu i podsumowania | patch oraz `native/TouchControls.cpp` |

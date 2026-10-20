@@ -4,6 +4,8 @@
 
 A native Android adaptation of [OpenClaw](https://github.com/pjasicek/OpenClaw), using game data supplied from the user's own copy of Claw. C++/SDL, ARM64 and ARMv7, minimum build API 21. Compatibility with every Android version or device is not established.
 
+Current version: 0.4.7-dev. See the [TODO audit and Huawei performance measurements](docs/validation/TODO-AUDIT.md), including an English summary and remaining issues.
+
 Install a prepared APK, then select `game-data.zip` in the application. You do not need development tools to install a prepared APK and data package. The [installation guide](docs/INSTALL-EN.md) also explains how to prepare data from your own PC installation. Commercial game data is excluded from public sources.
 
 ## What changed

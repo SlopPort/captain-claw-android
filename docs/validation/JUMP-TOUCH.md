@@ -24,3 +24,7 @@ Większe okrągłe przyciski początkowo spowolniły rysowanie. Ich dwa stany s�
 Zaliczone: 18 pomiarów skoku przy trzech proporcjach ekranu (fizyczny 2340×1080, 16:9 i 4:3), ruch ze skokiem i niezależne puszczenie palców, atak/strzał, pauza i powrót z tła, 13 regresji hitboxów oraz krótkie uruchomienia map 1 i 13 z dźwiękiem. Surowe wyniki są w `reports/jump-*`; podsumowanie tworzy `tools/verify_jump_release.py`.
 
 [Relacja gracza oryginału z 2009 r.](https://forum.winehq.org/viewtopic.php?p=28959) również opisuje niższy skok po tapnięciu i wyższy po trzymaniu spacji. Nie wykonano pomiaru oryginalnego EXE klatka po klatce. Minimalne podtrzymanie 110 ms jest wygodniejszą adaptacją dotyku, nie twierdzeniem o dokładnym parametrze wersji Windows.
+
+## Huawei / 0.4.7
+
+Po optymalizacji bibliotek i cache gałki test sześciu skoków na Huawei P9 Lite / Android 10 zaliczony: 28–30 ms od odebrania wejścia do ruchu, krótkie tapnięcia 73,5–74,1 px, pełny skok około 155 px. Multitouch, pauza, powrót z tła i brak przypadkowego ataku przy przesunięciu palca zaliczone. Surowe wyniki: `reports/jump-touch-optimized-0.4.7/`. Nie jest to pełny pomiar fizycznego opóźnienia dotyku. [Audyt i FPS](TODO-AUDIT.md).

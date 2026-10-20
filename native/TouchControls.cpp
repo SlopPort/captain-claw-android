@@ -94,15 +94,67 @@ void reconcile() {
 
 SDL_Renderer* cacheRenderer=nullptr;
 SDL_Texture* buttonTextures[5][2]={};
+SDL_Texture* stickTextures[3]={}; // Base, idle thumb, held thumb; about 115 KiB total.
 bool targetCacheFailed=false;
 
 void clearButtonCache() {
+    for (auto& texture:stickTextures) {if(texture)SDL_DestroyTexture(texture);texture=nullptr;}
     for (auto& states : buttonTextures) for (auto& texture : states) {
         if (texture) SDL_DestroyTexture(texture);
         texture=nullptr;
     }
     cacheRenderer=nullptr;
     targetCacheFailed=false;
+}
+
+void prepareCacheRenderer(SDL_Renderer* renderer) {
+    if (cacheRenderer==renderer) return;
+    // SDL destroys textures together with their renderer; never reuse those handles.
+    for (auto& states:buttonTextures) for (auto& texture:states) texture=nullptr;
+    for (auto& texture:stickTextures) texture=nullptr;
+    cacheRenderer=renderer;targetCacheFailed=!SDL_RenderTargetSupported(renderer);
+}
+
+void drawStickPart(SDL_Renderer* renderer,int cx,int cy,int state) {
+    if (state==0) {
+        filledCircleRGBA(renderer,cx,cy,74,12,18,28,100);
+        aacircleRGBA(renderer,cx,cy,74,235,218,170,150);
+        aacircleRGBA(renderer,cx,cy,48,235,218,170,55);
+    } else {
+        const bool held=state==2;
+        filledCircleRGBA(renderer,cx,cy,26,held?140:55,held?105:61,held?35:71,195);
+        aacircleRGBA(renderer,cx,cy,26,255,242,206,210);
+    }
+}
+
+bool drawCachedStick(SDL_Renderer* renderer) {
+    prepareCacheRenderer(renderer);
+    if (targetCacheFailed || SDL_GetRenderTarget(renderer)) return false;
+    const auto premultiplied=SDL_ComposeCustomBlendMode(SDL_BLENDFACTOR_ONE,
+        SDL_BLENDFACTOR_ONE_MINUS_SRC_ALPHA,SDL_BLENDOPERATION_ADD,
+        SDL_BLENDFACTOR_ONE,SDL_BLENDFACTOR_ONE_MINUS_SRC_ALPHA,SDL_BLENDOPERATION_ADD);
+    for(int i=0;i<3;i++) if(!stickTextures[i]) {
+        const int size=i==0?152:56;
+        auto texture=SDL_CreateTexture(renderer,SDL_PIXELFORMAT_RGBA8888,SDL_TEXTUREACCESS_TARGET,size,size);
+        if(!texture || SDL_SetTextureBlendMode(texture,premultiplied)<0) {
+            if(texture)SDL_DestroyTexture(texture);targetCacheFailed=true;return false;
+        }
+        Uint8 r,g,b,a;SDL_BlendMode blend;
+        SDL_GetRenderDrawColor(renderer,&r,&g,&b,&a);SDL_GetRenderDrawBlendMode(renderer,&blend);
+        if(SDL_SetRenderTarget(renderer,texture)<0) {
+            SDL_SetRenderTarget(renderer,nullptr);SDL_DestroyTexture(texture);targetCacheFailed=true;return false;
+        }
+        SDL_SetRenderDrawColor(renderer,0,0,0,0);SDL_RenderClear(renderer);
+        drawStickPart(renderer,size/2,size/2,i);
+        SDL_SetRenderTarget(renderer,nullptr);
+        SDL_SetRenderDrawColor(renderer,r,g,b,a);SDL_SetRenderDrawBlendMode(renderer,blend);
+        stickTextures[i]=texture;
+    }
+    const SDL_Rect base{int(stickCenterX)-76,int(stickCenterY)-76,152,152};
+    const SDL_Rect thumb{int(stickCenterX+stickX)-28,int(stickCenterY+stickY)-28,56,56};
+    SDL_RenderCopy(renderer,stickTextures[0],nullptr,&base);
+    SDL_RenderCopy(renderer,stickTextures[stickHeld?2:1],nullptr,&thumb);
+    return true;
 }
 
 void drawRoundButton(SDL_Renderer* renderer,const Button& button,const SDL_Rect& r,bool held) {
@@ -128,12 +180,7 @@ void drawRoundButton(SDL_Renderer* renderer,const Button& button,const SDL_Rect&
 }
 
 bool drawCachedButton(SDL_Renderer* renderer,const Button& button,const SDL_Rect& r,bool held) {
-    if (cacheRenderer!=renderer) {
-        // SDL owns textures when their renderer is destroyed.
-        for (auto& states : buttonTextures) for (auto& texture : states) texture=nullptr;
-        cacheRenderer=renderer;
-        targetCacheFailed=!SDL_RenderTargetSupported(renderer);
-    }
+    prepareCacheRenderer(renderer);
     if (targetCacheFailed || SDL_GetRenderTarget(renderer)) return false;
     const int index=&button-buttons;
     const auto premultiplied=SDL_ComposeCustomBlendMode(SDL_BLENDFACTOR_ONE,
@@ -243,12 +290,10 @@ void PazurTouch::Draw(SDL_Renderer* renderer) {
         stringRGBA(renderer, 160, 109, "TRYB TESTOWY - POZIOM 14", 255, 235, 180, 255);
     }
     if (PazurGamepad::UsingController()) return;
-    filledCircleRGBA(renderer, stickCenterX, stickCenterY, 74, 12, 18, 28, 100);
-    aacircleRGBA(renderer, stickCenterX, stickCenterY, 74, 235, 218, 170, 150);
-    aacircleRGBA(renderer, stickCenterX, stickCenterY, 48, 235, 218, 170, 55);
-    filledCircleRGBA(renderer, stickCenterX+stickX, stickCenterY+stickY, 26,
-        stickHeld ? 140 : 55, stickHeld ? 105 : 61, stickHeld ? 35 : 71, 195);
-    aacircleRGBA(renderer, stickCenterX+stickX, stickCenterY+stickY, 26, 255, 242, 206, 210);
+    if(!drawCachedStick(renderer)) {
+        drawStickPart(renderer,stickCenterX,stickCenterY,0);
+        drawStickPart(renderer,stickCenterX+stickX,stickCenterY+stickY,stickHeld?2:1);
+    }
     for (const auto& button : buttons) {
         const auto r = rect(button);
         const bool held = pressed.count(button.key) != 0;

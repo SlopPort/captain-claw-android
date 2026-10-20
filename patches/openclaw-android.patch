@@ -940,7 +940,7 @@ index d12e28d..186fb90 100644
 \ No newline at end of file
 +#endif
 diff --git a/OpenClaw/Engine/GameApp/BaseGameApp.cpp b/OpenClaw/Engine/GameApp/BaseGameApp.cpp
-index 64533c3..b2828bb 100644
+index 64533c3..e194317 100644
 --- a/OpenClaw/Engine/GameApp/BaseGameApp.cpp
 +++ b/OpenClaw/Engine/GameApp/BaseGameApp.cpp
 @@ -21,6 +21,10 @@
@@ -968,19 +968,32 @@ index 64533c3..b2828bb 100644
  
      if (!VPerformStartupTests())
      {
-@@ -99,6 +105,11 @@ void BaseGameApp::Terminate()
+@@ -98,6 +104,14 @@ bool BaseGameApp::Initialize(int argc, char** argv)
+ void BaseGameApp::Terminate()
  {
      LOG("Terminating...");
- 
++#ifdef __ANDROID__
++    SaveGameOptions(); // Audio must still exist when its menu settings are read.
++#endif
++
 +#ifdef __ANDROID__
 +    PazurTouch::Shutdown();
 +    PazurGamepad::Shutdown();
 +#endif
-+
+ 
      RemoveAllDelegates();
  
-     SAFE_DELETE(m_pGame);
-@@ -212,12 +223,35 @@ void BaseGameApp::StepLoop() {
+@@ -118,7 +132,9 @@ void BaseGameApp::Terminate()
+     }
+     m_ActorXmlPrototypeMap.clear();
+ 
++#ifndef __ANDROID__
+     SaveGameOptions();
++#endif
+ }
+ 
+ #define STARTUP_TEST(condition, error) \
+@@ -212,12 +228,39 @@ void BaseGameApp::StepLoop() {
          }
          consecutiveLagSpikes = 0;
  
@@ -1003,6 +1016,10 @@ index 64533c3..b2828bb 100644
 +        }
 +#endif
 +
++#ifdef __ANDROID__
++        const auto phaseStart=SDL_GetPerformanceCounter();
++        Uint64 phaseInputEnd=phaseStart,phaseEventEnd=phaseStart,phaseUpdateEnd=phaseStart;
++#endif
          // Handle all input events
          while (SDL_PollEvent(&event))
          {
@@ -1016,18 +1033,64 @@ index 64533c3..b2828bb 100644
          // Handle all touch events
          if (m_pTouchManager) {
              m_pTouchManager->Update();
-@@ -284,6 +318,10 @@ int32 BaseGameApp::Run()
+@@ -231,8 +274,17 @@ void BaseGameApp::StepLoop() {
+             // Update game
+             {
+                 //PROFILE_CPU("ONLY GAME UPDATE");
+-                IEventMgr::Get()->VUpdate(20); // Allow event queue to process for up to 20 ms
+-                m_pGame->VOnUpdate(elapsedTime);
++#ifdef __ANDROID__
++                phaseInputEnd=SDL_GetPerformanceCounter();
++#endif
++                IEventMgr::Get()->VUpdate(20); // Allow event queue to process for up to 20 ms
++#ifdef __ANDROID__
++                phaseEventEnd=SDL_GetPerformanceCounter();
++#endif
++                m_pGame->VOnUpdate(elapsedTime);
++#ifdef __ANDROID__
++                phaseUpdateEnd=SDL_GetPerformanceCounter();
++#endif
+             }
+ 
+             // Render game
+@@ -245,6 +297,24 @@ void BaseGameApp::StepLoop() {
+             //m_pGame->VRenderDiagnostics();
+         }
+ 
++#ifdef __ANDROID__
++        // Render includes GPU presentation/vsync wait: these are wall-time phases, not CPU usage.
++        static double phaseTotals[4]={};static int phaseCount=0;
++        if (m_pGame && m_pGame->IsRunning() && m_pGame->GetGameState()==GameState_IngameRunning) {
++            const double ms=1000.0/SDL_GetPerformanceFrequency();
++            const auto end=SDL_GetPerformanceCounter();
++            phaseTotals[0]+=(phaseInputEnd-phaseStart)*ms;
++            phaseTotals[1]+=(phaseEventEnd-phaseInputEnd)*ms;
++            phaseTotals[2]+=(phaseUpdateEnd-phaseEventEnd)*ms;
++            phaseTotals[3]+=(end-phaseUpdateEnd)*ms;
++            if (++phaseCount==300) {
++                SDL_Log("Pazur phase sample: input=%.2f events=%.2f update=%.2f render=%.2f ms",
++                    phaseTotals[0]/300,phaseTotals[1]/300,phaseTotals[2]/300,phaseTotals[3]/300);
++                for (auto& value:phaseTotals) value=0;phaseCount=0;
++            }
++        } else {for (auto& value:phaseTotals)value=0;phaseCount=0;}
++#endif
++
+         // Artificially decrease fps. Configurable from console
+         Util::Sleep(m_DebugOptions.cpuDelayMs);
+     }
+@@ -284,6 +354,11 @@ int32 BaseGameApp::Run()
  
  void BaseGameApp::OnEvent(SDL_Event& event)
  {
 +#ifdef __ANDROID__
++    if (event.type==SDL_APP_WILLENTERBACKGROUND && m_pAudio) SaveGameOptions();
 +    if (PazurGamepad::Handle(event)) return;
 +    if (PazurTouch::Handle(event)) return;
 +#endif
      switch (event.type)
      {
          case SDL_QUIT:
-@@ -317,6 +355,12 @@ void BaseGameApp::OnEvent(SDL_Event& event)
+@@ -317,6 +392,12 @@ void BaseGameApp::OnEvent(SDL_Event& event)
              break;
          }
  
@@ -1040,7 +1103,7 @@ index 64533c3..b2828bb 100644
          case SDL_APP_DIDENTERBACKGROUND:
          {
              LOG("Entered background");
-@@ -325,6 +369,8 @@ void BaseGameApp::OnEvent(SDL_Event& event)
+@@ -325,6 +406,8 @@ void BaseGameApp::OnEvent(SDL_Event& event)
  
          case SDL_APP_DIDENTERFOREGROUND:
          {
@@ -1049,7 +1112,7 @@ index 64533c3..b2828bb 100644
              LOG("Entered foreground");
              break;
          }
-@@ -555,6 +601,11 @@ bool BaseGameApp::LoadGameOptions(const char* inConfigFile)
+@@ -555,6 +638,11 @@ bool BaseGameApp::LoadGameOptions(const char* inConfigFile)
      {
          ParseValueFromXmlElem(&m_GameOptions.assetsFolder,
              assetsElem->FirstChildElement("AssetsFolder"));
@@ -1061,7 +1124,7 @@ index 64533c3..b2828bb 100644
          DO_AND_CHECK(ParseValueFromXmlElem(&m_GameOptions.rezArchive,
              assetsElem->FirstChildElement("RezArchive")));
          DO_AND_CHECK(ParseValueFromXmlElem(&m_GameOptions.customArchive,
-@@ -713,6 +764,8 @@ bool BaseGameApp::LoadGameOptions(const char* inConfigFile)
+@@ -713,6 +801,8 @@ bool BaseGameApp::LoadGameOptions(const char* inConfigFile)
      //-------------------------------------------------------------------------
      if (TiXmlElement* pDebugOptionsRootElem = configRoot->FirstChildElement("DebugOptions"))
      {
@@ -1070,7 +1133,7 @@ index 64533c3..b2828bb 100644
          ParseValueFromXmlElem(&m_DebugOptions.bSkipBossFightIntro,
              pDebugOptionsRootElem->FirstChildElement("SkipBossFightIntro"));
          ParseValueFromXmlElem(&m_DebugOptions.bSkipMenu,
-@@ -721,6 +774,10 @@ bool BaseGameApp::LoadGameOptions(const char* inConfigFile)
+@@ -721,6 +811,10 @@ bool BaseGameApp::LoadGameOptions(const char* inConfigFile)
              pDebugOptionsRootElem->FirstChildElement("CpuDelay"));
          ParseValueFromXmlElem(&m_DebugOptions.lastImplementedLevel,
              pDebugOptionsRootElem->FirstChildElement("LastImplementedLevel"));
@@ -1081,7 +1144,48 @@ index 64533c3..b2828bb 100644
          ParseValueFromXmlElem(&m_DebugOptions.skipMenuToLevel,
              pDebugOptionsRootElem->FirstChildElement("SkipMenuToLevel"));
      }
-@@ -780,6 +837,10 @@ bool BaseGameApp::InitializeDisplay(GameOptions& gameOptions)
+@@ -730,8 +824,38 @@ bool BaseGameApp::LoadGameOptions(const char* inConfigFile)
+ 
+ void BaseGameApp::SaveGameOptions(const char* outConfigFile)
+ {
+-    LOG_ERROR("Not implemented yet!");
+-    return;
++#ifdef __ANDROID__
++    if (!m_pAudio) return;
++    TiXmlDocument config;
++    // Preserve significant spaces in unrelated values such as the console prompt.
++    const bool condensed=TiXmlBase::IsWhiteSpaceCondensed();
++    TiXmlBase::SetCondenseWhiteSpace(false);
++    const bool loaded=config.LoadFile(outConfigFile);
++    TiXmlBase::SetCondenseWhiteSpace(condensed);
++    if (!loaded || !config.RootElement()) {
++        LOG_ERROR("Cannot preserve existing configuration while saving audio options");
++        return;
++    }
++    auto audio = config.RootElement()->FirstChildElement("Audio");
++    if (!audio) return;
++    const auto set = [audio](const char* name, const std::string& value) {
++        auto node = audio->FirstChildElement(name);
++        if (!node) {node = new TiXmlElement(name);audio->LinkEndChild(node);}
++        node->Clear();node->LinkEndChild(new TiXmlText(value.c_str()));
++    };
++    set("SoundOn",m_pAudio->IsSoundActive()?"true":"false");
++    set("MusicOn",m_pAudio->IsMusicActive()?"true":"false");
++    set("SoundVolume",ToStr(m_pAudio->GetSoundVolume()));
++    set("MusicVolume",ToStr(m_pAudio->GetMusicVolume()));
++    const std::string temporary = std::string(outConfigFile)+".tmp";
++    if (!config.SaveFile(temporary.c_str()) || std::rename(temporary.c_str(),outConfigFile)!=0) {
++        LOG_ERROR("Cannot atomically save audio options");
++        return;
++    }
++    SDL_Log("Pazur audio options saved");
++#else
++    LOG_ERROR("Not implemented yet!");
++#endif
+ }
+ 
+ //=====================================================================================================================
+@@ -780,6 +904,10 @@ bool BaseGameApp::InitializeDisplay(GameOptions& gameOptions)
          return false;
      }
  
@@ -1092,7 +1196,7 @@ index 64533c3..b2828bb 100644
      m_pWindow = SDL_CreateWindow(VGetGameTitle(), SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
          gameOptions.windowWidth, gameOptions.windowHeight, SDL_WINDOW_SHOWN);
      if (m_pWindow == NULL)
-@@ -799,6 +860,15 @@ bool BaseGameApp::InitializeDisplay(GameOptions& gameOptions)
+@@ -799,6 +927,15 @@ bool BaseGameApp::InitializeDisplay(GameOptions& gameOptions)
          SDL_GetWindowSize(m_pWindow, &m_GameOptions.windowWidth, &m_GameOptions.windowHeight);
      }
  
@@ -1108,7 +1212,7 @@ index 64533c3..b2828bb 100644
      m_WindowSize.Set(gameOptions.windowWidth, gameOptions.windowHeight);
  
      uint32 rendererFlags = SDL_RENDERER_ACCELERATED;
-@@ -815,6 +885,9 @@ bool BaseGameApp::InitializeDisplay(GameOptions& gameOptions)
+@@ -815,6 +952,9 @@ bool BaseGameApp::InitializeDisplay(GameOptions& gameOptions)
      }
  
      SDL_RenderSetScale(m_pRenderer, (float)gameOptions.scale, (float)gameOptions.scale);
@@ -1118,7 +1222,7 @@ index 64533c3..b2828bb 100644
  
      LOG("Display successfully initialized.");
  
-@@ -918,7 +991,7 @@ bool BaseGameApp::InitializeFont(GameOptions& gameOptions)
+@@ -918,7 +1058,7 @@ bool BaseGameApp::InitializeFont(GameOptions& gameOptions)
      m_pConsoleFont = TTF_OpenFont(gameOptions.consoleFontName.c_str(), gameOptions.consoleFontSize);
      if (m_pConsoleFont == NULL)
      {
@@ -1127,7 +1231,7 @@ index 64533c3..b2828bb 100644
          return false;
      }
  
-@@ -1234,7 +1307,11 @@ Point BaseGameApp::GetScale()
+@@ -1234,7 +1374,11 @@ Point BaseGameApp::GetScale()
      uint32 windowFlags = GetWindowFlags();
      Point scale(1.0, 1.0);
  
@@ -1139,7 +1243,7 @@ index 64533c3..b2828bb 100644
      
      scale.Set((double)scaleX, (double)scaleY);
  
-@@ -1243,7 +1320,11 @@ Point BaseGameApp::GetScale()
+@@ -1243,7 +1387,11 @@ Point BaseGameApp::GetScale()
  
  void BaseGameApp::SetScale(Point scale)
  {
@@ -1151,7 +1255,7 @@ index 64533c3..b2828bb 100644
  }
  
  uint32 BaseGameApp::GetWindowFlags()
-@@ -1412,8 +1493,14 @@ void BaseGameApp::RemoveAllDelegates()
+@@ -1412,8 +1560,14 @@ void BaseGameApp::RemoveAllDelegates()
  
  void BaseGameApp::QuitGameDelegate(IEventDataPtr pEventData)
  {
