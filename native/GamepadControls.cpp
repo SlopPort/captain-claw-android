@@ -30,7 +30,9 @@ SDL_Joystick* virtualPad=nullptr;
 int context() {
     if (!g_pApp || !g_pApp->GetGameLogic()) return 0;
     const auto state=g_pApp->GetGameLogic()->GetGameState();
-    if (state==GameState_IngameRunning && g_pApp->GetGameLogic()->IsRunning()) return 1;
+    // ScreenElementMenu pauses with SetRunning(false), without changing GameState.
+    // Keep routing input to that menu so Start/B can resume the game.
+    if (state==GameState_IngameRunning) return g_pApp->GetGameLogic()->IsRunning()?1:2;
     if (state==GameState_Menu || state==GameState_IngamePaused || state==GameState_ScoreScreen) return 2;
     return 0;
 }
@@ -65,7 +67,10 @@ void open(int index) {
 }
 void reconcile(Uint32 timestamp=0) {
     const int mode=context();
-    if (mode!=lastContext) {release();awaitNeutral=true;lastContext=mode;}
+    if (mode!=lastContext) {
+        release();awaitNeutral=true;lastContext=mode;
+        SDL_Log("Pazur pad context: mode=%d",mode);
+    }
     if (suspended || !mode || !pads.count(activePad)) {release();return;}
     auto& pad=pads.at(activePad);
     if (awaitNeutral) {

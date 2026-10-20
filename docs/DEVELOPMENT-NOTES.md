@@ -19,6 +19,7 @@ Całą pracę nad adaptacją w tej sesji — zmiany kodu, dokumentację, rozpozn
 
 - Finish real GameSir Nova 2 Lite gameplay button, axis, pause, disconnect and reconnect checks. Redmi identified Wireless Controller; Huawei paired in red Switch mode as Pro Controller, and the user confirmed menu navigation. A connected device is not yet a passed gameplay test.
 - A Huawei menu-exit test exposed a crash from Android process-wide exit inside the event callback. The Android path now unwinds the loop and releases controller/touch state. Three automated exit/relaunch cycles passed; other shutdown scenarios still need coverage.
+- The user also found that the controller stopped responding after opening pause on level 1. Rendering continued: the input context missed the engine's SetRunning(false) pause flag while GameState remained IngameRunning. That flag combination now selects menu input. Three automated pause/menu-direction/resume cycles passed; physical confirmation after the fix is pending. The test checks actual direction events, not just mailbox acknowledgements.
 - Complete a natural playthrough of all levels. Existing controlled enemy and collision scenarios are documented in `validation/COMBAT-AUDIT.md`; they do not establish that every encounter is correct.
 - Revisit the intermittent level 7 projectile assertion if it returns. A guard was added; the original root cause is not conclusively established.
 - Test installation instructions from a clean phone and a clean computer. Current import requires a prepared ZIP; this is a known usability limitation.
