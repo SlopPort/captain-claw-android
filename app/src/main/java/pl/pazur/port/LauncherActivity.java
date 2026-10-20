@@ -27,6 +27,26 @@ public class LauncherActivity extends Activity {
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
+        if (getIntent().getBooleanExtra("pin_shortcut", false)) {
+            // Let the launcher ask the user where to place it; never edit its database.
+            if (android.os.Build.VERSION.SDK_INT >= 26) {
+                android.content.pm.ShortcutManager manager = getSystemService(android.content.pm.ShortcutManager.class);
+                if (manager != null && manager.isRequestPinShortcutSupported()) {
+                    Intent open = new Intent(this, LauncherActivity.class).setAction(Intent.ACTION_MAIN);
+                    android.content.pm.ShortcutInfo shortcut = new android.content.pm.ShortcutInfo.Builder(this, "open-claw")
+                        .setShortLabel("Kapitan Pazur")
+                        .setIcon(android.graphics.drawable.Icon.createWithResource(this, android.R.drawable.ic_media_play))
+                        .setIntent(open).build();
+                    manager.requestPinShortcut(shortcut, null);
+                } else {
+                    android.widget.Toast.makeText(this, "Dodaj ikonę z listy aplikacji / Add from the app drawer", android.widget.Toast.LENGTH_LONG).show();
+                }
+            } else {
+                android.widget.Toast.makeText(this, "Przytrzymaj ikonę gry na liście aplikacji i przeciągnij na pulpit.", android.widget.Toast.LENGTH_LONG).show();
+            }
+            finish();
+            return;
+        }
         if (ready()) { play(); return; }
         LinearLayout layout = new LinearLayout(this);
         layout.setOrientation(LinearLayout.VERTICAL);
