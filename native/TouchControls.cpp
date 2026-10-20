@@ -1,5 +1,7 @@
 #include "TouchControls.h"
 #include "CombatProbe.h"
+#include "GamepadControls.h"
+#include "PlatformInput.h"
 #include "OmarEncounterComponent.h"
 #include <SDL2/SDL2_gfxPrimitives.h>
 #include <map>
@@ -58,13 +60,7 @@ SDL_Keycode hit(float x, float y) {
 
 void sendKey(SDL_Keycode key, bool down) {
     if (key==SDLK_SPACE) PazurCombatProbe::JumpInput(down,touchTimestamp);
-    SDL_Event event{};
-    event.type = down ? SDL_KEYDOWN : SDL_KEYUP;
-    event.key.state = down ? SDL_PRESSED : SDL_RELEASED;
-    event.key.keysym.sym = key;
-    event.key.keysym.scancode = SDL_GetScancodeFromKey(key);
-    // Dispatch during this touch event, rather than deferring through SDL's next poll.
-    g_pApp->OnEvent(event);
+    PazurInput::SetKey(PazurInput::Touch,key,down);
 }
 
 void reconcile() {
@@ -190,6 +186,7 @@ void PazurTouch::Update() {
 }
 
 bool PazurTouch::Handle(const SDL_Event& event) {
+    if (event.type==SDL_FINGERDOWN) PazurGamepad::UseTouch();
     if (event.type==SDL_RENDER_TARGETS_RESET || event.type==SDL_RENDER_DEVICE_RESET) clearButtonCache();
     if (event.type == SDL_APP_WILLENTERBACKGROUND ||
         (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_FOCUS_LOST)) {
@@ -240,6 +237,7 @@ void PazurTouch::Draw(SDL_Renderer* renderer) {
         boxRGBA(renderer, 140, 100, 500, 125, 90, 20, 10, 220);
         stringRGBA(renderer, 160, 109, "TRYB TESTOWY - POZIOM 14", 255, 235, 180, 255);
     }
+    if (PazurGamepad::UsingController()) return;
     filledCircleRGBA(renderer, stickCenterX, stickCenterY, 74, 12, 18, 28, 100);
     aacircleRGBA(renderer, stickCenterX, stickCenterY, 74, 235, 218, 170, 150);
     aacircleRGBA(renderer, stickCenterX, stickCenterY, 48, 235, 218, 170, 55);

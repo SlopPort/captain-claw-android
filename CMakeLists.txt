@@ -49,7 +49,7 @@ file(GLOB SDL_HEADERS upstream/SDL/include/*.h upstream/SDL_image/include/*.h up
 file(COPY ${SDL_HEADERS} DESTINATION ${COMPAT}/SDL2)
 file(GLOB_RECURSE GAME_SOURCES CONFIGURE_DEPENDS ${OC}/OpenClaw/*.cpp)
 list(FILTER GAME_SOURCES EXCLUDE REGEX "/main.cpp$")
-add_library(openclaw SHARED ${GAME_SOURCES} native/android_main.cpp native/TouchControls.cpp native/LavaGeyserComponent.cpp native/OmarEncounterComponent.cpp native/CombatProbe.cpp)
+add_library(openclaw SHARED ${GAME_SOURCES} native/android_main.cpp native/TouchControls.cpp native/LavaGeyserComponent.cpp native/OmarEncounterComponent.cpp native/CombatProbe.cpp native/PlatformInput.cpp native/GamepadControls.cpp)
 target_include_directories(openclaw PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/native ${COMPAT} ${OC}/OpenClaw ${OC}/Box2D ${OC}/libwap ${OC}/ThirdParty ${OC}/ThirdParty/Tinyxml)
 target_compile_definitions(openclaw PRIVATE ANDROID SDL_MAIN_HANDLED)
 target_compile_options(openclaw PRIVATE -O2 -Wno-deprecated-declarations)

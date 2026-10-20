@@ -1,5 +1,6 @@
 #include "CombatProbe.h"
 #include "CombatPrototypes.h"
+#include "GamepadControls.h"
 #include "Engine/GameApp/BaseGameApp.h"
 #include "Engine/Actor/ActorTemplates.h"
 #include "Engine/Actor/Components/PositionComponent.h"
@@ -58,6 +59,8 @@ void status() {
 bool PazurCombatProbe::Handle(const std::vector<std::string>& args, const ActorMap& actors) {
     if (args.empty()) return false;
     auto logic = g_pApp->GetGameLogic();
+    // Virtual input must remain releasable in menus where no hero exists.
+    if (PazurGamepad::DebugCommand(args)) return true;
     auto claw = logic->GetClawActor();
     if (!claw) return false;
     auto physics = logic->VGetGamePhysics();
@@ -230,9 +233,10 @@ void PazurCombatProbe::Poll() {
         else ++it;
     }
     if (!g_pApp || !g_pApp->GetDebugOptions()->bPreviewIncompleteLevel14 ||
-        !g_pApp->GetGameLogic() || !g_pApp->GetGameLogic()->IsRunning() ||
-        g_pApp->GetGameLogic()->GetGameState()!=GameState_IngameRunning) return;
-    if (jumpTrace.armed && jumpTrace.received) {
+        !g_pApp->GetGameLogic()) return;
+    const bool playing=g_pApp->GetGameLogic()->IsRunning() &&
+        g_pApp->GetGameLogic()->GetGameState()==GameState_IngameRunning;
+    if (playing && jumpTrace.armed && jumpTrace.received) {
         auto claw=g_pApp->GetGameLogic()->GetClawActor();
         const double rise=jumpTrace.baseY-claw->GetPositionComponent()->GetY();
         jumpTrace.rise=(std::max)(jumpTrace.rise,rise);
@@ -261,7 +265,9 @@ void PazurCombatProbe::Poll() {
     const auto ticket=line.substr(0,separator);
     auto command=line.substr(separator+1);
     if (!command.empty() && command.back()=='\r') command.pop_back();
-    CommandHandler::HandleCommand(command.c_str(),g_pApp->GetHumanView()->GetConsole().get());
+    // Combat fixtures require live physics. Virtual button releases must work while paused.
+    const bool allowed=playing || command.compare(0,11,"padvirtual ")==0;
+    if (allowed) CommandHandler::HandleCommand(command.c_str(),g_pApp->GetHumanView()->GetConsole().get());
     std::ofstream response("combat-response.txt");
-    response<<ticket<<"|done\n";
+    response<<ticket<<(allowed ? "|done\n" : "|rejected: game not running\n");
 }

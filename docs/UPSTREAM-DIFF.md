@@ -8,6 +8,7 @@ Punkt odniesienia: [pjasicek/OpenClaw](https://github.com/pjasicek/OpenClaw), co
 | Grafika i polskie zasoby | Obsługa indeksu przezroczystości PCX, poprawki przenośności formatów i ścieżek | `patches/openclaw-android.patch` |
 | Muzyka i mała pamięć | TiMidity/FreePats w APK, zamienniki brakujących instrumentów, profil 22050 Hz/1024, mniejsza pamięć podręczna, poprawki własności bufora i obsługi audio | `tools/prepare_music_bank.py`, `profiles/`, patch |
 | Dotyk | Własna gałka 8 kierunków, niezależne palce, większe przyciski, przechwycenie palca do puszczenia, natychmiastowa obsługa klawisza, minimalny impuls tapnięcia i cache rysowania | `native/TouchControls.cpp` |
+| Pad — w walidacji | Obsługa zdarzeń SDL, martwa strefa, mapowanie działań/menu, podłączanie i odłączanie, wspólne posiadanie klawiszy z dotykiem; Androidowe mapowania z SDL_GameControllerDB | `native/GamepadControls.cpp`, `native/PlatformInput.cpp`, `docs/validation/GAMEPAD.md` |
 | Szeroki ekran | Więcej świata przy stałej wysokości 480, bez deformowania grafiki; kotwiczenie HUD, obsługa współrzędnych menu i podsumowania | patch oraz `native/TouchControls.cpp` |
 | Poziom 14 | Prototypy/metadane oraz brakujące elementy finału: platformy, kolce, wyrzutnie, gejzery, LavaHand, LavaMouth, kameleony i strażnicy | `asset-overrides/`, `native/LavaGeyserComponent.cpp`, patch |
 | Omar i zakończenie | Własna dwufazowa walka, dialogi, reset podejścia, kapitulacja i inscenizacja zakończenia z istniejących grafik gry | `native/OmarEncounterComponent.cpp` |
@@ -22,4 +23,4 @@ Stan uporządkowanej podstawy 0.4.3: patch zmienia 34 pliki silnika (572 dodane 
 
 Zakończenie jest inscenizacją w silniku, nie odtworzeniem oryginalnego filmu. Parametry nowych elementów finału i balans nie mają pełnego porównania z Windows. CrazyHook DLL/FFI i adresy x86 nie są wykonywane przez port. Testy kontrolowane i odczyt wszystkich obiektów nie zastępują naturalnego przejścia wszystkich map. Jednorazowa awaria kontaktu pocisku poziomu 7 jest zachowana w raporcie audytu; po dodaniu kontroli rejestracji nie powtórzyła się w końcowych próbach, ale jej źródła nie ustalono jednoznacznie.
 
-Obsługa padów jest dodawana w osobnej zmianie po uporządkowaniu tej podstawy; jej dokumentacja i testy będą opisane osobno.
+Obsługa padów jest osobną zmianą po uporządkowaniu podstawy 0.4.3. Aktualny zakres i niewykonane jeszcze sprawdzenia zapisano w `docs/validation/GAMEPAD.md`.

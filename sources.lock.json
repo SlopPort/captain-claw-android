@@ -33,5 +33,10 @@
     "name": "freepats",
     "url": "https://github.com/feross/freepats.git",
     "commit": "79cd6f0076ff6c9bbc692bf29b6a4574fe4cc725"
+  },
+  {
+    "name": "SDL_GameControllerDB",
+    "url": "https://github.com/mdqinc/SDL_GameControllerDB.git",
+    "commit": "ff333823a85ae896e73f4c53670932cf0f728adb"
   }
 ]

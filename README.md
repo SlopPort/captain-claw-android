@@ -1,10 +1,24 @@
 # Kapitan Pazur na Androida
 
-Natywna adaptacja [OpenClaw](https://github.com/pjasicek/OpenClaw) na Androida, z polskimi zasobami dostarczanymi przez użytkownika. Silnik C++/SDL budowany dla ARM64 i ARMv7. Aktualna podstawa: 0.4.3-dev, minimum API 21.
+[English README](README.en.md)
+
+Natywna adaptacja [OpenClaw](https://github.com/pjasicek/OpenClaw) na Androida, z polskimi zasobami dostarczanymi przez użytkownika. Silnik C++/SDL budowany dla ARM64 i ARMv7. Aktualna wersja: 0.4.4-dev w walidacji; ostatnia podstawa z zakończonymi próbami dotyku: 0.4.3-dev. Minimum API 21.
 
 Gałka dotykowa, większe przyciski i regulowana wysokość skoku, szeroki widok planszy z zachowaniem proporcji, muzyka MIDI w APK, uzupełnienia poziomu 14 oraz walka z Omarem i inscenizacja zakończenia. Port korzysta z istniejącego silnika i rozgrywki OpenClaw.
 
 **Zakres własnej pracy:** [różnice względem OpenClaw](docs/UPSTREAM-DIFF.md). Zmiany silnika są zapisane jako odtwarzalny patch do konkretnego commita; kod Androida i nowe komponenty są osobno w tym repozytorium.
+
+## Instalacja dla gracza
+
+**[Polski: instalacja krok po kroku](docs/INSTALL-PL.md)** · **[English: step-by-step installation](docs/INSTALL-EN.md)**
+
+Gotowy APK instaluje aplikację. Dane z własnej kopii gry importuje się osobno jako `game-data.zip`. Instrukcja wyjaśnia kopiowanie plików, instalowanie i najczęstsze problemy. Nie trzeba kompilować programu, jeśli ma się gotowy APK.
+
+## Transparentność
+
+Całą pracę nad adaptacją w tej sesji — kod, dokumentację, analizę i wykonanie testów automatycznych — wykonał agent LLM (OpenAI Codex), według wymagań i uwag człowieka. OpenClaw i biblioteki pozostają pracą ich autorów. [Ustalenia, ograniczenia i plan słabszego telefonu](docs/DEVELOPMENT-NOTES.md).
+
+All adaptation work in this session was performed by an LLM coding agent (OpenAI Codex), guided by human requirements and feedback. Upstream work retains its original attribution. Controlled tests are not a completed natural playthrough.
 
 ## Budowanie
 
