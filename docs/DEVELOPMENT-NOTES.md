@@ -17,7 +17,8 @@ Całą pracę nad adaptacją w tej sesji — zmiany kodu, dokumentację, rozpozn
 
 ## Open checks / Otwarte sprawdzenia
 
-- Finish real GameSir Nova 2 Lite button, axis, pause, disconnect and reconnect checks. Android identifies the paired device as Wireless Controller. A connected device is not yet a passed gameplay test.
+- Finish real GameSir Nova 2 Lite gameplay button, axis, pause, disconnect and reconnect checks. Redmi identified Wireless Controller; Huawei paired in red Switch mode as Pro Controller, and the user confirmed menu navigation. A connected device is not yet a passed gameplay test.
+- A Huawei menu-exit test exposed a crash from Android process-wide exit inside the event callback. The Android path now unwinds the loop and releases controller/touch state. Three automated exit/relaunch cycles passed; other shutdown scenarios still need coverage.
 - Complete a natural playthrough of all levels. Existing controlled enemy and collision scenarios are documented in `validation/COMBAT-AUDIT.md`; they do not establish that every encounter is correct.
 - Revisit the intermittent level 7 projectile assertion if it returns. A guard was added; the original root cause is not conclusively established.
 - Test installation instructions from a clean phone and a clean computer. Current import requires a prepared ZIP; this is a known usability limitation.

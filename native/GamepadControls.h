@@ -5,6 +5,7 @@
 
 namespace PazurGamepad {
 void Initialize();
+void Shutdown();
 bool Handle(const SDL_Event& event);
 void Update();
 bool UsingController();

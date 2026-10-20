@@ -23,6 +23,18 @@ The user reports that Nova 2 Lite does not appear in Huawei's Bluetooth discover
 
 The user additionally confirms that this same controller worked with this phone before installing the custom ROM. This makes the current ROM/Bluetooth stack or configuration a stronger suspect than a hardware incompatibility, but does not establish a specific software defect. No ROM flash, network reset, pairing deletion or controller firmware update was performed.
 
+### Follow-up Bluetooth diagnostics
+
+The failure count later reached seven. The preceding HCI log repeatedly reports a 2,000 ms timeout waiting for opcode `0x0c37`, followed by `hci_timeout_abort` and restart of the system Bluetooth process. AOSP identifies that opcode as Write Link Supervision Timeout; the subsequent MessageLoopThread shutdown assertion is not sufficient by itself to identify the original driver/firmware defect. Sources: [command definitions](https://android.googlesource.com/platform/system/bt/+/66cda0073acea51e597344baf52d54e2748d8f68/stack/include/hcidefs.h), [Android 10 timeout handling](https://android.googlesource.com/platform/system/bt/+/refs/tags/android-10.0.0_r9/hci/src/hci_layer.cc).
+
+An attempted `svc bluetooth disable` did not change the state. Logs show this ROM rejecting the shell caller's null package name in BluetoothManagerService; do not record that attempt as a successful Bluetooth toggle. A normal device reboot was subsequently requested through ADB. USB disconnected; boot completion and the result of renewed pairing remain pending. No persistent Bluetooth setting or pairing database was changed.
+
+Post-reboot update: Android reports boot completed, Bluetooth ON and zero service crashes at approximately 33 and 61 seconds after enable. Bluetooth Settings was opened. No controller is yet present in the input-device list; successful discovery and pairing still require confirmation. Idle stability after reboot is not proof that the original pairing failure has been fixed.
+
+Later result: the user successfully paired in the red Switch mode as Pro Controller. Android reports Bluetooth bus, VID 057e / PID 2009 and GAMEPAD/JOYSTICK sources. The game logs `Pazur pad connected: name=Nintendo Switch Pro Controller`. The Bluetooth manager now records one post-reboot crash, so this is a working connection rather than proof of a completely repaired Bluetooth stack. Yellow-mode pairing and sustained stability remain unverified; real button/menu checks are pending.
+
+The repeated Play Protect message was traced to Google Play services' notification channel `uncertified_device`. This is a device-certification warning, separate from the game's code or a malware detection. Google documents the distinction in its [certification help](https://support.google.com/android/answer/7165974?hl=en). No security scanning was disabled and no certification status was modified.
+
 The manufacturer's [Android connection guide](https://gamesir.com/pages/tutorials-how-to-connect-nova-2-lite) specifies rapid yellow blinking and device name `GameSir-Nova 2 Lite`. Recommended next non-destructive check: toggle Bluetooth, then restart Huawei after the performance test finishes and retry discovery. Do not silently erase pairings or reset network settings. USB and successful Bluetooth gameplay remain untested on this phone.
 
 ## Polski

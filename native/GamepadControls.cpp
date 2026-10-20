@@ -168,6 +168,15 @@ bool PazurGamepad::Handle(const SDL_Event& event) {
     return true;
 }
 void PazurGamepad::Update() {reconcile();}
+void PazurGamepad::Shutdown() {
+    // SDLActivity can launch native main again in the same Android process.
+    // No controller handles or held states may survive that boundary.
+    release();
+    DebugCommand({"padvirtual","detach"});
+    for (auto& pad:pads) SDL_GameControllerClose(pad.second.controller);
+    pads.clear();activePad=-1;lastContext=-1;
+    suspended=false;awaitNeutral=true;usingController=false;
+}
 bool PazurGamepad::UsingController() {return usingController&&!pads.empty();}
 void PazurGamepad::UseTouch() {usingController=false;}
 

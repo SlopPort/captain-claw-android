@@ -171,6 +171,11 @@ bool drawCachedButton(SDL_Renderer* renderer,const Button& button,const SDL_Rect
 }
 }
 
+void PazurTouch::Shutdown() {
+    Reset();
+    clearButtonCache();
+}
+
 void PazurTouch::Reset() {
     PazurCombatProbe::ResetKeys();
     fingers.clear();

@@ -1,6 +1,8 @@
 # Controller validation / Testy pada
 
-Status: implemented and compiled; real gameplay checks pending. This is not a passed hardware test report.
+Status: implemented and compiled. The user confirmed physical GameSir menu navigation on Huawei in red Switch mode. Gameplay actions, USB and sustained connection checks remain pending.
+
+Huawei follow-up: exiting from the menu exposed a native shutdown crash. The log shows confirmation, `Terminating...`, then SIGSEGV from `exit()` in QuitGameDelegate. Android now stops the loop and returns normally instead of terminating the process inside EventMgr's callback. Touch textures, controller handles and held input are released before game teardown. Three successive menu exits/relaunches using SDL's virtual controller passed without fatal logs and with the activity finished. This automated exit check is distinct from the user's physical menu test. Local evidence: `reports/gamepad-quit-0.4.4/`; repeat with `tools/gamepad_quit_smoke.py`.
 
 Implementation: SDL2 controller events, hotplug and a pinned Android subset of SDL_GameControllerDB. Android routes paired Bluetooth and USB input into the same SDL path. No application-level Bluetooth pairing is performed. Pair the controller in Android Settings first.
 

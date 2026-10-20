@@ -852,7 +852,7 @@ index d12e28d..186fb90 100644
 \ No newline at end of file
 +#endif
 diff --git a/OpenClaw/Engine/GameApp/BaseGameApp.cpp b/OpenClaw/Engine/GameApp/BaseGameApp.cpp
-index 64533c3..5c8f094 100644
+index 64533c3..b2828bb 100644
 --- a/OpenClaw/Engine/GameApp/BaseGameApp.cpp
 +++ b/OpenClaw/Engine/GameApp/BaseGameApp.cpp
 @@ -21,6 +21,10 @@
@@ -880,7 +880,19 @@ index 64533c3..5c8f094 100644
  
      if (!VPerformStartupTests())
      {
-@@ -212,12 +218,35 @@ void BaseGameApp::StepLoop() {
+@@ -99,6 +105,11 @@ void BaseGameApp::Terminate()
+ {
+     LOG("Terminating...");
+ 
++#ifdef __ANDROID__
++    PazurTouch::Shutdown();
++    PazurGamepad::Shutdown();
++#endif
++
+     RemoveAllDelegates();
+ 
+     SAFE_DELETE(m_pGame);
+@@ -212,12 +223,35 @@ void BaseGameApp::StepLoop() {
          }
          consecutiveLagSpikes = 0;
  
@@ -916,7 +928,7 @@ index 64533c3..5c8f094 100644
          // Handle all touch events
          if (m_pTouchManager) {
              m_pTouchManager->Update();
-@@ -284,6 +313,10 @@ int32 BaseGameApp::Run()
+@@ -284,6 +318,10 @@ int32 BaseGameApp::Run()
  
  void BaseGameApp::OnEvent(SDL_Event& event)
  {
@@ -927,7 +939,7 @@ index 64533c3..5c8f094 100644
      switch (event.type)
      {
          case SDL_QUIT:
-@@ -317,6 +350,12 @@ void BaseGameApp::OnEvent(SDL_Event& event)
+@@ -317,6 +355,12 @@ void BaseGameApp::OnEvent(SDL_Event& event)
              break;
          }
  
@@ -940,7 +952,7 @@ index 64533c3..5c8f094 100644
          case SDL_APP_DIDENTERBACKGROUND:
          {
              LOG("Entered background");
-@@ -325,6 +364,8 @@ void BaseGameApp::OnEvent(SDL_Event& event)
+@@ -325,6 +369,8 @@ void BaseGameApp::OnEvent(SDL_Event& event)
  
          case SDL_APP_DIDENTERFOREGROUND:
          {
@@ -949,7 +961,7 @@ index 64533c3..5c8f094 100644
              LOG("Entered foreground");
              break;
          }
-@@ -555,6 +596,11 @@ bool BaseGameApp::LoadGameOptions(const char* inConfigFile)
+@@ -555,6 +601,11 @@ bool BaseGameApp::LoadGameOptions(const char* inConfigFile)
      {
          ParseValueFromXmlElem(&m_GameOptions.assetsFolder,
              assetsElem->FirstChildElement("AssetsFolder"));
@@ -961,7 +973,7 @@ index 64533c3..5c8f094 100644
          DO_AND_CHECK(ParseValueFromXmlElem(&m_GameOptions.rezArchive,
              assetsElem->FirstChildElement("RezArchive")));
          DO_AND_CHECK(ParseValueFromXmlElem(&m_GameOptions.customArchive,
-@@ -713,6 +759,8 @@ bool BaseGameApp::LoadGameOptions(const char* inConfigFile)
+@@ -713,6 +764,8 @@ bool BaseGameApp::LoadGameOptions(const char* inConfigFile)
      //-------------------------------------------------------------------------
      if (TiXmlElement* pDebugOptionsRootElem = configRoot->FirstChildElement("DebugOptions"))
      {
@@ -970,7 +982,7 @@ index 64533c3..5c8f094 100644
          ParseValueFromXmlElem(&m_DebugOptions.bSkipBossFightIntro,
              pDebugOptionsRootElem->FirstChildElement("SkipBossFightIntro"));
          ParseValueFromXmlElem(&m_DebugOptions.bSkipMenu,
-@@ -721,6 +769,10 @@ bool BaseGameApp::LoadGameOptions(const char* inConfigFile)
+@@ -721,6 +774,10 @@ bool BaseGameApp::LoadGameOptions(const char* inConfigFile)
              pDebugOptionsRootElem->FirstChildElement("CpuDelay"));
          ParseValueFromXmlElem(&m_DebugOptions.lastImplementedLevel,
              pDebugOptionsRootElem->FirstChildElement("LastImplementedLevel"));
@@ -981,7 +993,7 @@ index 64533c3..5c8f094 100644
          ParseValueFromXmlElem(&m_DebugOptions.skipMenuToLevel,
              pDebugOptionsRootElem->FirstChildElement("SkipMenuToLevel"));
      }
-@@ -780,6 +832,10 @@ bool BaseGameApp::InitializeDisplay(GameOptions& gameOptions)
+@@ -780,6 +837,10 @@ bool BaseGameApp::InitializeDisplay(GameOptions& gameOptions)
          return false;
      }
  
@@ -992,7 +1004,7 @@ index 64533c3..5c8f094 100644
      m_pWindow = SDL_CreateWindow(VGetGameTitle(), SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
          gameOptions.windowWidth, gameOptions.windowHeight, SDL_WINDOW_SHOWN);
      if (m_pWindow == NULL)
-@@ -799,6 +855,15 @@ bool BaseGameApp::InitializeDisplay(GameOptions& gameOptions)
+@@ -799,6 +860,15 @@ bool BaseGameApp::InitializeDisplay(GameOptions& gameOptions)
          SDL_GetWindowSize(m_pWindow, &m_GameOptions.windowWidth, &m_GameOptions.windowHeight);
      }
  
@@ -1008,7 +1020,7 @@ index 64533c3..5c8f094 100644
      m_WindowSize.Set(gameOptions.windowWidth, gameOptions.windowHeight);
  
      uint32 rendererFlags = SDL_RENDERER_ACCELERATED;
-@@ -815,6 +880,9 @@ bool BaseGameApp::InitializeDisplay(GameOptions& gameOptions)
+@@ -815,6 +885,9 @@ bool BaseGameApp::InitializeDisplay(GameOptions& gameOptions)
      }
  
      SDL_RenderSetScale(m_pRenderer, (float)gameOptions.scale, (float)gameOptions.scale);
@@ -1018,7 +1030,7 @@ index 64533c3..5c8f094 100644
  
      LOG("Display successfully initialized.");
  
-@@ -918,7 +986,7 @@ bool BaseGameApp::InitializeFont(GameOptions& gameOptions)
+@@ -918,7 +991,7 @@ bool BaseGameApp::InitializeFont(GameOptions& gameOptions)
      m_pConsoleFont = TTF_OpenFont(gameOptions.consoleFontName.c_str(), gameOptions.consoleFontSize);
      if (m_pConsoleFont == NULL)
      {
@@ -1027,7 +1039,7 @@ index 64533c3..5c8f094 100644
          return false;
      }
  
-@@ -1234,7 +1302,11 @@ Point BaseGameApp::GetScale()
+@@ -1234,7 +1307,11 @@ Point BaseGameApp::GetScale()
      uint32 windowFlags = GetWindowFlags();
      Point scale(1.0, 1.0);
  
@@ -1039,7 +1051,7 @@ index 64533c3..5c8f094 100644
      
      scale.Set((double)scaleX, (double)scaleY);
  
-@@ -1243,7 +1315,11 @@ Point BaseGameApp::GetScale()
+@@ -1243,7 +1320,11 @@ Point BaseGameApp::GetScale()
  
  void BaseGameApp::SetScale(Point scale)
  {
@@ -1051,6 +1063,23 @@ index 64533c3..5c8f094 100644
  }
  
  uint32 BaseGameApp::GetWindowFlags()
+@@ -1412,8 +1493,14 @@ void BaseGameApp::RemoveAllDelegates()
+ 
+ void BaseGameApp::QuitGameDelegate(IEventDataPtr pEventData)
+ {
+-    Terminate();
+-    exit(0);
++#ifdef __ANDROID__
++    // Unwind the SDL main loop; exit() finalizes process-wide Android/JNI state.
++    // Do not destroy EventMgr from inside its own event callback.
++    m_IsRunning = false;
++#else
++    Terminate();
++    exit(0);
++#endif
+ }
+ 
+ //=====================================================================================================================
 diff --git a/OpenClaw/Engine/GameApp/BaseGameApp.h b/OpenClaw/Engine/GameApp/BaseGameApp.h
 index 731f317..c9c67df 100644
 --- a/OpenClaw/Engine/GameApp/BaseGameApp.h
