@@ -16,6 +16,7 @@ public class LauncherActivity extends Activity {
     private static final String[] REQUIRED = {"CLAW.REZ", "ASSETS.ZIP", "config.xml", "clacon.ttf", "console02.tga"};
     private TextView status;
     private Button importButton;
+    private boolean launching;
 
     private boolean ready() {
         File root = getExternalFilesDir(null);
@@ -23,7 +24,30 @@ public class LauncherActivity extends Activity {
         for (String name : REQUIRED) if (!new File(root, name).isFile()) return false;
         return new File(root, "CLAW.REZ").length() > 168;
     }
-    private void play() { startActivity(new Intent(this, GameActivity.class)); finish(); }
+    private void play() {
+        if(launching)return;
+        launching=true;
+        // Run the small, atomic engine update off the UI thread. Imported REZ,
+        // settings and saves remain owned by the user across APK upgrades.
+        new Thread(() -> {
+            try {
+                EngineSupport.install(this,getExternalFilesDir(null));
+                runOnUiThread(() -> {
+                    if(isFinishing() || isDestroyed())return;
+                    startActivity(new Intent(this, GameActivity.class));finish();
+                });
+            } catch(IOException error) {
+                runOnUiThread(() -> {
+                    launching=false;
+                    if(isFinishing() || isDestroyed())return;
+                    new AlertDialog.Builder(this)
+                    .setMessage("Nie można przygotować gry / Cannot prepare game: " + error.getMessage())
+                    .setPositiveButton("Spróbuj ponownie / Retry",(dialog,which)->play())
+                    .setNegativeButton("Zamknij / Close",(dialog,which)->finish()).show();
+                });
+            }
+        },"engine-support").start();
+    }
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);

@@ -17,6 +17,7 @@ public class JumpTouchTest extends Instrumentation {
     private Activity game;
     private boolean baseline;
     private boolean gameOver;
+    private boolean score;
     private long down;
     private int width, height, ticket;
     private float logicalWidth;
@@ -26,6 +27,7 @@ public class JumpTouchTest extends Instrumentation {
         super.onCreate(args);
         baseline="baseline".equals(args.getString("layout"));
         gameOver="game-over".equals(args.getString("scenario"));
+        score="score".equals(args.getString("scenario"));
         start();
     }
     private void focus() {
@@ -110,6 +112,22 @@ public class JumpTouchTest extends Instrumentation {
             if (width<=height) throw new IllegalStateException("Expected landscape game");
             logicalWidth=Math.max(640,Math.round(480f*width/height));
             folder=getTargetContext().getExternalFilesDir(null);
+            if(score) {
+                command("campaignfinish");
+                SystemClock.sleep(8000);
+                screenshot("score-window-before.png");
+                for(int tap=0;tap<3;tap++) {
+                    down=SystemClock.uptimeMillis();
+                    single(MotionEvent.ACTION_DOWN,logicalWidth/2,240);
+                    SystemClock.sleep(80);
+                    single(MotionEvent.ACTION_UP,logicalWidth/2,240);
+                    SystemClock.sleep(700);
+                }
+                SystemClock.sleep(10000);
+                screenshot("score-window-after.png");
+                result.putString("stream","Real end pickup and Android window taps completed.\n");
+                finish(0,result);return;
+            }
             if(gameOver) {
                 command("combatlastlife");
                 SystemClock.sleep(4500);

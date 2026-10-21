@@ -15,11 +15,21 @@ The initial level 1 → 2 test passed on Huawei P9 Lite / Android 10. APK SHA-25
 
 These are technical transition tests, **not natural playthroughs**. Teleporting does not establish that platforms, routes or bosses can be passed. App-local SDL events also do not establish Android window touch delivery; that requires a separate instrumentation test.
 
-Further tests of 3 → 4, 5 → 6, 7 → 8 9 → 10 and 11 → 12 passed with next-level saves. Each has its own `reports/campaign-score-fixed-levelN` evidence folder and JSON result. The level-seven and level-nine intros explicitly logged `Skipping unavailable sound` and continued successfully, exercising the missing-WAV fix.
+Further tests of 3 → 4, 5 → 6, 7 → 8, 9 → 10 and 11 → 12 passed with next-level saves. Each has its own `reports/campaign-score-fixed-levelN` evidence folder and JSON result. The level-seven and level-nine intros explicitly logged `Skipping unavailable sound` and continued successfully, exercising the missing-WAV fix.
+
+Android window touch confirmation also passed: `reports/score-android-window1`. Instrumentation dispatches finger MotionEvents only to this game's focused window, after collecting the real level-one end pickup. Three taps advance the score screen and level 2 loads. This closes the input-delivery gap in the earlier SDL-only tests.
 
 ## Encounter audit finding / Wynik przeglądu bossów
 
-The current converter explicitly skips `AquatisCrack`, `AquatisDynamite` and `Tentacle` on level 12. `AquatisEncounter.cpp` has empty active update/animation behavior and a commented-out state activation. The prototype describes stalactite damage, but this encounter cannot be accepted as complete based on map loading. This is a concrete implementation gap requiring an encounter-level test and repair before 1.0; no claim of a completed normal Aquatis fight is made.
+The inherited converter skipped `AquatisCrack`, `AquatisDynamite` and `Tentacle` on level 12. `AquatisEncounter.cpp` contains empty active update/animation behavior and a commented-out state activation. The added Android arena component now connects original WWD tentacles, crack, dynamite resupply and five stalactites to the existing boss health/death/gem flow. Normal generic boss melee remains in OpenClaw.
+
+`reports/aquatis-arena-rules2` passed all five rock strikes, tentacle respawns, boss defeat and level 13 loading. The test uses actual pistol projectile collisions and real dynamite fuses, with teleports, player protection and spawned projectiles explicitly recorded. Direct bullets, a crack explosion with uncleared tentacles and explosions outside the crack did not damage the boss. Boss HP is never edited by the fixture.
+
+The normal charged player throw subsequently passed in `aquatis-player-throw5-bounds`, after implementing the missing dynamite receptacle and using its actual imported image bounds. A full ordinary-input fight, real ammo resupply and death/reset test remain separate gates. Original-game timing, hitbox and balance parity remain unverified. See [Aquatis arena notes](AQUATIS-ARENA.md).
+
+Controlled real sword attacks, existing gem collection, score confirmation and next-level saves passed for LaRaux (2 → 3), Katherine (4 → 5), Wolvington (6 → 7) and Red Tail (13 → 14). Evidence: `boss-campaign-level2-pilot`, `boss-campaign-level4-audio`, `boss-campaign-level6-audio`, `boss-campaign-level13-audio`. These use teleports and player protection, not boss HP edits. They do not certify full arena behavior or natural map traversal. Attack-audio findings and tests are recorded in [the audio audit](ATTACK-AUDIO.md).
+
+Further source review found empty Marrow parrot/floor behavior. A boss being killable by generic sword AI alone does not establish a complete encounter. This remains another release gate.
 
 ## Remaining release gates / Warunki wydania
 

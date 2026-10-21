@@ -2,6 +2,7 @@
 #include "CombatPrototypes.h"
 #include "ComponentProfiler.h"
 #include "GamepadControls.h"
+#include "AudioProbe.h"
 #include "Engine/GameApp/BaseGameApp.h"
 #include "Engine/Audio/Audio.h"
 #include "Engine/Actor/ActorTemplates.h"
@@ -73,6 +74,10 @@ void status() {
     const auto position = claw->GetPositionComponent()->GetPosition();
     auto hp = claw->GetRawComponent<HealthComponent>(true);
     auto enemyHp = enemy ? enemy->GetRawComponent<HealthComponent>(false) : nullptr;
+    auto ammo=claw->GetRawComponent<AmmoComponent>(true);
+    SDL_Log("Pazur probe action: ammo=%d remaining=%u animation=%s",
+        int(ammo->GetActiveAmmoType()),ammo->GetRemainingActiveAmmo(),
+        claw->GetRawComponent<AnimationComponent>(true)->GetCurrentAnimationName().c_str());
     SDL_Log("Pazur probe status: claw=%d duck=%d x=%.1f y=%.1f box=%d,%d,%d,%d target=%s target_id=%u target_hp=%d target_max=%d",
         hp->GetHealth(), claw->GetRawComponent<ClawControllableComponent>(true)->IsDucking(),
         position.x, position.y, box.x, box.y, box.w, box.h,
@@ -87,6 +92,10 @@ bool PazurCombatProbe::Handle(const std::vector<std::string>& args, const ActorM
     // Virtual input must remain releasable in menus where no hero exists.
     if (PazurGamepad::DebugCommand(args)) return true;
     if(args[0]=="componentprofile") {PazurProfile::Start();return true;}
+    if(args[0]=="audiotrace" && args.size()==2) {PazurAudioProbe::Enable(args[1]=="1");return true;}
+    if(args[0]=="audiomeasure" && args.size()==2) {PazurAudioProbe::Begin(args[1]);return true;}
+    if(args[0]=="audioreport") {PazurAudioProbe::Report();return true;}
+    if(args[0]=="audioquiet") {g_pApp->GetAudio()->StopAllSounds();return true;}
     // This probe is reachable only through the explicitly enabled test mailbox.
     if (args[0]=="audiooptions") {
         auto audio=g_pApp->GetAudio();
@@ -103,6 +112,14 @@ bool PazurCombatProbe::Handle(const std::vector<std::string>& args, const ActorM
     auto claw = logic->GetClawActor();
     if (!claw) return false;
     auto physics = logic->VGetGamePhysics();
+    if(args[0]=="campaignshot" && args.size()==4) {
+        // Explicit projectile fixture: actual physics, collision and fuse apply.
+        // No direct damage callback or boss health modification is permitted.
+        const AmmoType ammo=args[1]=="dynamite"?AmmoType_Dynamite:AmmoType_Pistol;
+        ActorTemplates::CreateClawProjectile(ammo,Direction_Right,
+            Point(std::stod(args[2]),std::stod(args[3])),claw->GetGUID(),Point(0,0));
+        return true;
+    }
     if(args[0]=="campaignmap" || args[0]=="campaignfinish") {
         const int level=logic->GetCurrentLevelData()->GetLevelNumber();
         int endings=0;
@@ -116,7 +133,7 @@ bool PazurCombatProbe::Handle(const std::vector<std::string>& args, const ActorM
             bool boss=false;
             for(const std::string suffix:{"_LaRaux","_Katherine","_Wolvington","_Gabriel","_Marrow","_Aquatis","_RedTail","_Omar"})
                 if(name.size()>=suffix.size() && name.compare(name.size()-suffix.size(),suffix.size(),suffix)==0)boss=true;
-            if(ending || checkpoint || boss) {
+            if(ending || checkpoint || boss || name.find("Level12_Aquatis")==0) {
                 auto hp=actor->GetRawComponent<HealthComponent>(false);
                 SDL_Log("Pazur campaign object: level=%d kind=%s id=%u name=%s x=%.1f y=%.1f hp=%d",
                     level,ending?"exit":checkpoint?"checkpoint":"boss",actor->GetGUID(),name.c_str(),

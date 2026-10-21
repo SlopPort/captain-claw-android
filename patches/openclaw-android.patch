@@ -310,21 +310,22 @@ index b8c34a3..08c7a38 100644
      // Resource from which this actor was loaded
      std::string _resource;
 diff --git a/OpenClaw/Engine/Actor/ActorFactory.cpp b/OpenClaw/Engine/Actor/ActorFactory.cpp
-index d219dde..858b52f 100644
+index d219dde..e41bf46 100644
 --- a/OpenClaw/Engine/Actor/ActorFactory.cpp
 +++ b/OpenClaw/Engine/Actor/ActorFactory.cpp
-@@ -2,6 +2,10 @@
+@@ -2,6 +2,11 @@
  
  #include "ActorFactory.h"
  #include "Actor.h"
 +#ifdef __ANDROID__
 +#include "LavaGeyserComponent.h"
 +#include "OmarEncounterComponent.h"
++#include "AquatisArena.h"
 +#endif
  #include "../Logger/Logger.h"
  #include "../SharedDefines.h"
  #include "../Util/Util.h"
-@@ -62,6 +66,12 @@
+@@ -62,6 +67,14 @@
  
  ActorFactory::ActorFactory()
  {
@@ -332,6 +333,8 @@ index d219dde..858b52f 100644
 +    _componentFactory.Register<LavaGeyserComponent>(LavaGeyserComponent::GetIdFromName(LavaGeyserComponent::g_Name));
 +    _componentFactory.Register<LavaMouthComponent>(LavaMouthComponent::GetIdFromName(LavaMouthComponent::g_Name));
 +    _componentFactory.Register<OmarEncounterComponent>(OmarEncounterComponent::GetIdFromName(OmarEncounterComponent::g_Name));
++    _componentFactory.Register<AquatisArenaComponent>(AquatisArenaComponent::GetIdFromName(AquatisArenaComponent::g_Name));
++    _componentFactory.Register<AquatisTentacleComponent>(AquatisTentacleComponent::GetIdFromName(AquatisTentacleComponent::g_Name));
 +    _componentFactory.Register<ChameleonFadeComponent>(ChameleonFadeComponent::GetIdFromName(ChameleonFadeComponent::g_Name));
 +#endif
      _lastActorGUID = 0;
@@ -367,13 +370,36 @@ index 2df1194..d7020fd 100644
 \ No newline at end of file
 +}
 diff --git a/OpenClaw/Engine/Actor/Components/AIComponents/ProjectileAIComponent.cpp b/OpenClaw/Engine/Actor/Components/AIComponents/ProjectileAIComponent.cpp
-index 07ecfdb..3f5681d 100644
+index 07ecfdb..cc8e469 100644
 --- a/OpenClaw/Engine/Actor/Components/AIComponents/ProjectileAIComponent.cpp
 +++ b/OpenClaw/Engine/Actor/Components/AIComponents/ProjectileAIComponent.cpp
-@@ -131,6 +131,17 @@ void ProjectileAIComponent::VUpdate(uint32 msDiff)
+@@ -1,4 +1,7 @@
+ #include "ProjectileAIComponent.h"
++#ifdef __ANDROID__
++#include "AquatisArena.h"
++#endif
+ #include "../../../GameApp/BaseGameApp.h"
+ #include "../../../GameApp/BaseGameLogic.h"
+ 
+@@ -131,6 +134,32 @@ void ProjectileAIComponent::VUpdate(uint32 msDiff)
      assert(g_pApp->GetHumanView() && g_pApp->GetHumanView()->GetCamera());
  
      Point projectilePos = m_pOwner->GetPositionComponent()->GetPosition();
++#ifdef __ANDROID__
++    // The original Aquatis crack is a receptacle, not just a painted wall.
++    // A thrown stick must physically enter its aperture; preserve its normal
++    // one-second fuse, stopping it in the hole rather than letting it fly past.
++    Point receptacle;
++    if (m_IsActive && m_bHasDetonationTime && m_DamageType == DamageType_Explosion &&
++        AquatisDynamiteReachedCrack(projectilePos, m_SourceActorId, receptacle))
++    {
++        m_pPhysics->VSetLinearSpeed(m_pOwner->GetGUID(), Point(0, 0));
++        m_pPhysics->VSetGravityScale(m_pOwner->GetGUID(), 0);
++        m_pPhysics->VSetPosition(m_pOwner->GetGUID(), receptacle);
++        m_pOwner->GetPositionComponent()->SetPosition(receptacle.x, receptacle.y);
++        m_IsActive = false;
++    }
++#endif
 +    static int lavaArcLogs = 0;
 +    if (g_pApp->GetDebugOptions()->bPreviewIncompleteLevel14 &&
 +        m_pOwner->GetName() == "Level14_LavaHandProjectile" && lavaArcLogs < 6)
@@ -388,7 +414,17 @@ index 07ecfdb..3f5681d 100644
      if (!g_pApp->GetHumanView()->GetCamera()->IntersectsWithPoint(projectilePos, 1.25f))
      {
          shared_ptr<EventData_Destroy_Actor> pEvent(new EventData_Destroy_Actor(m_pOwner->GetGUID()));
-@@ -181,6 +192,10 @@ void ProjectileAIComponent::OnCollidedWithSolidTile()
+@@ -159,6 +188,9 @@ void ProjectileAIComponent::Detonate()
+ 
+     if (m_DamageType == DamageType_Explosion)
+     {
++#ifdef __ANDROID__
++        AquatisDynamiteExploded(m_pOwner->GetPositionComponent()->GetPosition(), m_SourceActorId);
++#endif
+         ActorTemplates::CreateSingleAnimation(m_pOwner->GetPositionComponent()->GetPosition(), AnimationType_Explosion);
+ 
+         SoundInfo soundInfo(SOUND_LEVEL1_KEG_EXPLODE);
+@@ -181,6 +213,10 @@ void ProjectileAIComponent::OnCollidedWithSolidTile()
  {
      if (m_IsActive && !m_bHasDetonationTime)
      {
@@ -399,7 +435,7 @@ index 07ecfdb..3f5681d 100644
          Detonate();
      }
  
-@@ -189,6 +204,12 @@ void ProjectileAIComponent::OnCollidedWithSolidTile()
+@@ -189,6 +225,12 @@ void ProjectileAIComponent::OnCollidedWithSolidTile()
  
  void ProjectileAIComponent::OnCollidedWithActor(Actor* pActorWhoWasShot)
  {
@@ -412,7 +448,7 @@ index 07ecfdb..3f5681d 100644
      shared_ptr<HealthComponent> pHealthComponent =
          MakeStrongPtr(pActorWhoWasShot->GetComponent<HealthComponent>(HealthComponent::g_Name));
      if (pHealthComponent)
-@@ -202,13 +223,27 @@ void ProjectileAIComponent::OnCollidedWithActor(Actor* pActorWhoWasShot)
+@@ -202,13 +244,27 @@ void ProjectileAIComponent::OnCollidedWithActor(Actor* pActorWhoWasShot)
              dir = Direction_Left;
          }
  
@@ -1182,24 +1218,30 @@ index 4619a3b..5b7fd9c 100644
      std::string m_ClawDialogSound;
      std::string m_BossDialogSound;
 diff --git a/OpenClaw/Engine/Audio/Audio.cpp b/OpenClaw/Engine/Audio/Audio.cpp
-index 97c8d19..e011679 100644
+index 97c8d19..de1c1d1 100644
 --- a/OpenClaw/Engine/Audio/Audio.cpp
 +++ b/OpenClaw/Engine/Audio/Audio.cpp
-@@ -1,6 +1,7 @@
+@@ -1,8 +1,12 @@
  #include <SDL2/SDL.h>
  #include <fstream>
  #include <vector>
 +#include <atomic>
  
  #include "Audio.h"
++#ifdef __ANDROID__
++#include "AudioProbe.h"
++#endif
  #include "../Events/EventMgr.h"
-@@ -19,6 +20,20 @@
+ #include "../Events/Events.h"
+ 
+@@ -19,6 +23,21 @@
  
  using namespace std;
  
 +#ifdef __ANDROID__
 +static std::atomic<bool> s_MusicOutputPending(false);
 +static void AuditMusicOutput(void*, Uint8* stream, int bytes) {
++    PazurAudioProbe::Mixed(stream, bytes);
 +    if (!s_MusicOutputPending.load(std::memory_order_relaxed)) return;
 +    const Sint16* samples = reinterpret_cast<const Sint16*>(stream);
 +    int peak = 0;
@@ -1214,7 +1256,7 @@ index 97c8d19..e011679 100644
  const uint32_t MIDI_RPC_MAX_HANDSHAKE_TRIES = 250;
  
  //############################################
-@@ -54,6 +69,9 @@ bool Audio::Initialize(const GameOptions& config)
+@@ -54,6 +73,9 @@ bool Audio::Initialize(const GameOptions& config)
      }
  
      // Setup audio mode
@@ -1224,7 +1266,7 @@ index 97c8d19..e011679 100644
      if (Mix_OpenAudio(config.frequency, MIX_DEFAULT_FORMAT, config.soundChannels, config.chunkSize) != 0)
      {
          LOG_ERROR(std::string(Mix_GetError()));
-@@ -61,6 +79,9 @@ bool Audio::Initialize(const GameOptions& config)
+@@ -61,6 +83,9 @@ bool Audio::Initialize(const GameOptions& config)
      }
  
      Mix_AllocateChannels(config.mixingChannels);
@@ -1234,7 +1276,7 @@ index 97c8d19..e011679 100644
  
      int reservedChannels = Mix_ReserveChannels(16);
  #ifndef __EMSCRIPTEN__
-@@ -107,6 +128,13 @@ bool Audio::Initialize(const GameOptions& config)
+@@ -107,6 +132,13 @@ bool Audio::Initialize(const GameOptions& config)
  
  void Audio::Terminate()
  {
@@ -1248,7 +1290,7 @@ index 97c8d19..e011679 100644
  #ifdef _WIN32
      TerminateMidiRPC();
  #endif //_WIN32
-@@ -179,11 +207,37 @@ static int SetupPlayMusicThread(void* pData)
+@@ -179,11 +211,37 @@ static int SetupPlayMusicThread(void* pData)
  
  void Audio::PlayMusic(const char* musicData, size_t musicSize, bool looping)
  {
@@ -1286,7 +1328,7 @@ index 97c8d19..e011679 100644
  }
  
  void Audio::PauseMusic()
-@@ -223,6 +277,14 @@ void Audio::ResumeMusic()
+@@ -223,6 +281,14 @@ void Audio::ResumeMusic()
  
  void Audio::StopMusic()
  {
@@ -1301,7 +1343,7 @@ index 97c8d19..e011679 100644
  #ifdef _WIN32
      RpcTryExcept
      {
-@@ -236,6 +298,7 @@ void Audio::StopMusic()
+@@ -236,6 +302,7 @@ void Audio::StopMusic()
  #else
      Mix_HaltMusic();
  #endif //_WIN32
@@ -1309,7 +1351,7 @@ index 97c8d19..e011679 100644
  }
  
  void Audio::SetMusicVolume(int volumePercentage)
-@@ -270,6 +333,7 @@ int Audio::GetMusicVolume()
+@@ -270,6 +337,7 @@ int Audio::GetMusicVolume()
  
  bool Audio::PlaySound(const char* soundData, size_t soundSize, const SoundProperties& soundProperties)
  {
@@ -1317,7 +1359,7 @@ index 97c8d19..e011679 100644
      SDL_RWops* soundRwOps = SDL_RWFromMem((void*)soundData, soundSize);
      Mix_Chunk* soundChunk = Mix_LoadWAV_RW(soundRwOps, 1);
  
-@@ -278,6 +342,7 @@ bool Audio::PlaySound(const char* soundData, size_t soundSize, const SoundProper
+@@ -278,6 +346,7 @@ bool Audio::PlaySound(const char* soundData, size_t soundSize, const SoundProper
  
  bool Audio::PlaySound(Mix_Chunk* sound, const SoundProperties& soundProperties)
  {
@@ -1351,7 +1393,7 @@ index d12e28d..186fb90 100644
 \ No newline at end of file
 +#endif
 diff --git a/OpenClaw/Engine/GameApp/BaseGameApp.cpp b/OpenClaw/Engine/GameApp/BaseGameApp.cpp
-index 64533c3..cfdbdfa 100644
+index 64533c3..2c2f154 100644
 --- a/OpenClaw/Engine/GameApp/BaseGameApp.cpp
 +++ b/OpenClaw/Engine/GameApp/BaseGameApp.cpp
 @@ -21,6 +21,10 @@
@@ -1660,7 +1702,25 @@ index 64533c3..cfdbdfa 100644
  
      LOG("Display successfully initialized.");
  
-@@ -918,7 +1082,7 @@ bool BaseGameApp::InitializeFont(GameOptions& gameOptions)
+@@ -878,6 +1042,17 @@ bool BaseGameApp::InitializeResources(GameOptions& gameOptions)
+     m_pResourceCache->RegisterLoader(PcxResourceLoader::Create());
+ 
+     std::string customArchivePath = gameOptions.assetsFolder + gameOptions.customArchive;
++#ifdef __ANDROID__
++    // APK engine XML must match native components after an app upgrade. The
++    // launcher installs it atomically without overwriting imported archives.
++    const std::string bundledSupport = gameOptions.assetsFolder + ".engine-support/ASSETS.ZIP";
++    if (FILE* support = fopen(bundledSupport.c_str(), "rb"))
++    {
++        fclose(support);
++        customArchivePath = bundledSupport;
++        LOG("Using APK engine support");
++    }
++#endif
+ 
+     IResourceFile* pCustomArchive = new ResourceZipArchive(customArchivePath);
+     std::shared_ptr<ResourceCache> pCustomCache{ new ResourceCache(50, pCustomArchive, CUSTOM_RESOURCE) };
+@@ -918,7 +1093,7 @@ bool BaseGameApp::InitializeFont(GameOptions& gameOptions)
      m_pConsoleFont = TTF_OpenFont(gameOptions.consoleFontName.c_str(), gameOptions.consoleFontSize);
      if (m_pConsoleFont == NULL)
      {
@@ -1669,7 +1729,7 @@ index 64533c3..cfdbdfa 100644
          return false;
      }
  
-@@ -1234,7 +1398,11 @@ Point BaseGameApp::GetScale()
+@@ -1234,7 +1409,11 @@ Point BaseGameApp::GetScale()
      uint32 windowFlags = GetWindowFlags();
      Point scale(1.0, 1.0);
  
@@ -1681,7 +1741,7 @@ index 64533c3..cfdbdfa 100644
      
      scale.Set((double)scaleX, (double)scaleY);
  
-@@ -1243,7 +1411,11 @@ Point BaseGameApp::GetScale()
+@@ -1243,7 +1422,11 @@ Point BaseGameApp::GetScale()
  
  void BaseGameApp::SetScale(Point scale)
  {
@@ -1693,7 +1753,7 @@ index 64533c3..cfdbdfa 100644
  }
  
  uint32 BaseGameApp::GetWindowFlags()
-@@ -1412,8 +1584,14 @@ void BaseGameApp::RemoveAllDelegates()
+@@ -1412,8 +1595,14 @@ void BaseGameApp::RemoveAllDelegates()
  
  void BaseGameApp::QuitGameDelegate(IEventDataPtr pEventData)
  {
@@ -2204,18 +2264,21 @@ index 8042f57..6b94448 100644
  
      if (!extraData)
 diff --git a/OpenClaw/Engine/UserInterface/HumanView.cpp b/OpenClaw/Engine/UserInterface/HumanView.cpp
-index ec64d79..6b2f621 100644
+index ec64d79..7807d01 100644
 --- a/OpenClaw/Engine/UserInterface/HumanView.cpp
 +++ b/OpenClaw/Engine/UserInterface/HumanView.cpp
-@@ -1,4 +1,7 @@
+@@ -1,4 +1,10 @@
  #include "HumanView.h"
++#ifdef __ANDROID__
++#include "AudioProbe.h"
++#endif
 +#ifdef __ANDROID__
 +#include "TouchControls.h"
 +#endif
  #include "../GameApp/BaseGameApp.h"
  #include "../GameApp/BaseGameLogic.h"
  #include "../Events/EventMgr.h"
-@@ -101,6 +104,10 @@ void HumanView::VOnRender(uint32 msDiff)
+@@ -101,6 +107,10 @@ void HumanView::VOnRender(uint32 msDiff)
  
          m_pConsole->OnRender(renderer);
  
@@ -2226,7 +2289,7 @@ index ec64d79..6b2f621 100644
          if (!m_bPostponeRenderPresent)
          {
              SDL_RenderPresent(renderer);
-@@ -443,7 +450,9 @@ void HumanView::AmmoUpdatedDelegate(IEventDataPtr pEventData)
+@@ -443,7 +453,9 @@ void HumanView::AmmoUpdatedDelegate(IEventDataPtr pEventData)
          { 
              m_pHUD->UpdateAmmo(pCastEventData->GetAmmoCount());
          }
@@ -2237,11 +2300,12 @@ index ec64d79..6b2f621 100644
          {
              LOG_ERROR("Unknown ammo type: " + ToStr(pCastEventData->GetAmmoType()));
          }
-@@ -633,7 +642,13 @@ void HumanView::RequestPlaySoundDelegate(IEventDataPtr pEventData)
+@@ -633,8 +645,17 @@ void HumanView::RequestPlaySoundDelegate(IEventDataPtr pEventData)
              if (play)
              {
                  shared_ptr<Mix_Chunk> pSound = WavResourceLoader::LoadAndReturnSound(pSoundInfo->soundToPlay.c_str());
 -                assert(pSound != nullptr);
+-                g_pApp->GetAudio()->PlaySound(pSound.get(), soundProperties);
 +                // Regional game archives may omit optional voice clips. A missing
 +                // clip must not abort level completion or other gameplay events.
 +                if (!pSound)
@@ -2249,10 +2313,14 @@ index ec64d79..6b2f621 100644
 +                    LOG("Skipping unavailable sound: " + pSoundInfo->soundToPlay);
 +                    return;
 +                }
-                 g_pApp->GetAudio()->PlaySound(pSound.get(), soundProperties);
++                const bool played = g_pApp->GetAudio()->PlaySound(pSound.get(), soundProperties);
++#ifdef __ANDROID__
++                PazurAudioProbe::Sound(pSoundInfo->soundToPlay, played);
++#endif
              }
          }
-@@ -825,6 +840,10 @@ void HumanView::ClawDiedDelegate(IEventDataPtr pEventData)
+     }
+@@ -825,6 +846,10 @@ void HumanView::ClawDiedDelegate(IEventDataPtr pEventData)
  
          shared_ptr<ScreenElementMenu> pGameOverMenu(new ScreenElementMenu(g_pApp->GetRenderer()));
          DO_AND_CHECK(pGameOverMenu->Initialize(pXmlGameOverMenuRoot));
@@ -2263,7 +2331,7 @@ index ec64d79..6b2f621 100644
  
          m_ScreenElements.push_back(pGameOverMenu);
          pGameOverMenu->VSetVisible(true);
-@@ -1340,4 +1359,4 @@ void TeleportFadeInOutProcess::VRender(uint32 msDiff)
+@@ -1340,4 +1365,4 @@ void TeleportFadeInOutProcess::VRender(uint32 msDiff)
      SDL_DestroyTexture(pRightRectTexture);
  
      Util::RenderForcePresent(pRenderer);
@@ -2511,10 +2579,40 @@ index 94b988b..b16c000 100644
      MenuType m_MenuType;
      MenuPage m_DefaultMenuPage;
 diff --git a/OpenClaw/Engine/Util/Converters.cpp b/OpenClaw/Engine/Util/Converters.cpp
-index c51d2ee..a69020b 100644
+index c51d2ee..72463ee 100644
 --- a/OpenClaw/Engine/Util/Converters.cpp
 +++ b/OpenClaw/Engine/Util/Converters.cpp
-@@ -353,7 +353,14 @@ TiXmlElement* WwdToXml(WapWwd* wapWwd, int levelNumber)
+@@ -1,4 +1,7 @@
+ #include "Converters.h"
++#ifdef __ANDROID__
++#include "AquatisArena.h"
++#endif
+ #include "../Events/Events.h"
+ 
+ void FixupWwdObject(WwdObject* pObj, int levelNumber);
+@@ -319,6 +322,13 @@ TiXmlElement* WwdToXml(WapWwd* wapWwd, int levelNumber)
+             // TODO: missing logic
+             continue;
+         }
++#ifdef __ANDROID__
++        else if (levelNumber == 12 && (logic == "AquatisCrack" || logic == "AquatisDynamite" ||
++                 logic == "Tentacle" || logic == "AquatisStalactite"))
++        {
++            root->LinkEndChild(AquatisArenaObject(logic, Point(wwdObject->x, wwdObject->y)));
++        }
++#else
+         else if (logic == "AquatisCrack")
+         {
+             // TODO: missing logic
+@@ -328,6 +338,7 @@ TiXmlElement* WwdToXml(WapWwd* wapWwd, int levelNumber)
+         {
+             continue;
+         }
++#endif
+         else
+         {
+             if (TiXmlElement* pActorElem = WwdObjectToXml(&actorProperties, imagesRootPath, levelNumber))
+@@ -353,7 +364,14 @@ TiXmlElement* WwdToXml(WapWwd* wapWwd, int levelNumber)
              LOG_ERROR("NOT LOADED: " + actorLogic);
          }
  

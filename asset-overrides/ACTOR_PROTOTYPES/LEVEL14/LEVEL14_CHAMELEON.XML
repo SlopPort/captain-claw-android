@@ -16,6 +16,8 @@
     <DeathAnimation>killfall</DeathAnimation>
     <Sounds>
       <Sound SoundType="Death" SoundName="/LEVEL14/SOUNDS/CHAMELEON/CHAMELEONDEATH.WAV" />
+    <!-- Existing original attack effect connected by OpenAI Codex; no recording redistributed. -->
+      <Sound SoundType="MeleeAttack" SoundName="/LEVEL14/SOUNDS/CHAMELEON/TONGUESTRIKE.WAV" />
     </Sounds>
     <MinTimeIntervalForSpeechSound>5000</MinTimeIntervalForSpeechSound>
   </EnemyAIComponent>

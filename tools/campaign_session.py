@@ -8,14 +8,16 @@ import json
 import subprocess
 import time
 import xml.etree.ElementTree as ET
+import zipfile
 from gamepad_quit_smoke import adb, REMOTE, PORT
 
 
 class CampaignSession:
-    def __init__(self, report, level=1):
+    def __init__(self, report, level=1, apk_support=False):
         self.report=PORT/'reports'/report
         self.level=level;self.pid='';self.ticket=0
         self.stream=None;self.output=None;self.backed_up=False
+        self.apk_support=apk_support;self.support_backed_up=False
 
     def logs(self):
         path=self.report/'native.log'
@@ -63,6 +65,12 @@ class CampaignSession:
         adb('pull',REMOTE+'SAVES.XML',str(self.report/'saves.original.xml'))
         self.backed_up=True
         try:
+            if self.apk_support:
+                adb('pull',REMOTE+'ASSETS.ZIP',str(self.report/'support.original.zip'))
+                self.support_backed_up=True
+                with zipfile.ZipFile(PORT/'app/build/outputs/apk/debug/app-debug.apk') as apk:
+                    (self.report/'support.test.zip').write_bytes(apk.read('assets/import-support/ASSETS.ZIP'))
+                adb('push',str(self.report/'support.test.zip'),REMOTE+'ASSETS.ZIP')
             config=ET.parse(self.report/'config.original.xml')
             for path,value in [('DebugOptions/SkipMenu','true'),('DebugOptions/SkipMenuToLevel',str(self.level)),
                                ('GlobalOptions/LoadAllLevelSaves','false')]:config.find(path).text=value
@@ -107,6 +115,7 @@ class CampaignSession:
             adb('shell','am','force-stop','pl.pazur.port')
             for remote,local in [('config.xml','config.original.xml'),('SAVES.XML','saves.original.xml')]:
                 adb('push',str(self.report/local),REMOTE+remote)
+            if self.support_backed_up:adb('push',str(self.report/'support.original.zip'),REMOTE+'ASSETS.ZIP')
             for name in ('combat-command.txt','combat-response.txt','combat-command.tmp','campaign-test.png'):
                 adb('shell','rm','-f',REMOTE+name)
             print('Original configuration and saves restored',flush=True)
