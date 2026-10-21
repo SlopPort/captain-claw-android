@@ -1208,7 +1208,7 @@ index d12e28d..186fb90 100644
 \ No newline at end of file
 +#endif
 diff --git a/OpenClaw/Engine/GameApp/BaseGameApp.cpp b/OpenClaw/Engine/GameApp/BaseGameApp.cpp
-index 64533c3..fd28bda 100644
+index 64533c3..cfdbdfa 100644
 --- a/OpenClaw/Engine/GameApp/BaseGameApp.cpp
 +++ b/OpenClaw/Engine/GameApp/BaseGameApp.cpp
 @@ -21,6 +21,10 @@
@@ -1330,7 +1330,7 @@ index 64533c3..fd28bda 100644
              }
  
              // Render game
-@@ -245,6 +303,33 @@ void BaseGameApp::StepLoop() {
+@@ -245,6 +303,42 @@ void BaseGameApp::StepLoop() {
              //m_pGame->VRenderDiagnostics();
          }
  
@@ -1340,6 +1340,15 @@ index 64533c3..fd28bda 100644
 +        if (m_pGame && m_pGame->IsRunning() && m_pGame->GetGameState()==GameState_IngameRunning) {
 +            const double ms=1000.0/SDL_GetPerformanceFrequency();
 +            const auto end=SDL_GetPerformanceCounter();
++            // Bounded diagnostics for actual active-loop hitches, excluding the
++            // loading/resume transition itself. Average FPS hides these spikes.
++            static unsigned slowFrames=0;
++            if(GetDebugOptions()->bPreviewIncompleteLevel14 && simulationWasRunning && (end-phaseStart)*ms>28.0 && slowFrames<24) {
++                ++slowFrames;
++                SDL_Log("Pazur slow frame: input=%.2f events=%.2f update=%.2f render=%.2f total=%.2f ms",
++                    (phaseInputEnd-phaseStart)*ms,(phaseEventEnd-phaseInputEnd)*ms,
++                    (phaseUpdateEnd-phaseEventEnd)*ms,(end-phaseUpdateEnd)*ms,(end-phaseStart)*ms);
++            }
 +            phaseTotals[0]+=(phaseInputEnd-phaseStart)*ms;
 +            phaseTotals[1]+=(phaseEventEnd-phaseInputEnd)*ms;
 +            phaseTotals[2]+=(phaseUpdateEnd-phaseEventEnd)*ms;
@@ -1364,7 +1373,7 @@ index 64533c3..fd28bda 100644
          // Artificially decrease fps. Configurable from console
          Util::Sleep(m_DebugOptions.cpuDelayMs);
      }
-@@ -284,6 +369,11 @@ int32 BaseGameApp::Run()
+@@ -284,6 +378,11 @@ int32 BaseGameApp::Run()
  
  void BaseGameApp::OnEvent(SDL_Event& event)
  {
@@ -1376,7 +1385,7 @@ index 64533c3..fd28bda 100644
      switch (event.type)
      {
          case SDL_QUIT:
-@@ -317,6 +407,12 @@ void BaseGameApp::OnEvent(SDL_Event& event)
+@@ -317,6 +416,12 @@ void BaseGameApp::OnEvent(SDL_Event& event)
              break;
          }
  
@@ -1389,7 +1398,7 @@ index 64533c3..fd28bda 100644
          case SDL_APP_DIDENTERBACKGROUND:
          {
              LOG("Entered background");
-@@ -325,6 +421,8 @@ void BaseGameApp::OnEvent(SDL_Event& event)
+@@ -325,6 +430,8 @@ void BaseGameApp::OnEvent(SDL_Event& event)
  
          case SDL_APP_DIDENTERFOREGROUND:
          {
@@ -1398,7 +1407,7 @@ index 64533c3..fd28bda 100644
              LOG("Entered foreground");
              break;
          }
-@@ -555,6 +653,11 @@ bool BaseGameApp::LoadGameOptions(const char* inConfigFile)
+@@ -555,6 +662,11 @@ bool BaseGameApp::LoadGameOptions(const char* inConfigFile)
      {
          ParseValueFromXmlElem(&m_GameOptions.assetsFolder,
              assetsElem->FirstChildElement("AssetsFolder"));
@@ -1410,7 +1419,7 @@ index 64533c3..fd28bda 100644
          DO_AND_CHECK(ParseValueFromXmlElem(&m_GameOptions.rezArchive,
              assetsElem->FirstChildElement("RezArchive")));
          DO_AND_CHECK(ParseValueFromXmlElem(&m_GameOptions.customArchive,
-@@ -713,6 +816,8 @@ bool BaseGameApp::LoadGameOptions(const char* inConfigFile)
+@@ -713,6 +825,8 @@ bool BaseGameApp::LoadGameOptions(const char* inConfigFile)
      //-------------------------------------------------------------------------
      if (TiXmlElement* pDebugOptionsRootElem = configRoot->FirstChildElement("DebugOptions"))
      {
@@ -1419,7 +1428,7 @@ index 64533c3..fd28bda 100644
          ParseValueFromXmlElem(&m_DebugOptions.bSkipBossFightIntro,
              pDebugOptionsRootElem->FirstChildElement("SkipBossFightIntro"));
          ParseValueFromXmlElem(&m_DebugOptions.bSkipMenu,
-@@ -721,6 +826,10 @@ bool BaseGameApp::LoadGameOptions(const char* inConfigFile)
+@@ -721,6 +835,10 @@ bool BaseGameApp::LoadGameOptions(const char* inConfigFile)
              pDebugOptionsRootElem->FirstChildElement("CpuDelay"));
          ParseValueFromXmlElem(&m_DebugOptions.lastImplementedLevel,
              pDebugOptionsRootElem->FirstChildElement("LastImplementedLevel"));
@@ -1430,7 +1439,7 @@ index 64533c3..fd28bda 100644
          ParseValueFromXmlElem(&m_DebugOptions.skipMenuToLevel,
              pDebugOptionsRootElem->FirstChildElement("SkipMenuToLevel"));
      }
-@@ -730,8 +839,38 @@ bool BaseGameApp::LoadGameOptions(const char* inConfigFile)
+@@ -730,8 +848,38 @@ bool BaseGameApp::LoadGameOptions(const char* inConfigFile)
  
  void BaseGameApp::SaveGameOptions(const char* outConfigFile)
  {
@@ -1471,7 +1480,7 @@ index 64533c3..fd28bda 100644
  }
  
  //=====================================================================================================================
-@@ -780,6 +919,10 @@ bool BaseGameApp::InitializeDisplay(GameOptions& gameOptions)
+@@ -780,6 +928,10 @@ bool BaseGameApp::InitializeDisplay(GameOptions& gameOptions)
          return false;
      }
  
@@ -1482,7 +1491,7 @@ index 64533c3..fd28bda 100644
      m_pWindow = SDL_CreateWindow(VGetGameTitle(), SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
          gameOptions.windowWidth, gameOptions.windowHeight, SDL_WINDOW_SHOWN);
      if (m_pWindow == NULL)
-@@ -799,6 +942,15 @@ bool BaseGameApp::InitializeDisplay(GameOptions& gameOptions)
+@@ -799,6 +951,15 @@ bool BaseGameApp::InitializeDisplay(GameOptions& gameOptions)
          SDL_GetWindowSize(m_pWindow, &m_GameOptions.windowWidth, &m_GameOptions.windowHeight);
      }
  
@@ -1498,7 +1507,7 @@ index 64533c3..fd28bda 100644
      m_WindowSize.Set(gameOptions.windowWidth, gameOptions.windowHeight);
  
      uint32 rendererFlags = SDL_RENDERER_ACCELERATED;
-@@ -815,6 +967,9 @@ bool BaseGameApp::InitializeDisplay(GameOptions& gameOptions)
+@@ -815,6 +976,9 @@ bool BaseGameApp::InitializeDisplay(GameOptions& gameOptions)
      }
  
      SDL_RenderSetScale(m_pRenderer, (float)gameOptions.scale, (float)gameOptions.scale);
@@ -1508,7 +1517,7 @@ index 64533c3..fd28bda 100644
  
      LOG("Display successfully initialized.");
  
-@@ -918,7 +1073,7 @@ bool BaseGameApp::InitializeFont(GameOptions& gameOptions)
+@@ -918,7 +1082,7 @@ bool BaseGameApp::InitializeFont(GameOptions& gameOptions)
      m_pConsoleFont = TTF_OpenFont(gameOptions.consoleFontName.c_str(), gameOptions.consoleFontSize);
      if (m_pConsoleFont == NULL)
      {
@@ -1517,7 +1526,7 @@ index 64533c3..fd28bda 100644
          return false;
      }
  
-@@ -1234,7 +1389,11 @@ Point BaseGameApp::GetScale()
+@@ -1234,7 +1398,11 @@ Point BaseGameApp::GetScale()
      uint32 windowFlags = GetWindowFlags();
      Point scale(1.0, 1.0);
  
@@ -1529,7 +1538,7 @@ index 64533c3..fd28bda 100644
      
      scale.Set((double)scaleX, (double)scaleY);
  
-@@ -1243,7 +1402,11 @@ Point BaseGameApp::GetScale()
+@@ -1243,7 +1411,11 @@ Point BaseGameApp::GetScale()
  
  void BaseGameApp::SetScale(Point scale)
  {
@@ -1541,7 +1550,7 @@ index 64533c3..fd28bda 100644
  }
  
  uint32 BaseGameApp::GetWindowFlags()
-@@ -1412,8 +1575,14 @@ void BaseGameApp::RemoveAllDelegates()
+@@ -1412,8 +1584,14 @@ void BaseGameApp::RemoveAllDelegates()
  
  void BaseGameApp::QuitGameDelegate(IEventDataPtr pEventData)
  {
@@ -1578,7 +1587,7 @@ index 731f317..c9c67df 100644
      int skipMenuToLevel;
      bool bSkipBossFightIntro;
 diff --git a/OpenClaw/Engine/GameApp/BaseGameLogic.cpp b/OpenClaw/Engine/GameApp/BaseGameLogic.cpp
-index 5d8dc7d..8e20e1e 100644
+index 5d8dc7d..94ed8b1 100644
 --- a/OpenClaw/Engine/GameApp/BaseGameLogic.cpp
 +++ b/OpenClaw/Engine/GameApp/BaseGameLogic.cpp
 @@ -22,7 +22,10 @@
@@ -1688,7 +1697,7 @@ index 5d8dc7d..8e20e1e 100644
      // Limit update to max 100 times / second
      static int msAccumulation = 0;
      msAccumulation += msDiff;
-@@ -855,8 +880,21 @@ void BaseGameLogic::VOnUpdate(uint32 msDiff)
+@@ -855,8 +880,29 @@ void BaseGameLogic::VOnUpdate(uint32 msDiff)
          {
              actorIter.second->Update(msAccumulation);
          }
@@ -1701,6 +1710,14 @@ index 5d8dc7d..8e20e1e 100644
 +    PazurProfile::Poll();
 +    if(m_GameState==GameState_IngameRunning) {
 +        static Uint64 physics=0,actors=0,views=0,total=0;static int frames=0;
++        static unsigned slowUpdates=0;
++        const double currentScale=1000.0/SDL_GetPerformanceFrequency();
++        const auto currentTicks=SDL_GetPerformanceCounter()-phaseClock;
++        if(g_pApp->GetDebugOptions()->bPreviewIncompleteLevel14 && IsRunning() && currentTicks*currentScale>22.0 && slowUpdates<24) {
++            ++slowUpdates;
++            SDL_Log("Pazur slow update: physics=%.2f actors=%.2f views=%.2f total=%.2f ms",
++                physicsTicks*currentScale,actorTicks*currentScale,viewTicks*currentScale,currentTicks*currentScale);
++        }
 +        physics+=physicsTicks;actors+=actorTicks;views+=viewTicks;total+=SDL_GetPerformanceCounter()-phaseClock;
 +        if(++frames==300) {
 +            const double scale=1000.0/SDL_GetPerformanceFrequency()/frames;
@@ -2021,7 +2038,7 @@ index 8042f57..6b94448 100644
  
      if (!extraData)
 diff --git a/OpenClaw/Engine/UserInterface/HumanView.cpp b/OpenClaw/Engine/UserInterface/HumanView.cpp
-index ec64d79..4d66e7a 100644
+index ec64d79..ee9a16b 100644
 --- a/OpenClaw/Engine/UserInterface/HumanView.cpp
 +++ b/OpenClaw/Engine/UserInterface/HumanView.cpp
 @@ -1,4 +1,7 @@
@@ -2054,7 +2071,18 @@ index ec64d79..4d66e7a 100644
          {
              LOG_ERROR("Unknown ammo type: " + ToStr(pCastEventData->GetAmmoType()));
          }
-@@ -1340,4 +1349,4 @@ void TeleportFadeInOutProcess::VRender(uint32 msDiff)
+@@ -825,6 +834,10 @@ void HumanView::ClawDiedDelegate(IEventDataPtr pEventData)
+ 
+         shared_ptr<ScreenElementMenu> pGameOverMenu(new ScreenElementMenu(g_pApp->GetRenderer()));
+         DO_AND_CHECK(pGameOverMenu->Initialize(pXmlGameOverMenuRoot));
++#ifdef __ANDROID__
++        pGameOverMenu->EnableTapConfirmation();
++        SDL_Log("Pazur game over menu opened");
++#endif
+ 
+         m_ScreenElements.push_back(pGameOverMenu);
+         pGameOverMenu->VSetVisible(true);
+@@ -1340,4 +1353,4 @@ void TeleportFadeInOutProcess::VRender(uint32 msDiff)
      SDL_DestroyTexture(pRightRectTexture);
  
      Util::RenderForcePresent(pRenderer);
@@ -2132,7 +2160,7 @@ index 49c7f1e..78d568c 100644
          customData.tap = tap;
          sdlEvent.user.code = type;
 diff --git a/OpenClaw/Engine/UserInterface/UserInterface.cpp b/OpenClaw/Engine/UserInterface/UserInterface.cpp
-index 9966337..82a2c54 100644
+index 9966337..d227200 100644
 --- a/OpenClaw/Engine/UserInterface/UserInterface.cpp
 +++ b/OpenClaw/Engine/UserInterface/UserInterface.cpp
 @@ -109,6 +109,9 @@ std::map<std::string, MenuItemType> g_StringToMenuItemType =
@@ -2145,7 +2173,15 @@ index 9966337..82a2c54 100644
      Point windowSize = g_pApp->GetWindowSize();
      Point scale = g_pApp->GetScale();
      int targetWidth = (int)(windowSize.x / scale.x);
-@@ -427,8 +430,17 @@ void ScreenElementMenu::VOnUpdate(uint32 msDiff)
+@@ -379,6 +382,7 @@ ScreenElementMenu::ScreenElementMenu(SDL_Renderer* pRenderer)
+     :
+     m_pRenderer(pRenderer),
+     m_bIsVisible(true),
++    m_TapToConfirm(false),
+     m_MenuType(MenuType_None)
+ {
+     IEventMgr::Get()->VAddListener(MakeDelegate(
+@@ -427,8 +431,17 @@ void ScreenElementMenu::VOnUpdate(uint32 msDiff)
  
  void ScreenElementMenu::VOnRender(uint32 msDiff)
  {
@@ -2163,7 +2199,7 @@ index 9966337..82a2c54 100644
  
      assert(m_pBackground != nullptr);
      assert(m_pBackground->GetTexture() != NULL);
-@@ -438,10 +450,15 @@ void ScreenElementMenu::VOnRender(uint32 msDiff)
+@@ -438,14 +451,31 @@ void ScreenElementMenu::VOnRender(uint32 msDiff)
  
      assert(m_pActiveMenuPage);
      m_pActiveMenuPage->VOnRender(msDiff);
@@ -2179,7 +2215,23 @@ index 9966337..82a2c54 100644
  }
  
  bool ScreenElementMenu::VOnEvent(SDL_Event& evt)
-@@ -580,7 +597,11 @@ bool ScreenElementMenu::Initialize(TiXmlElement* pElem)
+ {
++#ifdef __ANDROID__
++    // Game Over has only text and keyboard actions in upstream XML. A fresh
++    // touch anywhere must invoke its existing Enter action; other menus still
++    // require tapping their own buttons. Never inject a process-wide key.
++    if(m_TapToConfirm && evt.type==SDL_MOUSEBUTTONDOWN && evt.button.button==SDL_BUTTON_LEFT) {
++        SDL_Event confirm={};
++        confirm.type=SDL_KEYDOWN;
++        confirm.key.state=SDL_PRESSED;
++        confirm.key.keysym.sym=SDLK_RETURN;
++        return m_pActiveMenuPage->VOnEvent(confirm);
++    }
++#endif
+     return m_pActiveMenuPage->VOnEvent(evt);
+ }
+ 
+@@ -580,7 +610,11 @@ bool ScreenElementMenu::Initialize(TiXmlElement* pElem)
      // Lets just assume that the background will take the whole screen
      // From that we can calculate current scale (can't use predefined scale here)
      Point windowSize = g_pApp->GetWindowSize();
@@ -2191,7 +2243,7 @@ index 9966337..82a2c54 100644
  
      return true;
  }
-@@ -709,15 +730,19 @@ bool ScreenElementMenuPage::VOnEvent(SDL_Event& evt)
+@@ -709,15 +743,19 @@ bool ScreenElementMenuPage::VOnEvent(SDL_Event& evt)
          assert(activeMenuItemIdx >= 0);
      }
  
@@ -2213,7 +2265,7 @@ index 9966337..82a2c54 100644
          if (keyCode == SDL_SCANCODE_DOWN)
          {
              MoveToMenuItemIdx(activeMenuItemIdx, 1);
-@@ -765,7 +790,11 @@ bool ScreenElementMenuPage::VOnEvent(SDL_Event& evt)
+@@ -765,7 +803,11 @@ bool ScreenElementMenuPage::VOnEvent(SDL_Event& evt)
          if (evt.button.button == SDL_BUTTON_LEFT)
          {
              SDL_Rect clickRect;
@@ -2225,7 +2277,7 @@ index 9966337..82a2c54 100644
              clickRect.y = (int)(evt.button.y / g_MenuScale.y);
              clickRect.w = 1;
              clickRect.h = 1;
-@@ -926,6 +955,11 @@ bool ScreenElementMenuPage::MoveToMenuItemIdx(int oldIdx, int idxIncrement, bool
+@@ -926,6 +968,11 @@ bool ScreenElementMenuPage::MoveToMenuItemIdx(int oldIdx, int idxIncrement, bool
          tryCount++;
      }
  
@@ -2237,13 +2289,33 @@ index 9966337..82a2c54 100644
      if (playSound)
      {
          // Play sound
-@@ -1380,4 +1414,4 @@ SDL_Rect ScreenElementMenuItem::GetMenuItemRect()
+@@ -1380,4 +1427,4 @@ SDL_Rect ScreenElementMenuItem::GetMenuItemRect()
      itemRect.h = itemHeight;
  
      return itemRect;
 -}
 \ No newline at end of file
 +}
+diff --git a/OpenClaw/Engine/UserInterface/UserInterface.h b/OpenClaw/Engine/UserInterface/UserInterface.h
+index 94b988b..b16c000 100644
+--- a/OpenClaw/Engine/UserInterface/UserInterface.h
++++ b/OpenClaw/Engine/UserInterface/UserInterface.h
+@@ -141,6 +141,7 @@ public:
+     virtual bool VOnEvent(SDL_Event& evt);
+ 
+     bool Initialize(TiXmlElement* pElem);
++    void EnableTapConfirmation() { m_TapToConfirm = true; }
+ 
+ private:
+     void SwitchPageDelegate(IEventDataPtr pEventData);
+@@ -151,6 +152,7 @@ private:
+     void IngameMenuEndGameDelegate(IEventDataPtr pEventData);
+ 
+     bool m_bIsVisible;
++    bool m_TapToConfirm;
+ 
+     MenuType m_MenuType;
+     MenuPage m_DefaultMenuPage;
 diff --git a/OpenClaw/Engine/Util/Converters.cpp b/OpenClaw/Engine/Util/Converters.cpp
 index c51d2ee..a69020b 100644
 --- a/OpenClaw/Engine/Util/Converters.cpp

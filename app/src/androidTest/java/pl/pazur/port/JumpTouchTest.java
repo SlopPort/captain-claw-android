@@ -16,6 +16,7 @@ import java.nio.charset.StandardCharsets;
 public class JumpTouchTest extends Instrumentation {
     private Activity game;
     private boolean baseline;
+    private boolean gameOver;
     private long down;
     private int width, height, ticket;
     private float logicalWidth;
@@ -24,6 +25,7 @@ public class JumpTouchTest extends Instrumentation {
     @Override public void onCreate(Bundle args) {
         super.onCreate(args);
         baseline="baseline".equals(args.getString("layout"));
+        gameOver="game-over".equals(args.getString("scenario"));
         start();
     }
     private void focus() {
@@ -108,6 +110,19 @@ public class JumpTouchTest extends Instrumentation {
             if (width<=height) throw new IllegalStateException("Expected landscape game");
             logicalWidth=Math.max(640,Math.round(480f*width/height));
             folder=getTargetContext().getExternalFilesDir(null);
+            if(gameOver) {
+                command("combatlastlife");
+                SystemClock.sleep(4500);
+                screenshot("game-over-before.png");
+                down=SystemClock.uptimeMillis();
+                single(MotionEvent.ACTION_DOWN,logicalWidth/2,240);
+                SystemClock.sleep(80);
+                single(MotionEvent.ACTION_UP,logicalWidth/2,240);
+                SystemClock.sleep(1500);
+                screenshot("game-over-after.png");
+                result.putString("stream","Last-life death and app-local touch completed.\n");
+                finish(0,result);return;
+            }
             float x=logicalWidth-(baseline?56:74),y=baseline?438:406;
             int[] durations={10,100,250,700,1800,100};
             for (int i=0;i<durations.length;i++) {

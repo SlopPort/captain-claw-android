@@ -14,7 +14,9 @@ PORT = Path(__file__).resolve().parents[1]
 REMOTE = '/sdcard/Android/data/pl.pazur.port/files/'
 ADB = ['adb']
 parser = argparse.ArgumentParser(description=__doc__)
-parser.add_argument('--mode', choices=['baseline', 'regression', 'enemies'], default='baseline')
+parser.add_argument('--mode', choices=['baseline', 'regression', 'enemies', 'stairs'], default='baseline')
+parser.add_argument('--step-height',type=int,default=48)
+parser.add_argument('--step-side',type=int,choices=[-1,1],default=1)
 parser.add_argument('--report', default='combat-baseline')
 parser.add_argument('--indices', nargs='+', type=int)
 parser.add_argument('--phase', choices=['both','incoming','outgoing'], default='both')
@@ -109,6 +111,38 @@ def hitbox_cases():
                 finally:
                     if held: console('combatkey release 0')
     return results
+
+
+def stairs_case():
+    inventory=json.loads((PORT/'reports/combat-audit/inventory.json').read_text())
+    index=next(i for i,v in enumerate(inventory) if v['prototype']=='ActorPrototype_Level1_Officer')
+    console(f'combatstairs {index} {args.step_side*80} {args.step_height}')
+    time.sleep(.1)
+    # A 60 ms direction pulse could fall entirely inside the damage animation
+    # and never turn the player. Keep the direction held across recovery.
+    console('combatkey '+('right' if args.step_side>0 else 'left')+' 1200')
+    initial=status()
+    console('combatkey sword 60');time.sleep(.25)
+    standing=status();capture('standing-on-step')
+    assert standing['claw']>0,'Player died before escape test'
+    console('combatjumpmeasure stairs_escape')
+    console('combatkey jump 1600')
+    for _ in range(6):
+        console('combatkey sword 70');time.sleep(.25)
+    console('combatkey release 0');time.sleep(1.1)
+    after=status();capture('after-jump')
+    trace=re.search(r'Pazur jump trace: label=stairs_escape .*rise=([\d.]+).*jumps=(\d+)',log())
+    rise=float(trace.group(1)) if trace else 0
+    defeated='Pazur enemy defeated: Officer' in log()
+    escaped_under_attack=standing['target_hp']>0 and rise>50 and after['claw']>0
+    return {'case':'active officer on raised step','step_height':args.step_height,'side':args.step_side,
+        'initial':initial,'after_standing_attacks':standing,'after_jump_attacks':after,
+        'jump_rise':rise,'jump_observed':bool(trace and int(trace.group(2))>0),
+        'opponent_alive_before_jump':standing['target_hp']>0,
+        'escape_under_attack_verified':escaped_under_attack,'officer_defeated':defeated,
+        'player_protected':False,'target_offensive_ai_disabled':False,
+        'fixture':'isolated geometry, normal AI; combat fixture sets pistol ammo but no shots fired',
+        'passed':after['claw']>0 and rise>50 and (escaped_under_attack or defeated)}
 
 
 def enemy_cases():
@@ -260,6 +294,9 @@ try:
         results.append({'case':'duplicate projectile callback','before':before,'first':first,'second':second,
                         'passed':before-first==1 and first==second})
         print(json.dumps(results[-1]),flush=True)
+    elif args.mode=='stairs':
+        results=[stairs_case()]
+        print(json.dumps(results[0]),flush=True)
     elif args.mode=='enemies':
         for row in enemy_cases():
             results.append(row)
@@ -277,5 +314,5 @@ finally:
         adb('shell','rm','-f',REMOTE+name)
     (REPORT/'results.json').write_text(json.dumps(results,indent=2),encoding='utf-8')
     print('Config and saves restored',flush=True)
-if args.mode in ['regression','enemies'] and not all(row['passed'] for row in results):
+if args.mode in ['regression','enemies','stairs'] and not all(row['passed'] for row in results):
     raise SystemExit('Combat regression failed')

@@ -10,7 +10,10 @@
 #include "Engine/Actor/Components/AnimationComponent.h"
 #include "Engine/Actor/Components/ControllableComponent.h"
 #include "Engine/Actor/Components/ControllerComponents/HealthComponent.h"
+#include "Engine/Actor/Components/ControllerComponents/LifeComponent.h"
 #include "Engine/Actor/Components/ControllerComponents/AmmoComponent.h"
+#include "Engine/Actor/Components/ControllerComponents/PowerupComponent.h"
+#include "Engine/Actor/Components/AIComponents/TogglePegAIComponent.h"
 #include "Engine/Actor/Components/EnemyAI/EnemyAIComponent.h"
 #include "Engine/Actor/Components/AIComponents/ProjectileAIComponent.h"
 #include "Engine/Actor/Components/AreaDamageComponent.h"
@@ -34,6 +37,16 @@ struct JumpTrace {
     Uint32 inputTime=0, queueMs=0, releaseMs=0;
     int takeoffMs=-1, jumps=0;
 } jumpTrace;
+
+// Observe existing level platforms without changing their animation or collision.
+// Launch inputs are scheduled on the game thread, avoiding USB round-trip jitter.
+struct PegTrial {
+    WeakActorPtr source, destination;
+    Uint32 started=0, launched=0, positionedAt=0;
+    bool active=false, positioned=false;
+    SDL_Rect targetBox{}, sourceBox{};
+    double baseY=0, rise=0;
+} pegTrial;
 
 void keyEvent(SDL_Keycode key, bool down) {
     if (key==SDLK_SPACE) PazurCombatProbe::JumpInput(down,0);
@@ -83,6 +96,46 @@ bool PazurCombatProbe::Handle(const std::vector<std::string>& args, const ActorM
     auto claw = logic->GetClawActor();
     if (!claw) return false;
     auto physics = logic->VGetGamePhysics();
+    if(args[0]=="pegtrial" && args.size()==5) {
+        ResetKeys();
+        pegTrial=PegTrial{};
+        const Point from(std::stod(args[1]),std::stod(args[2]));
+        const Point to(std::stod(args[3]),std::stod(args[4]));
+        for(const auto& pair:actors) {
+            auto actor=pair.second;
+            if(!actor->GetRawComponent<TogglePegAIComponent>(false))continue;
+            const auto p=actor->GetPositionComponent()->GetPosition();
+            if(std::abs(p.x-from.x)<5 && std::abs(p.y-from.y)<5)pegTrial.source=actor;
+            if(std::abs(p.x-to.x)<5 && std::abs(p.y-to.y)<5)pegTrial.destination=actor;
+        }
+        auto source=pegTrial.source.lock();
+        if(!source || pegTrial.destination.expired()) {
+            SDL_Log("Pazur peg trial: rejected=platform-not-found");return true;
+        }
+        pegTrial.active=true;pegTrial.started=SDL_GetTicks();
+        SDL_Log("Pazur peg trial: started source=%.0f,%.0f target=%.0f,%.0f catnip=%d",
+            from.x,from.y,to.x,to.y,
+            claw->GetRawComponent<PowerupComponent>(true)->HasPowerup(PowerupType_Catnip));
+        return true;
+    }
+    if(args[0]=="combatlastlife") {
+        // Enter the normal last-life death/animation/menu path, not a fake UI.
+        claw->GetRawComponent<LifeComponent>(true)->SetCurrentLives(0);
+        claw->GetRawComponent<HealthComponent>(true)->SetCurrentHealth(0);
+        return true;
+    }
+    if(args[0]=="combatstairs" && args.size()==4) {
+        const int rise=std::stoi(args[3]);
+        const double distance=std::stod(args[2]);
+        if(rise<1 || rise>128 || std::abs(distance)<60 || std::abs(distance)>160)return true;
+        Handle({"combatstage",args[1],args[2],std::to_string(5-rise)},actors);
+        // One raised step per fresh process; real offensive AI and normal player
+        // health remain enabled. Never accumulate different steps in one arena.
+        physics->VAddStaticGeometry(Point(distance>0?200040:199700,1100-rise),
+            Point(260,rise+64),CollisionType_Solid,FixtureType_Solid);
+        SDL_Log("Pazur stairs fixture: rise=%d side=%d",rise,distance>0?1:-1);
+        return true;
+    }
     if (args[0]=="laddermap") {
         const int level=logic->GetCurrentLevelData()->GetLevelNumber();
         auto archive=WAP_LoadRezArchive("CLAW.REZ");
@@ -315,6 +368,55 @@ void PazurCombatProbe::Poll() {
         !g_pApp->GetGameLogic()) return;
     const bool playing=g_pApp->GetGameLogic()->IsRunning() &&
         g_pApp->GetGameLogic()->GetGameState()==GameState_IngameRunning;
+    if(pegTrial.active) {
+        auto source=pegTrial.source.lock(), destination=pegTrial.destination.lock();
+        auto logic=g_pApp->GetGameLogic();
+        auto claw=logic->GetClawActor();
+        if(!playing || !source || !destination || !claw) {
+            pegTrial.active=false;ResetKeys();
+        } else {
+            auto physics=logic->VGetGamePhysics();
+            auto pc=claw->GetPhysicsComponent();
+            const int frame=destination->GetRawComponent<AnimationComponent>(true)
+                ->GetCurrentAnimation()->GetCurrentAnimationFrame()->idx;
+            const int sourceFrame=source->GetRawComponent<AnimationComponent>(true)
+                ->GetCurrentAnimation()->GetCurrentAnimationFrame()->idx;
+            // Inactive Box2D fixtures have no broad-phase proxies. Query their
+            // AABB only while solid; retain the target bounds during off phases.
+            if(frame<2)pegTrial.targetBox=physics->VGetAABB(destination->GetGUID(),true);
+            if(!pegTrial.positioned && sourceFrame<2) {
+                const auto sourceBox=physics->VGetAABB(source->GetGUID(),true);
+                pegTrial.sourceBox=sourceBox;
+                const Point start(source->GetPositionComponent()->GetX(),sourceBox.y-70);
+                pc->SetFallHeight(0);pc->SetHeightInAir(0);pc->SetCurrentSpeed(Point(0,0));
+                claw->GetRawComponent<ClawControllableComponent>(true)->OnStand();
+                physics->VSetLinearSpeed(claw->GetGUID(),Point(0,0));
+                physics->VSetPosition(claw->GetGUID(),start);
+                claw->GetPositionComponent()->SetPosition(start.x,start.y);
+                pegTrial.positioned=true;pegTrial.positionedAt=now;
+            }
+            const auto p=claw->GetPositionComponent()->GetPosition();
+            const auto targetBox=pegTrial.targetBox;
+            const auto box=physics->VGetAABB(claw->GetGUID(),true);
+            if(pegTrial.positioned && now-pegTrial.positionedAt>200 && !pegTrial.launched && pc->IsOnGround() &&
+                std::abs(box.y+box.h-pegTrial.sourceBox.y)<5 && frame<2) {
+                pegTrial.launched=now;pegTrial.baseY=p.y;
+                keyEvent(SDLK_SPACE,true);heldKeys[SDLK_SPACE]=now+600;
+                const double dx=destination->GetPositionComponent()->GetX()-p.x;
+                const auto key=dx<0?SDLK_LEFT:SDLK_RIGHT;
+                keyEvent(key,true);heldKeys[key]=now+Uint32(std::abs(dx)/350.0*1000);
+                SDL_Log("Pazur peg launch: x=%.1f y=%.1f target_top=%d frame=%d",p.x,p.y,targetBox.y,frame);
+            }
+            if(pegTrial.launched)pegTrial.rise=(std::max)(pegTrial.rise,pegTrial.baseY-p.y);
+            const bool landed=pegTrial.launched && now-pegTrial.launched>200 && pc->IsOnGround() &&
+                std::abs(box.y+box.h-targetBox.y)<5 && p.x>=targetBox.x && p.x<=targetBox.x+targetBox.w;
+            if(landed || now-pegTrial.started>8000 || (pegTrial.launched && p.y>pegTrial.baseY+200)) {
+                SDL_Log("Pazur peg result: landed=%d rise=%.1f x=%.1f y=%.1f bottom=%d target_top=%d frame=%d",
+                    landed,pegTrial.rise,p.x,p.y,box.y+box.h,targetBox.y,frame);
+                pegTrial.active=false;ResetKeys();
+            }
+        }
+    }
     if (playing && jumpTrace.armed && jumpTrace.received) {
         auto claw=g_pApp->GetGameLogic()->GetClawActor();
         const double rise=jumpTrace.baseY-claw->GetPositionComponent()->GetY();

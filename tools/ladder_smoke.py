@@ -17,7 +17,9 @@ def main():
     parser.add_argument('--first-map-ladder',action='store_true',help='Check the leftmost ladder cap on the real level 1 map')
     parser.add_argument('--edges',action='store_true',help='Also check falling off both ledge sides and rejection of air jumps')
     parser.add_argument('--bottom',action='store_true',help='Check held Down when a ladder ends on a solid floor')
+    parser.add_argument('--idle-edges',action='store_true',help='Measure idle drift near both platform edges; positive inset means the body centre is inside')
     args=parser.parse_args()
+    if args.idle_edges:args.edges=True
     report=PORT/'reports'/args.report;report.mkdir(parents=True,exist_ok=True)
     for name in ('combat-command.txt','combat-response.txt'):
         if subprocess.run(['adb','shell','ls',REMOTE+name],capture_output=True).returncode==0:
@@ -141,6 +143,20 @@ def main():
                 assert land['ground'] and abs(land['y']-2313)<5,land
                 trace=re.search(r'Pazur jump trace: label=air_'+side+r' .*rise=([\d.]+).*jumps=(\d+)',logs())
                 assert trace and float(trace.group(1))<2 and int(trace.group(2))==0,'Unexpected air jump: '+side
+            if args.idle_edges:
+                for side,edge,sign in [('right',206128,1),('left',205872,-1)]:
+                    for inset in (20,5,1,-1,-5,-15):
+                        command('combatkey release 0')
+                        start=edge-sign*inset
+                        command('teleport '+str(start)+' 713');time.sleep(.15)
+                        label='idle_'+side+'_'+str(inset)
+                        sample(label+'_before');time.sleep(1.2);sample(label+'_after')
+                        row=rows[-1]
+                        # Do not call a capsule rolling off after its centre has
+                        # crossed the edge an inward-slide bug. Record outside
+                        # cases without deciding equivalence with Windows.
+                        if inset>0:
+                            assert row['ground'] and abs(row['x']-start)<2 and abs(row['y']-712.6)<2,row
         if args.expect_fixed:checks_passed=True
     finally:
         if pid:(report/'native.log').write_text(logs(),encoding='utf-8')
@@ -150,6 +166,7 @@ def main():
         (report/'results.json').write_text(json.dumps({'rows':rows,'fixed_assertions_requested':args.expect_fixed,
             'fixed_checks_passed':checks_passed if args.expect_fixed else None,
             'edges_requested':args.edges,'bottom_requested':args.bottom,
+            'idle_edges_requested':args.idle_edges,
             'apk_sha256':hashlib.file_digest((PORT/'app/build/outputs/apk/debug/app-debug.apk').open('rb'),'sha256').hexdigest()},indent=2),encoding='utf-8')
 
 

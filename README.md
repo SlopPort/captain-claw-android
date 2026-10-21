@@ -2,7 +2,7 @@
 
 [English README](README.en.md)
 
-Natywna adaptacja [OpenClaw](https://github.com/pjasicek/OpenClaw) na Androida, z zasobami dostarczanymi przez użytkownika. Silnik C++/SDL dla ARM64 i ARMv7, minimum API 21. Aktualna wersja: 0.4.9-dev. [Optymalizacja FPS i pomiary](docs/validation/FPS-0.4.9.md) · [Funkcje, audyt i granice testów](docs/validation/PORT-0.4.8.md).
+Natywna adaptacja [OpenClaw](https://github.com/pjasicek/OpenClaw) na Androida, z zasobami dostarczanymi przez użytkownika. Silnik C++/SDL dla ARM64 i ARMv7, minimum API 21. Aktualna wersja: 0.4.10-dev. Naprawiono wyjście dotykiem z końca gry. [Bieżący audyt zgłoszeń](docs/validation/BUG-AUDIT-2026-10-21.md) · [Optymalizacja FPS i pomiary](docs/validation/FPS-0.4.9.md) · [Funkcje i granice testów](docs/validation/PORT-0.4.8.md).
 
 Od 0.4.8 można wskazać sam pełny **CLAW.REZ** zamiast przygotowanego ZIP. Pod **PAD → Kopie zapisów i wibracje** są eksport/import postępu i opcjonalne wibracje. Funkcje inspirowane Claw Web (Arthur Boss i współtwórcy), z przypisaniem pochodzenia w [NOTICE](NOTICE.md). Instalacja z 168-bajtową atrapą REZ i luźnym folderem Assets nadal wymaga ZIP.
 
