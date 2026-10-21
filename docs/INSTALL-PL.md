@@ -2,7 +2,22 @@
 
 [English instructions](INSTALL-EN.md)
 
-To wersja testowa. Potrzebujesz telefonu z Androidem, pliku APK tego portu oraz paczki `game-data.zip` przygotowanej z własnej kopii gry. APK to instalator aplikacji; ZIP to dane gry. Nie rozpakowuj ZIP na telefonie.
+To wersja testowa. Od 0.4.8 potrzebujesz telefonu z Androidem, APK tego portu i pliku **CLAW.REZ z własnej kopii gry**. Gotowy `game-data.zip` również działa. Nie zmieniaj nazwy ani nie rozpakowuj tych plików.
+
+## Najprościej: APK + CLAW.REZ
+
+1. Na komputerze otwórz folder własnej gry. Skopiuj `CLAW.REZ` i APK do Pobranych na telefonie.
+2. Zainstaluj APK według kroków poniżej i otwórz Kapitana Pazura.
+3. Dotknij **Wybierz dane gry** i wskaż **CLAW.REZ**. Poczekaj; gra uruchomi się sama. Nie potrzebujesz Pythona ani przygotowania ZIP.
+4. Przy kolejnych uruchomieniach dane są już w aplikacji.
+
+Pomysł bezpośredniego REZ pochodzi z Claw Web (Arthur Boss i współtwórcy); implementacja Androida i walidacja są lokalną adaptacją. Oryginalne grafiki gry nadal pochodzą wyłącznie z Twojego REZ. Jeśli Twoja polska instalacja ma dodatkowy folder `Assets`, paczka ZIP przygotowana poniższym narzędziem uwzględni także te zasoby. Bezpośredni REZ używa zawartości samego archiwum.
+
+**CrazyHook i REZ o rozmiarze 168 bajtów:** to atrapa, nie pełna gra. Dla takiej instalacji przygotuj ZIP z folderu `Assets` według instrukcji poniżej.
+
+## Kopie postępu i wibracje
+
+W grze dotknij **PAD**, a następnie **Kopie zapisów i wibracje**. Eksport zapisuje XML w wybranym miejscu. Import przyjmuje XML tego portu (nie zapis Windows ani JSON Claw Web); po imporcie zakończ grę z jej menu i uruchom ponownie. Poprzedni zapis pozostaje w katalogu aplikacji jako `SAVES.before-import.xml`. Wibracje są opcjonalne i domyślnie wyłączone; ich działanie na padzie zależy od trybu i sterownika Androida.
 
 ## Mam już APK i przygotowaną paczkę danych
 
@@ -17,7 +32,7 @@ Nie potrzebujesz debugowania USB, ADB, Android Studio ani konta GitHub. Nie odin
 
 ## Mam oryginalną grę na komputerze, ale nie mam ZIP
 
-Samo przemianowanie `CLAW.REZ` na ZIP nie zadziała. Paczka zawiera też pliki potrzebne silnikowi portu. Obecnie przygotowanie paczki wymaga komputera; automatyczny import samego REZ nie jest jeszcze dostępny.
+W 0.4.8 możesz wybrać sam REZ, jak opisano wyżej. Poniższa opcja ZIP pozostaje dla starszych APK, instalacji z dodatkowymi luźnymi zasobami i powtarzalnego pakowania.
 
 **Prostsza opcja w Windows:** po zainstalowaniu Pythona 3.11+ (z Tcl/Tk) i Git rozpakuj źródła, uruchom dwuklikiem `Prepare-game-data.cmd`, wybierz PL i wskaż `CLAW.REZ`. Okno poda lokalizację gotowego ZIP. Pierwsze przygotowanie wymaga internetu. Ten nowy kreator wymaga jeszcze sprawdzenia na czystym komputerze; jeśli nie otwiera się, użyj kroków terminalowych poniżej.
 

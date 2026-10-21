@@ -1,5 +1,9 @@
 # Historia adaptacji
 
+## 0.4.8 — funkcje Claw Web, optymalizacja i audyt
+
+Bezpośredni REZ, eksport/import zapisów z kopią poprzedniego postępu, opcjonalne wibracje oraz węższy preload, z przypisaniem inspiracji/adaptacji Claw Web (Arthur Boss i współtwórcy). ThinLTO/O3, cache wyszukiwania komponentów i pominięcie odziedziczonych pustych aktualizacji; bez obniżenia obrazu i solvera. Reset zegara po ładowaniu, pomiary tylko aktywnej gry. Audyt dołu drabiny i czasu życia kontaktu, poprawka diagnostycznego zegara Box2D oraz zgodności odbiornika USB nowszych Androidów. [Raport i pozostałe ograniczenia](validation/PORT-0.4.8.md); pełne naturalne przejście nadal niepotwierdzone.
+
 ## 0.4.7 — zapis dźwięku i FPS
 
 Naprawa pustego zapisu ustawień dźwięku na Androidzie, z zachowaniem pozostałej konfiguracji. Optymalizacja bibliotek natywnych w debug i cache grafiki gałki. Na Huawei P9 Lite w krótkiej stacjonarnej próbie poziom 1: około 23 → 60 FPS, poziom 13: około 18 → 43 FPS. Bez obniżania rozdzielczości. Zakres audytu komentarzy, nierozwiązane problemy i ograniczenia pomiaru: `validation/TODO-AUDIT.md`.

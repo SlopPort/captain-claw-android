@@ -4,6 +4,8 @@ Pracę nad adaptacją w tej sesji — zmiany kodu, dokumentację, rozpoznanie i 
 
 All adaptation work in this session was performed by an LLM coding agent (OpenAI Codex), with human requirements, hardware and feedback. Original upstream authorship and notices are preserved.
 
+Claw Web — Arthur Boss and contributors, https://github.com/arthurboss/claw-web, revision e723d3d48b5ba2cc723751209954cfc46c82d202, GNU GPL v3. Direct REZ import and save export/import workflows are inspired by that project. The event/preset haptics design is adapted from its HapticFeedback implementation; the SDL/Android backend is new. Narrower startup preloading follows its BaseGameApp approach. Existing Android collision, ladder, touch and level 14 work is documented separately. No original game artwork from Claw Web is bundled by these additions.
+
 Nie zakładamy wygaśnięcia praw do danych Claw. Otwarcie kodu adaptacji nie pozwala automatycznie publikować plików oryginalnej gry. Lokalne paczki danych są wyłączone z publicznych źródeł.
 
 SDL_GameControllerDB pochodzi z [mdqinc/SDL_GameControllerDB](https://github.com/mdqinc/SDL_GameControllerDB), na licencji zlib. Rewizję zapisano w sources.lock.json; tekst licencji znajduje się w app/src/main/assets/licenses/SDL_GameControllerDB-Zlib.txt.

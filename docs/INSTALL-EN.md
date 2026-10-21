@@ -2,7 +2,22 @@
 
 [Polska instrukcja](INSTALL-PL.md)
 
-This is a test version. You need an Android phone, this port's APK and a `game-data.zip` package prepared from your own copy of Claw. The APK installs the application. The ZIP contains game data. Do not unpack the ZIP on your phone.
+This is a test version. From 0.4.8, you need an Android phone, this port's APK and **CLAW.REZ from your own copy of Claw**. A prepared `game-data.zip` also works. Do not rename or unpack these files.
+
+## Easiest: APK + CLAW.REZ
+
+1. Open your own PC game folder. Copy `CLAW.REZ` and the APK to your phone's Download folder.
+2. Install the APK using the steps below, then open Kapitan Pazur.
+3. Tap **Wybierz dane gry** (Select game data), choose **CLAW.REZ** and wait. The game starts automatically. No Python or ZIP preparation is needed.
+4. You only import once.
+
+The direct REZ workflow is inspired by Claw Web (Arthur Boss and contributors); Android implementation and validation are local adaptations. Original game artwork comes from your REZ. If a Polish installation has additional loose `Assets`, the ZIP workflow below also includes those files. Direct REZ uses only the archive contents.
+
+**CrazyHook / a 168-byte REZ:** this is a placeholder, not the complete game. Prepare the ZIP from the loose `Assets` folder using the instructions below.
+
+## Save backups and vibration
+
+In the game, tap **PAD**, then **Save backups and vibration**. Export writes XML to a location you choose. Import accepts this port's XML (not Windows saves or Claw Web JSON); quit through the game menu and launch again to apply it. The previous save remains as `SAVES.before-import.xml` in app storage. Vibration is optional and off by default. Controller rumble support depends on its mode and Android driver.
 
 ## I already have the APK and prepared data package
 
@@ -17,7 +32,7 @@ You do not need USB debugging, ADB, Android Studio or a GitHub account. To updat
 
 ## I own the PC game but do not have the ZIP
 
-Renaming `CLAW.REZ` to ZIP will not work. The package also needs support files used by the port. Preparing it currently requires a computer; importing a bare REZ file is not implemented yet.
+In 0.4.8 you can select the REZ directly as described above. The ZIP workflow below remains available for older APKs, installations with additional loose assets and reproducible packaging.
 
 **Easier Windows option:** install Python 3.11+ with Tcl/Tk and Git, extract the sources, then double-click `Prepare-game-data.cmd`. Select EN and choose `CLAW.REZ`. The window shows the resulting ZIP location. The first run needs internet. This new wizard still needs a clean-computer usability test; use the terminal steps below if it does not open.
 

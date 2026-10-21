@@ -4,5 +4,5 @@ import subprocess
 import sys
 
 tools=Path(__file__).resolve().parent
-for name in ('prepare_music_bank.py','prepare_controller_db.py'):
+for name in ('prepare_music_bank.py','prepare_controller_db.py','prepare_import_support.py'):
     subprocess.run([sys.executable,str(tools/name)],check=True)

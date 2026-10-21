@@ -11,6 +11,7 @@ app/.cxx/
 app/build/
 app/src/main/assets/music/
 app/src/main/assets/controllers/
+app/src/main/assets/import-support/
 reports/
 *.jks
 *.keystore

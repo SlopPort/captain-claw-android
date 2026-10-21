@@ -4,9 +4,9 @@
 
 A native Android adaptation of [OpenClaw](https://github.com/pjasicek/OpenClaw), using game data supplied from the user's own copy of Claw. C++/SDL, ARM64 and ARMv7, minimum build API 21. Compatibility with every Android version or device is not established.
 
-Current version: 0.4.7-dev. See the [TODO audit and Huawei performance measurements](docs/validation/TODO-AUDIT.md), including an English summary and remaining issues.
+Current version: 0.4.8-dev in validation. Select your own complete **CLAW.REZ** directly, or use a prepared game-data.zip. PAD → Save backups and vibration provides save export/import and optional haptics. These workflows/designs are inspired by Claw Web, Arthur Boss and contributors; see [credits](NOTICE.md) and the [validation report](docs/validation/PORT-0.4.8.md), including remaining issues. A 168-byte placeholder REZ with loose Assets still requires ZIP preparation.
 
-Install a prepared APK, then select `game-data.zip` in the application. You do not need development tools to install a prepared APK and data package. The [installation guide](docs/INSTALL-EN.md) also explains how to prepare data from your own PC installation. Commercial game data is excluded from public sources.
+Install a prepared APK, then select your complete `CLAW.REZ` or `game-data.zip` in the application. You do not need development tools to install a prepared APK and data package. The [installation guide](docs/INSTALL-EN.md) also explains how to prepare data from your own PC installation. Commercial game data is excluded from public sources.
 
 ## What changed
 
@@ -18,7 +18,7 @@ All adaptation work in this development session — code, documentation, investi
 
 Controlled tests covered 45 ordinary enemy variants, 1,415 initial placements across 14 levels, 16 projectile enemy types from both sides and 13 collision cases. These are not a completed natural playthrough or proof of exact Windows balance. The finale is staged in the engine rather than reproducing the original movie.
 
-Previous hardware measurements used a Redmi Note 8 with Android 16: approximately 60 FPS in warmed level 1 and 54 FPS in level 13. These are scene-specific observations, not performance guarantees. Huawei P9 Lite with 2 GB RAM and Android 10 is the next device under test; no performance result is claimed yet. Bluetooth and USB input use SDL; real transport tests must be reported individually.
+Previous hardware measurements used a Redmi Note 8 with Android 16: approximately 60 FPS in warmed level 1 and 54 FPS in level 13. Version 0.4.8 also ran on Huawei P9 Lite with 2 GB RAM and Android 10: many map starts approach 60 FPS, levels 8/9/13 are lower and level 6 varies substantially. These are scene-specific observations, not performance guarantees; see the [measurement limits](docs/validation/PORT-0.4.8.md). Bluetooth and USB input use SDL; real transport tests must be reported individually.
 
 ## Controls
 

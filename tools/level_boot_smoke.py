@@ -236,10 +236,19 @@ def main():
                 # Android 10 uses TOTAL:, newer Android releases use TOTAL PSS:.
                 match = re.search(r'TOTAL(?: PSS)?:\s+(\d+)', memory)
                 if match: result['pss_kib'] = int(match.group(1))
+                else:
+                    # This Lineage build returns a system summary even when a
+                    # package is supplied. Accept only this exact live PID row.
+                    match=re.search(r'([\d,]+)K:\s+pl\.pazur\.port \(pid '+re.escape(pid)+r' /',memory)
+                    if match:result['pss_kib']=int(match.group(1).replace(',',''))
                 log = adb('logcat', '-d', '--pid='+pid, '-s', 'SDL/APP', 'libc', 'AndroidRuntime').stdout
                 (REPORT/f'level-{number}.log').write_text(log, encoding='utf-8')
                 result['frame_samples'] = [dict(fps=float(f), p95_ms=int(p), max_ms=int(m))
                     for f,p,m in re.findall(r'Pazur frame sample: fps=([\d.]+) p95=(\d+) ms max=(\d+) ms', log)]
+                physics_samples=[tuple(map(float,row)) for row in re.findall(
+                    r'Pazur Box2D sample: collide=([\d.]+) solve=([\d.]+) toi=([\d.]+)',log)]
+                if physics_samples:
+                    result['physics_profile_valid']=all(0<=v<1000 for row in physics_samples for v in row)
                 result['display_size'] = args.display_size or 'unchanged'
             alive = pid in adb('shell', 'pidof', 'pl.pazur.port', check=False).stdout.split()
             result['crash_free'] = alive and 'Fatal signal' not in log and 'FATAL EXCEPTION' not in log
@@ -257,7 +266,7 @@ def main():
         (REPORT/'results.json').write_text(json.dumps(results, indent=2), encoding='utf-8')
         print('Original config and save restored', flush=True)
     if not all(r['loaded'] and r['music_pcm'] and r['crash_free'] and r.get('preview_marker', True)
-               and r.get('enemy_scan_valid',True) and all(r['expected_log_markers'].values()) and all(r['absent_log_markers'].values()) for r in results):
+               and r.get('enemy_scan_valid',True) and r.get('physics_profile_valid',True) and all(r['expected_log_markers'].values()) and all(r['absent_log_markers'].values()) for r in results):
         raise SystemExit('Level smoke test failed; see results.json and per-level logs')
 
 

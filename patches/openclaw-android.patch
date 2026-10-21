@@ -1,3 +1,184 @@
+diff --git a/Box2D/Box2D/Common/b2Timer.cpp b/Box2D/Box2D/Common/b2Timer.cpp
+index a2546b8..889f41f 100644
+--- a/Box2D/Box2D/Common/b2Timer.cpp
++++ b/Box2D/Box2D/Common/b2Timer.cpp
+@@ -62,6 +62,23 @@ float32 b2Timer::GetMilliseconds() const
+ 	return ms;
+ }
+ 
++#elif defined(__ANDROID__)
++
++// Modified for Android by OpenAI Codex. The legacy unsigned timeval subtraction
++// wraps when microseconds cross a second; wall-clock adjustments are unsuitable
++// for profiling too. This timer is diagnostic only, not the physics timestep.
++#include <time.h>
++b2Timer::b2Timer() { Reset(); }
++void b2Timer::Reset() {
++    timespec t;clock_gettime(CLOCK_MONOTONIC,&t);
++    m_start_ns=static_cast<long long>(t.tv_sec)*1000000000LL+t.tv_nsec;
++}
++float32 b2Timer::GetMilliseconds() const {
++    timespec t;clock_gettime(CLOCK_MONOTONIC,&t);
++    const long long now=static_cast<long long>(t.tv_sec)*1000000000LL+t.tv_nsec;
++    return static_cast<float32>((now-m_start_ns)/1000000.0);
++}
++
+ #elif defined(__linux__) || defined (__APPLE__)
+ 
+ #include <sys/time.h>
+diff --git a/Box2D/Box2D/Common/b2Timer.h b/Box2D/Box2D/Common/b2Timer.h
+index 823404f..d512742 100644
+--- a/Box2D/Box2D/Common/b2Timer.h
++++ b/Box2D/Box2D/Common/b2Timer.h
+@@ -41,6 +41,9 @@ private:
+ #if defined(_WIN32)
+ 	float64 m_start;
+ 	static float64 s_invFrequency;
++#elif defined(__ANDROID__)
++    // Android adaptation by OpenAI Codex: signed monotonic profiling clock.
++    long long m_start_ns;
+ #elif defined(__linux__) || defined (__APPLE__)
+ 	unsigned long m_start_sec;
+ 	unsigned long m_start_usec;
+diff --git a/OpenClaw/Engine/Actor/Actor.cpp b/OpenClaw/Engine/Actor/Actor.cpp
+index 0da69f0..7d2354e 100644
+--- a/OpenClaw/Engine/Actor/Actor.cpp
++++ b/OpenClaw/Engine/Actor/Actor.cpp
+@@ -1,7 +1,32 @@
+ #include <tinyxml.h>
+ 
+ #include "../SharedDefines.h"
+-#include "Actor.h"
++#include "Actor.h"
++#ifdef __ANDROID__
++#include "ComponentProfiler.h"
++#include "Components/RenderComponent.h"
++#include "Components/TriggerComponents/TriggerComponent.h"
++#include "Components/ControllerComponents/HealthComponent.h"
++#include <type_traits>
++#include <typeinfo>
++namespace {
++template<class T> bool hasInheritedEmptyUpdate(ActorComponent* component) {
++    // Exact type prevents skipping an updating subclass. The member-pointer
++    // trait automatically stops filtering T if a future version overrides Update.
++    return std::is_same<decltype(&T::VUpdate),decltype(&ActorComponent::VUpdate)>::value
++        && typeid(*component)==typeid(T);
++}
++bool needsFrameUpdate(ActorComponent* component) {
++    return !(hasInheritedEmptyUpdate<PositionComponent>(component)
++        || hasInheritedEmptyUpdate<ActorRenderComponent>(component)
++        || hasInheritedEmptyUpdate<TilePlaneRenderComponent>(component)
++        || hasInheritedEmptyUpdate<HUDRenderComponent>(component)
++        || hasInheritedEmptyUpdate<TriggerComponent>(component)
++        || hasInheritedEmptyUpdate<HealthComponent>(component));
++}
++}
++
++#endif
+ 
+ #include "Components/PositionComponent.h"
+ #include "Components/PhysicsComponent.h"
+@@ -63,17 +88,29 @@ void Actor::Destroy()
+     // This actor and component won't be freed without it!
+     m_pPositionComponent.reset();
+     m_pPhysicsComponent.reset();
++#ifdef __ANDROID__
++    m_UpdateComponents.clear();
++#endif
+     _components.clear();
+ }
+ 
+-void Actor::Update(uint32 msDiff)
+-{
+-    for (auto &component : _components)
+-    {
+-        component.second->VUpdate(msDiff);
+-    }
+-}
+-
++void Actor::Update(uint32 msDiff)
++{
++#ifdef __ANDROID__
++    // Same component-ID order as the map, with inherited no-op methods omitted.
++    // No animation, physics, AI, trigger event or timer cadence is reduced.
++    for (auto component : m_UpdateComponents) {
++        if(PazurProfile::components) {
++            const auto start=SDL_GetPerformanceCounter();
++            component->VUpdate(msDiff);
++            PazurProfile::Record(component->VGetName(),SDL_GetPerformanceCounter()-start);
++        } else component->VUpdate(msDiff);
++    }
++#else
++    for (auto &component : _components) component.second->VUpdate(msDiff);
++#endif
++}
++
+ std::string Actor::ToXML()
+ {
+     TiXmlDocument outXml;
+@@ -86,7 +123,15 @@ void Actor::AddComponent(StrongActorComponentPtr component)
+     std::pair<ActorComponentsMap::iterator, bool> success =
+         _components.insert(std::make_pair(component->VGetId(), component));
+ 
+-    assert(success.second);
++    assert(success.second);
++#ifdef __ANDROID__
++    // Factory construction/modification is the only AddComponent caller. Rebuild
++    // here to keep raw cache ownership and component ordering explicit.
++    m_UpdateComponents.clear();
++    for (const auto& entry : _components)
++        if(needsFrameUpdate(entry.second.get()))m_UpdateComponents.push_back(entry.second.get());
++#endif
++
+ }
+ 
+ void Actor::OnWorldFinishedLoading()
+diff --git a/OpenClaw/Engine/Actor/Actor.h b/OpenClaw/Engine/Actor/Actor.h
+index b8c34a3..08c7a38 100644
+--- a/OpenClaw/Engine/Actor/Actor.h
++++ b/OpenClaw/Engine/Actor/Actor.h
+@@ -70,19 +70,23 @@ public:
+     template <class ComponentType>
+     weak_ptr<ComponentType> GetComponent()
+     {
+-        return GetComponent<ComponentType>(ComponentType::g_Name);
++        // Component names are static; cache their hash instead of recomputing it
++        // for every actor/animation/physics lookup each frame.
++        static const uint32 id = ActorComponent::GetIdFromName(ComponentType::g_Name);
++        return GetComponent<ComponentType>(id);
+     }
+ 
+     template <class ComponentType>
+     ComponentType* GetRawComponent(bool bAssertNotNull = false)
+     {
+-        uint32 id = ActorComponent::GetIdFromName(ComponentType::g_Name);
++        static const uint32 id = ActorComponent::GetIdFromName(ComponentType::g_Name);
+         ActorComponentsMap::iterator findIter = _components.find(id);
+         if (findIter != _components.end())
+         {
+-            StrongActorComponentPtr base(findIter->second);
+-            shared_ptr<ComponentType> sub(static_pointer_cast<ComponentType>(base));  // cast to subclass version of the pointer
+-            return sub.get();
++            // The actor's component map already owns this pointer. Temporary
++            // shared_ptr copies add reference-count traffic without extending
++            // the returned raw pointer's lifetime.
++            return static_cast<ComponentType*>(findIter->second.get());
+         }
+         
+         if (bAssertNotNull)
+@@ -113,7 +117,11 @@ private:
+     uint32_t _GUID;
+     std::string _name;
+ 
+-    ActorComponentsMap _components;
++    ActorComponentsMap _components;
++#ifdef __ANDROID__
++    std::vector<ActorComponent*> m_UpdateComponents;
++#endif
++
+ 
+     // Resource from which this actor was loaded
+     std::string _resource;
 diff --git a/OpenClaw/Engine/Actor/ActorFactory.cpp b/OpenClaw/Engine/Actor/ActorFactory.cpp
 index d219dde..858b52f 100644
 --- a/OpenClaw/Engine/Actor/ActorFactory.cpp
@@ -182,10 +363,19 @@ index 5dd2581..ad5586d 100644
 \ No newline at end of file
 +}
 diff --git a/OpenClaw/Engine/Actor/Components/ControllableComponent.cpp b/OpenClaw/Engine/Actor/Components/ControllableComponent.cpp
-index a131374..8d4f585 100644
+index a131374..52dc51f 100644
 --- a/OpenClaw/Engine/Actor/Components/ControllableComponent.cpp
 +++ b/OpenClaw/Engine/Actor/Components/ControllableComponent.cpp
-@@ -227,6 +227,7 @@ void ClawControllableComponent::VPostPostInit()
+@@ -1,4 +1,7 @@
+-#include "ControllableComponent.h"
++#include "ControllableComponent.h"
++#ifdef __ANDROID__
++#include "HapticFeedback.h"
++#endif
+ #include "../../Events/Events.h"
+ #include "../../Events/EventMgr.h"
+ #include "AnimationComponent.h"
+@@ -227,6 +230,7 @@ void ClawControllableComponent::VPostPostInit()
  
  void ClawControllableComponent::VUpdate(uint32 msDiff)
  {
@@ -193,7 +383,7 @@ index a131374..8d4f585 100644
      if (m_State == ClawState_Standing ||
          m_State == ClawState_Idle)
      {
-@@ -274,6 +275,9 @@ void ClawControllableComponent::VUpdate(uint32 msDiff)
+@@ -274,6 +278,9 @@ void ClawControllableComponent::VUpdate(uint32 msDiff)
      assert(g_pApp->GetHumanView() && g_pApp->GetHumanView()->GetCamera());
      shared_ptr<CameraNode> pCamera = g_pApp->GetHumanView()->GetCamera();
  
@@ -203,7 +393,7 @@ index a131374..8d4f585 100644
      if (m_DuckingTime > g_pApp->GetGlobalOptions()->startLookUpOrDownTime)
      {
          if (pCamera->GetCameraOffsetY() < g_pApp->GetGlobalOptions()->maxLookUpOrDownDistance)
-@@ -330,6 +334,8 @@ void ClawControllableComponent::VUpdate(uint32 msDiff)
+@@ -330,6 +337,8 @@ void ClawControllableComponent::VUpdate(uint32 msDiff)
          }
      }
  
@@ -212,7 +402,7 @@ index a131374..8d4f585 100644
      if (m_bFrozen)
      {
          m_pClawAnimationComponent->SetAnimation("stand");
-@@ -384,6 +390,8 @@ void ClawControllableComponent::VUpdate(uint32 msDiff)
+@@ -384,6 +393,8 @@ void ClawControllableComponent::VUpdate(uint32 msDiff)
  // Interface for subclasses
  void ClawControllableComponent::VOnStartFalling()
  {
@@ -221,16 +411,21 @@ index a131374..8d4f585 100644
      if (m_State == ClawState_JumpShooting ||
          m_State == ClawState_JumpAttacking)
      {
-@@ -396,6 +404,8 @@ void ClawControllableComponent::VOnStartFalling()
+@@ -395,7 +406,12 @@ void ClawControllableComponent::VOnStartFalling()
+ }
  
  void ClawControllableComponent::VOnLandOnGround(float fromHeight)
- {
+-{
++{
++#ifdef __ANDROID__
++    if(m_State!=ClawState_Dying)PazurHaptics::Trigger(PazurHaptics::Landing);
++#endif
 +    // Physics and released controls must not cancel the death animation.
 +    if (m_State == ClawState_Dying) return;
      if (fromHeight > g_pApp->GetGlobalOptions()->clawMinFallHeight)
      {
          m_pClawAnimationComponent->SetAnimation("land");
-@@ -415,6 +425,8 @@ void ClawControllableComponent::VOnLandOnGround(float fromHeight)
+@@ -415,6 +431,8 @@ void ClawControllableComponent::VOnLandOnGround(float fromHeight)
  
  void ClawControllableComponent::VOnStartJumping()
  {
@@ -239,7 +434,19 @@ index a131374..8d4f585 100644
      if (m_State == ClawState_JumpShooting ||
          m_State == ClawState_JumpAttacking ||
          m_bFrozen)
-@@ -441,6 +453,8 @@ bool ClawControllableComponent::VOnDirectionChange(Direction direction)
+@@ -423,7 +441,10 @@ void ClawControllableComponent::VOnStartJumping()
+     }
+ 
+     m_pClawAnimationComponent->SetAnimation("jump");
+-    m_State = ClawState_Jumping;
++    m_State = ClawState_Jumping;
++#ifdef __ANDROID__
++    PazurHaptics::Trigger(PazurHaptics::Jump);
++#endif
+ }
+ 
+ bool ClawControllableComponent::VOnDirectionChange(Direction direction)
+@@ -441,6 +462,8 @@ bool ClawControllableComponent::VOnDirectionChange(Direction direction)
  
  void ClawControllableComponent::VOnStopMoving()
  {
@@ -248,7 +455,7 @@ index a131374..8d4f585 100644
      if (m_State == ClawState_Shooting ||
          m_State == ClawState_Idle ||
          IsDucking())
-@@ -458,6 +472,8 @@ void ClawControllableComponent::VOnStopMoving()
+@@ -458,6 +481,8 @@ void ClawControllableComponent::VOnStopMoving()
  
  void ClawControllableComponent::VOnRun()
  {
@@ -257,7 +464,7 @@ index a131374..8d4f585 100644
      if (m_State == ClawState_Shooting ||
          m_pClawAnimationComponent->GetCurrentAnimationName() == "land")
      {
-@@ -471,6 +487,8 @@ void ClawControllableComponent::VOnRun()
+@@ -471,6 +496,8 @@ void ClawControllableComponent::VOnRun()
  
  void ClawControllableComponent::VOnClimb(bool bIsClimbingUp, bool bIsOnTopEdge)
  {
@@ -266,7 +473,7 @@ index a131374..8d4f585 100644
      // TODO: Decide whether to keep it
      static bool useAlternativeClimbAnim = true;
      if (bIsOnTopEdge && useAlternativeClimbAnim)
-@@ -502,6 +520,8 @@ void ClawControllableComponent::VOnClimb(bool bIsClimbingUp, bool bIsOnTopEdge)
+@@ -502,6 +529,8 @@ void ClawControllableComponent::VOnClimb(bool bIsClimbingUp, bool bIsOnTopEdge)
  
  void ClawControllableComponent::VOnStopClimbing()
  {
@@ -275,7 +482,7 @@ index a131374..8d4f585 100644
      m_pClawAnimationComponent->PauseAnimation();
  }
  
-@@ -759,6 +779,8 @@ bool ClawControllableComponent::IsActorFrozen()
+@@ -759,6 +788,8 @@ bool ClawControllableComponent::IsActorFrozen()
  
  void ClawControllableComponent::SetCurrentPhysicsState()
  {
@@ -284,7 +491,7 @@ index a131374..8d4f585 100644
      if (m_pPhysicsComponent->IsFalling())
      {
          m_pClawAnimationComponent->SetAnimation("fall");
-@@ -981,6 +1003,7 @@ void ClawControllableComponent::VOnAnimationLooped(Animation* pAnimation)
+@@ -981,6 +1012,7 @@ void ClawControllableComponent::VOnAnimationLooped(Animation* pAnimation)
              pClawLifeComponent->GetLives() - 1));
          IEventMgr::Get()->VTriggerEvent(pEvent);
  
@@ -292,7 +499,7 @@ index a131374..8d4f585 100644
          SetCurrentPhysicsState();
          m_pPhysicsComponent->RestoreGravityScale();
          m_pRenderComponent->SetVisible(true);
-@@ -1136,6 +1159,8 @@ bool ClawControllableComponent::IsDucking()
+@@ -1136,6 +1168,8 @@ bool ClawControllableComponent::IsDucking()
  
  void ClawControllableComponent::OnDuck()
  {
@@ -301,7 +508,7 @@ index a131374..8d4f585 100644
      if (!IsDucking())
      {
          m_pClawAnimationComponent->SetAnimation("duck");
-@@ -1145,6 +1170,8 @@ void ClawControllableComponent::OnDuck()
+@@ -1145,6 +1179,8 @@ void ClawControllableComponent::OnDuck()
  
  void ClawControllableComponent::OnStand()
  {
@@ -311,10 +518,19 @@ index a131374..8d4f585 100644
      SetCurrentPhysicsState();
  }
 diff --git a/OpenClaw/Engine/Actor/Components/ControllerComponents/HealthComponent.cpp b/OpenClaw/Engine/Actor/Components/ControllerComponents/HealthComponent.cpp
-index a0cfe72..f68f42c 100644
+index a0cfe72..e5d0d3a 100644
 --- a/OpenClaw/Engine/Actor/Components/ControllerComponents/HealthComponent.cpp
 +++ b/OpenClaw/Engine/Actor/Components/ControllerComponents/HealthComponent.cpp
-@@ -38,7 +38,7 @@ void HealthComponent::VPostInit()
+@@ -1,4 +1,7 @@
+-#include "HealthComponent.h"
++#include "HealthComponent.h"
++#ifdef __ANDROID__
++#include "HapticFeedback.h"
++#endif
+ #include "../ControllableComponent.h"
+ #include "../../Actor.h"
+ 
+@@ -38,7 +41,7 @@ void HealthComponent::VPostInit()
          m_IsController = true;
      }
  
@@ -323,7 +539,7 @@ index a0cfe72..f68f42c 100644
  }
  
  TiXmlElement* HealthComponent::VGenerateXml()
-@@ -49,6 +49,8 @@ TiXmlElement* HealthComponent::VGenerateXml()
+@@ -49,6 +52,8 @@ TiXmlElement* HealthComponent::VGenerateXml()
  
  void HealthComponent::AddHealth(int32 health, DamageType damageType, Point impactPoint, int sourceActorId)
  {
@@ -332,7 +548,7 @@ index a0cfe72..f68f42c 100644
      if ((m_bInvulnerable && health < 0) && (damageType != DamageType_DeathTile))
      {
          return;
-@@ -63,7 +65,7 @@ void HealthComponent::AddHealth(int32 health, DamageType damageType, Point impac
+@@ -63,12 +68,16 @@ void HealthComponent::AddHealth(int32 health, DamageType damageType, Point impac
      }
  
      // TODO: Is this against subject-observer pattern ? Seems odd.
@@ -341,7 +557,16 @@ index a0cfe72..f68f42c 100644
      {
          NotifyResistDamage(damageType, impactPoint);
          return;
-@@ -100,6 +102,9 @@ void HealthComponent::SetCurrentHealth(int32 health)
+     }
+ 
++#ifdef __ANDROID__
++    // Event feedback inspired by Claw Web, Arthur Boss and contributors (GPLv3).
++    if (m_IsController && health < 0) PazurHaptics::Trigger(PazurHaptics::Damage);
++#endif
+     int32 oldHealth = m_CurrentHealth;
+     m_CurrentHealth += health;
+     if (m_CurrentHealth > m_MaxHealth)
+@@ -100,6 +109,9 @@ void HealthComponent::SetCurrentHealth(int32 health)
  
  void HealthComponent::BroadcastHealthChanged(int32 oldHealth, int32 newHealth, DamageType damageType, Point impactPoint, int sourceActorId, bool isInitial)
  {
@@ -351,7 +576,7 @@ index a0cfe72..f68f42c 100644
      NotifyHealthChanged(oldHealth, newHealth, damageType, impactPoint, sourceActorId);
      if (newHealth <= 0)
      {
-@@ -153,4 +158,4 @@ bool HealthSubject::AskCanResistDamage(DamageType damageType, Point impactPoint)
+@@ -153,4 +165,4 @@ bool HealthSubject::AskCanResistDamage(DamageType damageType, Point impactPoint)
      }
  
      return false;
@@ -574,11 +799,49 @@ index cb989c1..02d284f 100644
 -}
 \ No newline at end of file
 +}
+diff --git a/OpenClaw/Engine/Actor/Components/LocalAmbientSoundComponent.cpp b/OpenClaw/Engine/Actor/Components/LocalAmbientSoundComponent.cpp
+index 6455125..759325f 100644
+--- a/OpenClaw/Engine/Actor/Components/LocalAmbientSoundComponent.cpp
++++ b/OpenClaw/Engine/Actor/Components/LocalAmbientSoundComponent.cpp
+@@ -113,6 +113,7 @@ void LocalAmbientSoundComponent::PlayAmbientSound()
+ #endif
+ 
+     m_SoundChannel = Mix_PlayChannel(m_SoundChannel, pSound.get(), -1);
++    m_LastDistance = -1; // A reused channel needs its initial effect installed again.
+ 
+     // Set positional properties
+     UpdateAmbientSound();
+@@ -142,7 +143,11 @@ void LocalAmbientSoundComponent::UpdateAmbientSound()
+ 
+     int sdlDistance = std::min(distanceRatio * 255, (double)255);
+ 
+-    Mix_SetDistance(m_SoundChannel, sdlDistance);
++    // SDL_mixer locks the audio callback even when the quantized value is
++    // unchanged. Avoid that cross-thread wait on stationary ambient sources.
++    // Moving listeners still install every changed distance, with the same curve.
++    if (sdlDistance != m_LastDistance && Mix_SetDistance(m_SoundChannel, sdlDistance))
++        m_LastDistance = sdlDistance;
+ 
+     /*LOG("Distance ratio: " + ToStr(distanceRatio));
+     LOG("Distance: " + ToStr(distance));*/
+diff --git a/OpenClaw/Engine/Actor/Components/LocalAmbientSoundComponent.h b/OpenClaw/Engine/Actor/Components/LocalAmbientSoundComponent.h
+index 39554a3..d399e83 100644
+--- a/OpenClaw/Engine/Actor/Components/LocalAmbientSoundComponent.h
++++ b/OpenClaw/Engine/Actor/Components/LocalAmbientSoundComponent.h
+@@ -37,6 +37,7 @@ private:
+     Actor* m_pActorInArea;
+     double m_DiagonalLength;
+     int m_SoundChannel;
++    int m_LastDistance = -1; // Quantized SDL distance already installed on this channel.
+ };
+ 
+ #endif
+\ No newline at end of file
 diff --git a/OpenClaw/Engine/Actor/Components/PhysicsComponent.cpp b/OpenClaw/Engine/Actor/Components/PhysicsComponent.cpp
-index ade3b61..5520b89 100644
+index ade3b61..cf13488 100644
 --- a/OpenClaw/Engine/Actor/Components/PhysicsComponent.cpp
 +++ b/OpenClaw/Engine/Actor/Components/PhysicsComponent.cpp
-@@ -433,26 +433,20 @@ void PhysicsComponent::VUpdate(uint32 msDiff)
+@@ -433,26 +433,25 @@ void PhysicsComponent::VUpdate(uint32 msDiff)
      // I will give 100$ to someone who will refactor this method so that it is extendable
      // and does not contain uncomprehandable state machine
  
@@ -586,7 +849,12 @@ index ade3b61..5520b89 100644
 +    // A ladder sensor may still overlap the feet when standing on its cap.
 +    // Finish ascent once no overlapping ladder extends above the feet; otherwise
 +    // held Up repeatedly reattaches and pumps the actor above the platform.
-+    if (m_IsClimbing && m_ClimbingSpeed.y < -DBL_EPSILON && !HasClimbSpaceAbove())
++    const bool reachedLadderTop=m_ClimbingSpeed.y < -DBL_EPSILON && !HasClimbSpaceAbove();
++    // A real floor ends descent. The special one-way cap must remain passable
++    // from above; its contact is disabled in the ordinary climbing branch.
++    const bool reachedLadderFloor=m_ClimbingSpeed.y > DBL_EPSILON
++        && m_NumFootContacts > 0 && m_pTopLadderContact == nullptr;
++    if (m_IsClimbing && (reachedLadderTop || reachedLadderFloor))
 +    {
 +        m_IsClimbing = false;
 +        m_IgnoreJump = false;
@@ -617,7 +885,7 @@ index ade3b61..5520b89 100644
          if (fabs(m_ClimbingSpeed.y) > DBL_EPSILON)
          {
              m_CurrentSpeed = Point(0, 0);
-@@ -977,6 +971,23 @@ void PhysicsComponent::SetJumping(bool jumping)
+@@ -977,6 +976,23 @@ void PhysicsComponent::SetJumping(bool jumping)
      }
  }
  
@@ -641,7 +909,7 @@ index ade3b61..5520b89 100644
  bool PhysicsComponent::AttachToLadder()
  {
      if (!m_CanClimb)
-@@ -989,6 +1000,8 @@ bool PhysicsComponent::AttachToLadder()
+@@ -989,6 +1005,8 @@ bool PhysicsComponent::AttachToLadder()
          return false;
      }
  
@@ -940,7 +1208,7 @@ index d12e28d..186fb90 100644
 \ No newline at end of file
 +#endif
 diff --git a/OpenClaw/Engine/GameApp/BaseGameApp.cpp b/OpenClaw/Engine/GameApp/BaseGameApp.cpp
-index 64533c3..e194317 100644
+index 64533c3..fd28bda 100644
 --- a/OpenClaw/Engine/GameApp/BaseGameApp.cpp
 +++ b/OpenClaw/Engine/GameApp/BaseGameApp.cpp
 @@ -21,6 +21,10 @@
@@ -954,21 +1222,26 @@ index 64533c3..e194317 100644
  
  #include <cctype>
  
-@@ -78,11 +82,13 @@ bool BaseGameApp::Initialize(int argc, char** argv)
+@@ -78,11 +82,15 @@ bool BaseGameApp::Initialize(int argc, char** argv)
          return false;
      }
  
+-    m_pResourceMgr->VPreload("/CLAW/*", NULL, ORIGINAL_RESOURCE);
+-    m_pResourceMgr->VPreload("/GAME/*", NULL, ORIGINAL_RESOURCE);
+-    m_pResourceMgr->VPreload("/STATES/*", NULL, ORIGINAL_RESOURCE);
 +#ifndef __ANDROID__
-     m_pResourceMgr->VPreload("/CLAW/*", NULL, ORIGINAL_RESOURCE);
-     m_pResourceMgr->VPreload("/GAME/*", NULL, ORIGINAL_RESOURCE);
-     m_pResourceMgr->VPreload("/STATES/*", NULL, ORIGINAL_RESOURCE);
++    // Narrow startup preload adapted from arthurboss/claw-web e723d3d (GPLv3).
++    // The existing resource cache loads gameplay assets on demand.
++    m_pResourceMgr->VPreload("/STATES/MENU/*", NULL, ORIGINAL_RESOURCE);
++    m_pResourceMgr->VPreload("/GAME/FONTS/*", NULL, ORIGINAL_RESOURCE);
++    m_pResourceMgr->VPreload("/GAME/IMAGES/MENU/*", NULL, ORIGINAL_RESOURCE);
  
      m_pResourceMgr->VPreload("*", NULL, CUSTOM_RESOURCE);
 +#endif
  
      if (!VPerformStartupTests())
      {
-@@ -98,6 +104,14 @@ bool BaseGameApp::Initialize(int argc, char** argv)
+@@ -98,6 +106,14 @@ bool BaseGameApp::Initialize(int argc, char** argv)
  void BaseGameApp::Terminate()
  {
      LOG("Terminating...");
@@ -983,7 +1256,7 @@ index 64533c3..e194317 100644
  
      RemoveAllDelegates();
  
-@@ -118,7 +132,9 @@ void BaseGameApp::Terminate()
+@@ -118,7 +134,9 @@ void BaseGameApp::Terminate()
      }
      m_ActorXmlPrototypeMap.clear();
  
@@ -993,14 +1266,14 @@ index 64533c3..e194317 100644
  }
  
  #define STARTUP_TEST(condition, error) \
-@@ -212,12 +228,39 @@ void BaseGameApp::StepLoop() {
+@@ -212,12 +230,43 @@ void BaseGameApp::StepLoop() {
          }
          consecutiveLagSpikes = 0;
  
 +#ifdef __ANDROID__
 +        // A bounded sample of actual loop intervals, including presentation.
 +        static std::vector<uint32> frameTimes;
-+        if (m_pGame && m_pGame->GetGameState() == GameState_IngameRunning) {
++        if (m_pGame && m_pGame->IsRunning() && m_pGame->GetGameState() == GameState_IngameRunning) {
 +            frameTimes.push_back(elapsedTime);
 +            if (frameTimes.size() == 300) {
 +                uint32 total = 0;
@@ -1020,6 +1293,10 @@ index 64533c3..e194317 100644
 +        const auto phaseStart=SDL_GetPerformanceCounter();
 +        Uint64 phaseInputEnd=phaseStart,phaseEventEnd=phaseStart,phaseUpdateEnd=phaseStart;
 +#endif
++#ifdef __ANDROID__
++        const bool simulationWasRunning=m_pGame && m_pGame->IsRunning()
++            && m_pGame->GetGameState()==GameState_IngameRunning;
++#endif
          // Handle all input events
          while (SDL_PollEvent(&event))
          {
@@ -1033,7 +1310,7 @@ index 64533c3..e194317 100644
          // Handle all touch events
          if (m_pTouchManager) {
              m_pTouchManager->Update();
-@@ -231,8 +274,17 @@ void BaseGameApp::StepLoop() {
+@@ -231,8 +280,17 @@ void BaseGameApp::StepLoop() {
              // Update game
              {
                  //PROFILE_CPU("ONLY GAME UPDATE");
@@ -1053,7 +1330,7 @@ index 64533c3..e194317 100644
              }
  
              // Render game
-@@ -245,6 +297,24 @@ void BaseGameApp::StepLoop() {
+@@ -245,6 +303,33 @@ void BaseGameApp::StepLoop() {
              //m_pGame->VRenderDiagnostics();
          }
  
@@ -1075,10 +1352,19 @@ index 64533c3..e194317 100644
 +        } else {for (auto& value:phaseTotals)value=0;phaseCount=0;}
 +#endif
 +
++#ifdef __ANDROID__
++        // Loading and resuming can block for hundreds of milliseconds. That
++        // wall time must not become one giant first Box2D step on the next loop.
++        if(!simulationWasRunning && m_pGame && m_pGame->IsRunning()
++            && m_pGame->GetGameState()==GameState_IngameRunning) {
++            lastTime=SDL_GetTicks();
++            SDL_Log("Pazur simulation clock reset after loading/resume");
++        }
++#endif
          // Artificially decrease fps. Configurable from console
          Util::Sleep(m_DebugOptions.cpuDelayMs);
      }
-@@ -284,6 +354,11 @@ int32 BaseGameApp::Run()
+@@ -284,6 +369,11 @@ int32 BaseGameApp::Run()
  
  void BaseGameApp::OnEvent(SDL_Event& event)
  {
@@ -1090,7 +1376,7 @@ index 64533c3..e194317 100644
      switch (event.type)
      {
          case SDL_QUIT:
-@@ -317,6 +392,12 @@ void BaseGameApp::OnEvent(SDL_Event& event)
+@@ -317,6 +407,12 @@ void BaseGameApp::OnEvent(SDL_Event& event)
              break;
          }
  
@@ -1103,7 +1389,7 @@ index 64533c3..e194317 100644
          case SDL_APP_DIDENTERBACKGROUND:
          {
              LOG("Entered background");
-@@ -325,6 +406,8 @@ void BaseGameApp::OnEvent(SDL_Event& event)
+@@ -325,6 +421,8 @@ void BaseGameApp::OnEvent(SDL_Event& event)
  
          case SDL_APP_DIDENTERFOREGROUND:
          {
@@ -1112,7 +1398,7 @@ index 64533c3..e194317 100644
              LOG("Entered foreground");
              break;
          }
-@@ -555,6 +638,11 @@ bool BaseGameApp::LoadGameOptions(const char* inConfigFile)
+@@ -555,6 +653,11 @@ bool BaseGameApp::LoadGameOptions(const char* inConfigFile)
      {
          ParseValueFromXmlElem(&m_GameOptions.assetsFolder,
              assetsElem->FirstChildElement("AssetsFolder"));
@@ -1124,7 +1410,7 @@ index 64533c3..e194317 100644
          DO_AND_CHECK(ParseValueFromXmlElem(&m_GameOptions.rezArchive,
              assetsElem->FirstChildElement("RezArchive")));
          DO_AND_CHECK(ParseValueFromXmlElem(&m_GameOptions.customArchive,
-@@ -713,6 +801,8 @@ bool BaseGameApp::LoadGameOptions(const char* inConfigFile)
+@@ -713,6 +816,8 @@ bool BaseGameApp::LoadGameOptions(const char* inConfigFile)
      //-------------------------------------------------------------------------
      if (TiXmlElement* pDebugOptionsRootElem = configRoot->FirstChildElement("DebugOptions"))
      {
@@ -1133,7 +1419,7 @@ index 64533c3..e194317 100644
          ParseValueFromXmlElem(&m_DebugOptions.bSkipBossFightIntro,
              pDebugOptionsRootElem->FirstChildElement("SkipBossFightIntro"));
          ParseValueFromXmlElem(&m_DebugOptions.bSkipMenu,
-@@ -721,6 +811,10 @@ bool BaseGameApp::LoadGameOptions(const char* inConfigFile)
+@@ -721,6 +826,10 @@ bool BaseGameApp::LoadGameOptions(const char* inConfigFile)
              pDebugOptionsRootElem->FirstChildElement("CpuDelay"));
          ParseValueFromXmlElem(&m_DebugOptions.lastImplementedLevel,
              pDebugOptionsRootElem->FirstChildElement("LastImplementedLevel"));
@@ -1144,7 +1430,7 @@ index 64533c3..e194317 100644
          ParseValueFromXmlElem(&m_DebugOptions.skipMenuToLevel,
              pDebugOptionsRootElem->FirstChildElement("SkipMenuToLevel"));
      }
-@@ -730,8 +824,38 @@ bool BaseGameApp::LoadGameOptions(const char* inConfigFile)
+@@ -730,8 +839,38 @@ bool BaseGameApp::LoadGameOptions(const char* inConfigFile)
  
  void BaseGameApp::SaveGameOptions(const char* outConfigFile)
  {
@@ -1185,7 +1471,7 @@ index 64533c3..e194317 100644
  }
  
  //=====================================================================================================================
-@@ -780,6 +904,10 @@ bool BaseGameApp::InitializeDisplay(GameOptions& gameOptions)
+@@ -780,6 +919,10 @@ bool BaseGameApp::InitializeDisplay(GameOptions& gameOptions)
          return false;
      }
  
@@ -1196,7 +1482,7 @@ index 64533c3..e194317 100644
      m_pWindow = SDL_CreateWindow(VGetGameTitle(), SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
          gameOptions.windowWidth, gameOptions.windowHeight, SDL_WINDOW_SHOWN);
      if (m_pWindow == NULL)
-@@ -799,6 +927,15 @@ bool BaseGameApp::InitializeDisplay(GameOptions& gameOptions)
+@@ -799,6 +942,15 @@ bool BaseGameApp::InitializeDisplay(GameOptions& gameOptions)
          SDL_GetWindowSize(m_pWindow, &m_GameOptions.windowWidth, &m_GameOptions.windowHeight);
      }
  
@@ -1212,7 +1498,7 @@ index 64533c3..e194317 100644
      m_WindowSize.Set(gameOptions.windowWidth, gameOptions.windowHeight);
  
      uint32 rendererFlags = SDL_RENDERER_ACCELERATED;
-@@ -815,6 +952,9 @@ bool BaseGameApp::InitializeDisplay(GameOptions& gameOptions)
+@@ -815,6 +967,9 @@ bool BaseGameApp::InitializeDisplay(GameOptions& gameOptions)
      }
  
      SDL_RenderSetScale(m_pRenderer, (float)gameOptions.scale, (float)gameOptions.scale);
@@ -1222,7 +1508,7 @@ index 64533c3..e194317 100644
  
      LOG("Display successfully initialized.");
  
-@@ -918,7 +1058,7 @@ bool BaseGameApp::InitializeFont(GameOptions& gameOptions)
+@@ -918,7 +1073,7 @@ bool BaseGameApp::InitializeFont(GameOptions& gameOptions)
      m_pConsoleFont = TTF_OpenFont(gameOptions.consoleFontName.c_str(), gameOptions.consoleFontSize);
      if (m_pConsoleFont == NULL)
      {
@@ -1231,7 +1517,7 @@ index 64533c3..e194317 100644
          return false;
      }
  
-@@ -1234,7 +1374,11 @@ Point BaseGameApp::GetScale()
+@@ -1234,7 +1389,11 @@ Point BaseGameApp::GetScale()
      uint32 windowFlags = GetWindowFlags();
      Point scale(1.0, 1.0);
  
@@ -1243,7 +1529,7 @@ index 64533c3..e194317 100644
      
      scale.Set((double)scaleX, (double)scaleY);
  
-@@ -1243,7 +1387,11 @@ Point BaseGameApp::GetScale()
+@@ -1243,7 +1402,11 @@ Point BaseGameApp::GetScale()
  
  void BaseGameApp::SetScale(Point scale)
  {
@@ -1255,7 +1541,7 @@ index 64533c3..e194317 100644
  }
  
  uint32 BaseGameApp::GetWindowFlags()
-@@ -1412,8 +1560,14 @@ void BaseGameApp::RemoveAllDelegates()
+@@ -1412,8 +1575,14 @@ void BaseGameApp::RemoveAllDelegates()
  
  void BaseGameApp::QuitGameDelegate(IEventDataPtr pEventData)
  {
@@ -1292,10 +1578,22 @@ index 731f317..c9c67df 100644
      int skipMenuToLevel;
      bool bSkipBossFightIntro;
 diff --git a/OpenClaw/Engine/GameApp/BaseGameLogic.cpp b/OpenClaw/Engine/GameApp/BaseGameLogic.cpp
-index 5d8dc7d..4e93547 100644
+index 5d8dc7d..8e20e1e 100644
 --- a/OpenClaw/Engine/GameApp/BaseGameLogic.cpp
 +++ b/OpenClaw/Engine/GameApp/BaseGameLogic.cpp
-@@ -196,7 +196,9 @@ bool BaseGameLogic::VLoadGame(const char* xmlLevelResource)
+@@ -22,7 +22,10 @@
+ #include "../Util/ClawLevelUtil.h"
+ 
+ #include "GameSaves.h"
+-#include "BaseGameLogic.h"
++#include "BaseGameLogic.h"
++#ifdef __ANDROID__
++#include "ComponentProfiler.h"
++#endif
+ #include "GameSaves.h"
+ 
+ #include "../Physics/ClawPhysics.h"
+@@ -196,7 +199,9 @@ bool BaseGameLogic::VLoadGame(const char* xmlLevelResource)
  
      // Preload level resources
      std::string levelPath = "/LEVEL" + ToStr(m_pCurrentLevel->GetLevelNumber()) + "/*";
@@ -1305,7 +1603,7 @@ index 5d8dc7d..4e93547 100644
  
      // ============== LOADING SCREEN RENDERING ==============
  
-@@ -493,8 +495,8 @@ bool BaseGameLogic::VLoadScoreScreen(const char* xmlScoreScreenResource)
+@@ -493,8 +498,8 @@ bool BaseGameLogic::VLoadScoreScreen(const char* xmlScoreScreenResource)
      int finishedLevelNumber = m_pCurrentLevel->GetLevelNumber();
      int nextLevelNumber = m_pCurrentLevel->GetLevelNumber() + 1;
  
@@ -1316,7 +1614,26 @@ index 5d8dc7d..4e93547 100644
      {
          m_pGameSaveMgr->AddCheckpointSave(nextLevelNumber, nextLevelCheckpoint);
  
-@@ -751,9 +753,6 @@ void BaseGameLogic::VOnUpdate(uint32 msDiff)
+@@ -733,7 +738,17 @@ void BaseGameLogic::VModifyActor(const uint32 actorId, TiXmlElement* overrides)
+ }
+ 
+ void BaseGameLogic::VOnUpdate(uint32 msDiff)
+-{
++{
++#ifdef __ANDROID__
++    Uint64 physicsTicks=0,actorTicks=0,viewTicks=0;
++    const auto phaseClock=SDL_GetPerformanceCounter();
++#endif
++
++#ifdef __ANDROID__
++    // The LoadingLevel -> Running transition is initialization, not simulated
++    // gameplay time. Keep actor timers from consuming the blocking load duration.
++    if(m_GameState==GameState_LoadingLevel)msDiff=0;
++#endif
+     m_Lifetime += msDiff;
+ 
+     // TODO: This is code duplication, should think of better way
+@@ -751,9 +766,6 @@ void BaseGameLogic::VOnUpdate(uint32 msDiff)
      {
          case GameState_Initializing:
          {
@@ -1326,7 +1643,7 @@ index 5d8dc7d..4e93547 100644
              if (g_pApp->GetDebugOptions()->bSkipMenu)
              {
                  VChangeState(GameState_LoadingLevel);
-@@ -762,7 +761,6 @@ void BaseGameLogic::VOnUpdate(uint32 msDiff)
+@@ -762,7 +774,6 @@ void BaseGameLogic::VOnUpdate(uint32 msDiff)
              {
                  VChangeState(GameState_Menu);
              }
@@ -1334,6 +1651,67 @@ index 5d8dc7d..4e93547 100644
              break;
          }
  
+@@ -807,8 +818,15 @@ void BaseGameLogic::VOnUpdate(uint32 msDiff)
+                 // TODO: Add config to choose between fixed physics timestep and variable
+                 if (true)
+                 {
++#ifdef __ANDROID__
++                    const auto physicsStart=SDL_GetPerformanceCounter();
++#endif
+                     m_pPhysics->VOnUpdate(msDiff);
+-                    m_pPhysics->VSyncVisibleScene();
++                    m_pPhysics->VSyncVisibleScene();
++#ifdef __ANDROID__
++                    physicsTicks=SDL_GetPerformanceCounter()-physicsStart;
++#endif
++
+                 }
+                 else
+                 {
+@@ -839,12 +857,19 @@ void BaseGameLogic::VOnUpdate(uint32 msDiff)
+         }
+     }
+ 
++#ifdef __ANDROID__
++    const auto viewStart=SDL_GetPerformanceCounter();
++#endif
+     // Update all game views
+     for (auto &pGameView : m_GameViews)
+     {
+         pGameView->VOnUpdate(msDiff);
+     }
+ 
++#ifdef __ANDROID__
++    viewTicks=SDL_GetPerformanceCounter()-viewStart;
++    const auto actorStart=SDL_GetPerformanceCounter();
++#endif
+     // Limit update to max 100 times / second
+     static int msAccumulation = 0;
+     msAccumulation += msDiff;
+@@ -855,8 +880,21 @@ void BaseGameLogic::VOnUpdate(uint32 msDiff)
+         {
+             actorIter.second->Update(msAccumulation);
+         }
+-        msAccumulation = 0;
+-    }
++        msAccumulation = 0;
++    }
++#ifdef __ANDROID__
++    actorTicks=SDL_GetPerformanceCounter()-actorStart;
++    PazurProfile::Poll();
++    if(m_GameState==GameState_IngameRunning) {
++        static Uint64 physics=0,actors=0,views=0,total=0;static int frames=0;
++        physics+=physicsTicks;actors+=actorTicks;views+=viewTicks;total+=SDL_GetPerformanceCounter()-phaseClock;
++        if(++frames==300) {
++            const double scale=1000.0/SDL_GetPerformanceFrequency()/frames;
++            SDL_Log("Pazur update sample: physics=%.2f actors=%.2f views=%.2f total=%.2f ms",physics*scale,actors*scale,views*scale,total*scale);
++            physics=actors=views=total=0;frames=0;
++        }
++    }
++#endif
+ }
+ 
+ void BaseGameLogic::VChangeState(GameState newState)
 diff --git a/OpenClaw/Engine/GameApp/CommandHandler.cpp b/OpenClaw/Engine/GameApp/CommandHandler.cpp
 index 11bce59..437b122 100644
 --- a/OpenClaw/Engine/GameApp/CommandHandler.cpp
@@ -1485,7 +1863,7 @@ index 2bb4694..74a47c3 100644
  };
  
 diff --git a/OpenClaw/Engine/Physics/ClawPhysics.cpp b/OpenClaw/Engine/Physics/ClawPhysics.cpp
-index 0c037b8..1f12854 100644
+index 0c037b8..237690d 100644
 --- a/OpenClaw/Engine/Physics/ClawPhysics.cpp
 +++ b/OpenClaw/Engine/Physics/ClawPhysics.cpp
 @@ -119,7 +119,7 @@ b2AABB GetBodyAABB(b2Body* pBody, bool discardSensors)
@@ -1497,7 +1875,29 @@ index 0c037b8..1f12854 100644
          {
              fixture = fixture->GetNext();
              continue;
-@@ -1431,6 +1431,16 @@ void ClawPhysics::VScaleActor(uint32_t actorId, double scale)
+@@ -395,7 +395,20 @@ void ClawPhysics::VOnUpdate(const uint32 msDiff)
+ {
+     //PROFILE_CPU("ClawPhysics::VOnUpdate");
+ 
+-    m_pWorld->Step(msDiff / 1000.0f, 10, 8);
++    m_pWorld->Step(msDiff / 1000.0f, 10, 8);
++#ifdef __ANDROID__
++    // Box2D already measures its internal phases. Reuse those counters rather
++    // than changing solver iterations or simulation cadence to reach an FPS goal.
++    static double collide=0,solve=0,toi=0;static int samples=0;
++    const auto& profile=m_pWorld->GetProfile();
++    collide+=profile.collide;solve+=profile.solve;toi+=profile.solveTOI;
++    if(++samples==300) {
++        SDL_Log("Pazur Box2D sample: collide=%.2f solve=%.2f toi=%.2f ms bodies=%d contacts=%d",
++            collide/samples,solve/samples,toi/samples,m_pWorld->GetBodyCount(),m_pWorld->GetContactCount());
++        collide=solve=toi=0;samples=0;
++    }
++#endif
++
+ 
+     // Remove actors form physics simulation which are scheduled to be destroyed
+     for (uint32 actorId : m_ActorsToBeDestroyed)
+@@ -1431,6 +1444,16 @@ void ClawPhysics::VScaleActor(uint32_t actorId, double scale)
  // Private implementations
  //=====================================================================================================================
  
@@ -1528,7 +1928,7 @@ index 4a75abc..5db0385 100644
      b2Body* FindBox2DBody(uint32 actorId);
      uint32 FindActorId(b2Body* pBody);
 diff --git a/OpenClaw/Engine/Physics/PhysicsContactListener.cpp b/OpenClaw/Engine/Physics/PhysicsContactListener.cpp
-index 5d4796a..6c1344b 100644
+index 5d4796a..cceb5fa 100644
 --- a/OpenClaw/Engine/Physics/PhysicsContactListener.cpp
 +++ b/OpenClaw/Engine/Physics/PhysicsContactListener.cpp
 @@ -1,5 +1,8 @@
@@ -1581,14 +1981,33 @@ index 5d4796a..6c1344b 100644
              // Collided with some actor
              if (pFixtureB->GetBody()->GetUserData() != (void*)NULL)
              {
-@@ -562,6 +588,7 @@ void PhysicsContactListener::EndContact(b2Contact* pContact)
- {
+@@ -559,9 +585,10 @@ void PhysicsContactListener::BeginContact(b2Contact* pContact)
+ //
+ 
+ void PhysicsContactListener::EndContact(b2Contact* pContact)
+-{
++{
      b2Fixture* pFixtureA = pContact->GetFixtureA();
      b2Fixture* pFixtureB = pContact->GetFixtureB();
 +    if (IsFootDamageContact(pFixtureA, pFixtureB)) return;
  
      {
          // Make it in predictable order
+@@ -641,6 +668,14 @@ void PhysicsContactListener::EndContact(b2Contact* pContact)
+                         pPhysicsComponent->RemoveOverlappingGround(pFixtureA);
+                     }
+ 
++                    // Keep the cap pointer until RemoveOverlappingGround has balanced
++                    // its foot contact, even when descent disabled this contact.
++                    // Then clear it before Box2D recycles the contact object.
++                    if (pPhysicsComponent->GetTopLadderContact() == pContact)
++                    {
++                        pPhysicsComponent->SetTopLadderContact(nullptr);
++                    }
++
+                     Actor* pGroundActor = static_cast<Actor*>(pFixtureA->GetBody()->GetUserData());
+                     if (pGroundActor)
+                     {
 diff --git a/OpenClaw/Engine/Resource/Loaders/WavLoader.cpp b/OpenClaw/Engine/Resource/Loaders/WavLoader.cpp
 index 8042f57..6b94448 100644
 --- a/OpenClaw/Engine/Resource/Loaders/WavLoader.cpp

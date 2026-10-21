@@ -1,5 +1,7 @@
 # Porównanie z Claw Web
 
+Późniejsza integracja wybranych funkcji, przypisanie autorstwa i wyniki Androida: [0.4.8](PORT-0.4.8.md). Poniższy audyt zachowuje stan porównania sprzed tej integracji.
+
 Data: 2026-10-20. Audyt źródeł wykonany przez LLM (Codex). Nasz stan: `f376b10` / 0.4.7-dev. Claw Web: [`e723d3d48b5ba2cc723751209954cfc46c82d202`](https://github.com/arthurboss/claw-web/tree/e723d3d48b5ba2cc723751209954cfc46c82d202). Wspólny punkt odniesienia: OpenClaw `5ee5740ca98377c76b13b50c84f610b0066a4717`, obecny w historii obu drzew.
 
 ## Wniosek

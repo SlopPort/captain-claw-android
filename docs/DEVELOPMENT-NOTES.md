@@ -24,11 +24,13 @@ User feedback after 0.4.5: configurable controller input works well. The next re
 - The user also found that the controller stopped responding after opening pause on level 1. Rendering continued: the input context missed the engine's SetRunning(false) pause flag while GameState remained IngameRunning. That flag combination now selects menu input. Three automated pause/menu-direction/resume cycles passed; physical confirmation after the fix is pending. The test checks actual direction events, not just mailbox acknowledgements.
 - Complete a natural playthrough of all levels. Existing controlled enemy and collision scenarios are documented in `validation/COMBAT-AUDIT.md`; they do not establish that every encounter is correct.
 - Revisit the intermittent level 7 projectile assertion if it returns. A guard was added; the original root cause is not conclusively established.
-- Test installation instructions from a clean phone and a clean computer. Current import requires a prepared ZIP; this is a known usability limitation.
+- Test installation instructions from a clean computer. The user confirmed the prepared ZIP import on Huawei. Version 0.4.8 also accepts a complete REZ; automated runtime checks passed, but manual picker validation of this new route remains pending.
 - English installation documentation is provided; in-game text and all historical developer documents are not yet fully translated.
 - Keep comments focused on reasons, invariants, lifetime and failure handling. Do not label inherited code as LLM-authored or add a comment to every obvious statement. Document remaining gaps instead of claiming that every source line has been reviewed.
 
 ## Huawei P9 Lite, 2 GB RAM, LineageOS Android 10
+
+Update 0.4.8: the user confirmed ZIP installation and configurable controller gameplay. Automated map-start, collision, ladder and performance checks have now run on this phone; results and remaining limits are in [PORT-0.4.8.md](validation/PORT-0.4.8.md). Long natural play and stable 60 FPS throughout every map remain unverified. The paragraphs below retain the original test plan as historical context, not the current test status.
 
 Planned device test, not yet performed. Record the exact model/build and actual CPU architecture from the device rather than assuming it from the product name. Use the same APK and data for comparisons. Preserve saves and normal settings before diagnostics.
 

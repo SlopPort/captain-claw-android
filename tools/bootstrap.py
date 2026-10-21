@@ -24,11 +24,12 @@ def main():
         if revision != entry['commit']:
             raise RuntimeError(f'{dest}: unexpected revision {revision}; preserve your changes before updating')
     run(git(PORT / 'upstream/SDL_ttf')+['submodule', 'update', '--init', '--depth', '1', 'external/freetype'])
-    engine = PORT / 'upstream/OpenClaw'
-    patch = PORT / 'patches/openclaw-android.patch'
-    if run(git(engine)+['apply', '--reverse', '--check', str(patch)], check=False).returncode != 0:
-        run(git(engine)+['apply', '--check', str(patch)])
-        run(git(engine)+['apply', str(patch)])
+    for name,filename in [('OpenClaw','openclaw-android.patch'),('SDL','sdl-android.patch')]:
+        engine = PORT / 'upstream' / name
+        patch = PORT / 'patches' / filename
+        if run(git(engine)+['apply', '--reverse', '--check', str(patch)], check=False).returncode != 0:
+            run(git(engine)+['apply', '--check', str(patch)])
+            run(git(engine)+['apply', str(patch)])
     print('Locked dependencies and Android patch are ready.')
 
 

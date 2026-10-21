@@ -29,6 +29,8 @@ public class GameActivity extends SDLActivity {
     }
     @Override public void onCreate(Bundle state) {
         File saves = new File(getExternalFilesDir(null), "SAVES.XML");
+        try {SaveFiles.applyPending(getExternalFilesDir(null));}
+        catch(Exception error) {android.util.Log.e("Pazur","Save import could not finish",error);}
         if (!saves.exists()) {
             try (InputStream input = getAssets().open("default-saves.xml");
                  OutputStream output = new FileOutputStream(saves)) {
@@ -55,6 +57,14 @@ public class GameActivity extends SDLActivity {
     }
     @Override protected String[] getLibraries() {
         return new String[] { "SDL2", "openclaw" };
+    }
+    /** Called on the SDL thread; Vibrator is thread-safe. Disabled by default. */
+    public void pulseHaptic(int duration) {
+        if(!new File(getExternalFilesDir(null),"haptics-enabled").isFile())return;
+        android.os.Vibrator vibrator=(android.os.Vibrator)getSystemService(VIBRATOR_SERVICE);
+        if(vibrator==null||!vibrator.hasVibrator())return;
+        if(android.os.Build.VERSION.SDK_INT>=26)vibrator.vibrate(android.os.VibrationEffect.createOneShot(duration,80));
+        else vibrator.vibrate(duration);
     }
     @Override protected String[] getArguments() {
         return new String[] { getExternalFilesDir(null).getAbsolutePath() };

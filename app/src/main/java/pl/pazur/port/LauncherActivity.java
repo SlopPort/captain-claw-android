@@ -37,7 +37,11 @@ public class LauncherActivity extends Activity {
                         .setShortLabel("Kapitan Pazur")
                         .setIcon(android.graphics.drawable.Icon.createWithResource(this, android.R.drawable.ic_media_play))
                         .setIntent(open).build();
-                    manager.requestPinShortcut(shortcut, null);
+                    new Thread(()-> {
+                        try {manager.requestPinShortcut(shortcut,null);}
+                        finally {runOnUiThread(this::finish);}
+                    },"pin-shortcut").start();
+                    return;
                 } else {
                     android.widget.Toast.makeText(this, "Dodaj ikonę z listy aplikacji / Add from the app drawer", android.widget.Toast.LENGTH_LONG).show();
                 }
@@ -53,7 +57,7 @@ public class LauncherActivity extends Activity {
         int pad = (int)(24 * getResources().getDisplayMetrics().density);
         layout.setPadding(pad, pad, pad, pad);
         status = new TextView(this);
-        status.setText("Kapitan Pazur — wersja testowa\n\nWybierz paczkę danych game-data.zip przygotowaną z własnej instalacji gry. APK zawiera silnik, a dane gry importujesz osobno.");
+        status.setText("Kapitan Pazur / Captain Claw\n\nWybierz CLAW.REZ z własnej gry albo game-data.zip.\nChoose CLAW.REZ from your own game or game-data.zip.\n\nDirect REZ workflow inspired by Claw Web (Arthur Boss and contributors), GPLv3.");
         status.setTextSize(20);
         layout.addView(status);
         importButton = new Button(this);
@@ -82,8 +86,13 @@ public class LauncherActivity extends Activity {
                 File stage = new File(root, "import-staging");
                 if (!stage.isDirectory() && !stage.mkdirs()) throw new IOException("Nie można przygotować importu.");
                 long total = 0;
-                try (InputStream input = getContentResolver().openInputStream(data.getData());
-                     ZipInputStream zip = new ZipInputStream(input)) {
+                try (BufferedInputStream input = new BufferedInputStream(getContentResolver().openInputStream(data.getData()))) {
+                    if (!ImportSupport.isZip(input)) {
+                        ImportSupport.copy(input,new File(stage,"CLAW.REZ"),1024L*1024*1024);
+                        ImportSupport.validateRez(new File(stage,"CLAW.REZ"));
+                        ImportSupport.prepare(this,stage);
+                        seen.addAll(allowed);
+                    } else try (ZipInputStream zip = new ZipInputStream(input)) {
                     ZipEntry entry;
                     byte[] buffer = new byte[65536];
                     while ((entry = zip.getNextEntry()) != null) {
@@ -99,9 +108,11 @@ public class LauncherActivity extends Activity {
                             }
                         }
                     }
+                    }
                 }
                 if (!seen.equals(allowed) || new File(stage, "CLAW.REZ").length() <= 168)
                     throw new IOException("Paczka nie zawiera kompletu danych gry.");
+                ImportSupport.validateRez(new File(stage,"CLAW.REZ"));
                 for (String name : REQUIRED) {
                     if (!new File(stage, name).renameTo(new File(root, name))) throw new IOException("Nie można zapisać: " + name);
                 }

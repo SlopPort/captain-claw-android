@@ -292,3 +292,10 @@ extern "C" JNIEXPORT void JNICALL Java_pl_pazur_port_GameActivity_nativePadButto
     event.user.data2=reinterpret_cast<void*>(intptr_t(key|(down?0x10000:0)));
     SDL_PushEvent(&event); // Cross from Java's UI thread to SDL's owning thread.
 }
+
+void PazurGamepad::Rumble(int durationMs) {
+    const auto found=pads.find(activePad);
+    if(found==pads.end()||!found->second.controller)return;
+    // Bluetooth mode/driver may not expose rumble; unsupported output is harmless.
+    SDL_GameControllerRumble(found->second.controller,12000,8000,durationMs);
+}

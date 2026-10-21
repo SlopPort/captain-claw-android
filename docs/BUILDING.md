@@ -9,6 +9,8 @@ Sprawdzone narzędzia: JDK z Android Studio, Gradle 8.10.2, Android SDK 35 / Bui
 
 Wrapper weryfikuje SHA-256 dystrybucji Gradle. `preBuild` przygotowuje bank muzyki FreePats z przypiętego repozytorium. Narzędzie nie pobiera komercyjnych danych gry. Zmienną `PYTHON` można wskazać inny interpreter.
 
+0.4.8: preBuild przygotowuje również XML i własne neutralne obrazy dla importu REZ. Nie kopiuje do APK oryginalnych grafik gry. ThinLTO/O3 są domyślnie włączone; `-PnativeLto=OFF` wyłącza ten eksperyment porównawczy. Asercje pozostają aktywne. Bootstrap stosuje teraz osobne patche OpenClaw i SDL; oba eksportuje i sprawdza `tools/export_patch.py`.
+
 ## Własne dane gry
 
 `python tools/pack_assets.py --game-root '/sciezka/do/wlasnej/instalacji'` tworzy `build/game-data.zip`. Przy luźnym katalogu `Assets/` pakuje go do REZ; w pozostałych przypadkach kopiuje dostarczone CLAW.REZ. Dodaje wsparcie XML z OpenClaw i `asset-overrides/`, profil i pliki pomocnicze. Oryginalna instalacja nie jest modyfikowana. Utworzoną paczkę importuje się w aplikacji systemowym selektorem plików.

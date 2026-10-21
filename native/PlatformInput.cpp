@@ -1,4 +1,5 @@
 #include "PlatformInput.h"
+#include "HapticFeedback.h"
 #include "Engine/GameApp/BaseGameApp.h"
 #include <set>
 
@@ -22,7 +23,10 @@ void PazurInput::SetKey(Source source,SDL_Keycode key,bool down) {
     const bool before=keys[0].count(key)||keys[1].count(key);
     if (down) keys[source].insert(key); else keys[source].erase(key);
     const bool after=keys[0].count(key)||keys[1].count(key);
-    if (before!=after) dispatch(key,after);
+    if (before!=after) {
+        dispatch(key,after);
+        if(after && (key==SDLK_LCTRL||key==SDLK_LALT))PazurHaptics::Trigger(PazurHaptics::Attack);
+    }
 }
 void PazurInput::Reset(Source source) {
     // Copy before releasing because SetKey mutates the original set.

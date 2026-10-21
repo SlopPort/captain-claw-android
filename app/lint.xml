@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<lint>
+    <!-- SDL BLE initialization checks permissions. This app requests neither
+         Bluetooth permission; ordinary gamepads use Android InputDevice. -->
+    <issue id="MissingPermission">
+        <ignore path="../upstream/SDL/android-project/app/src/main/java/org/libsdl/app/HIDDeviceManager.java" />
+        <ignore path="../upstream/SDL/android-project/app/src/main/java/org/libsdl/app/HIDDeviceBLESteamController.java" />
+        <!-- Audio capture is unused: no microphone access is requested. -->
+        <ignore path="../upstream/SDL/android-project/app/src/main/java/org/libsdl/app/SDLAudioManager.java" />
+    </issue>
+    <!-- API26 haptics/mouse subclasses are selected behind SDL SDK guards. -->
+    <issue id="NewApi">
+        <ignore path="../upstream/SDL/android-project/app/src/main/java/org/libsdl/app/SDLControllerManager.java" />
+    </issue>
+</lint>

@@ -1,5 +1,6 @@
 #include "CombatProbe.h"
 #include "CombatPrototypes.h"
+#include "ComponentProfiler.h"
 #include "GamepadControls.h"
 #include "Engine/GameApp/BaseGameApp.h"
 #include "Engine/Audio/Audio.h"
@@ -65,6 +66,7 @@ bool PazurCombatProbe::Handle(const std::vector<std::string>& args, const ActorM
     auto logic = g_pApp->GetGameLogic();
     // Virtual input must remain releasable in menus where no hero exists.
     if (PazurGamepad::DebugCommand(args)) return true;
+    if(args[0]=="componentprofile") {PazurProfile::Start();return true;}
     // This probe is reachable only through the explicitly enabled test mailbox.
     if (args[0]=="audiooptions") {
         auto audio=g_pApp->GetAudio();
@@ -116,6 +118,18 @@ bool PazurCombatProbe::Handle(const std::vector<std::string>& args, const ActorM
             ladderClaw=claw;
         }
         SDL_Log("Pazur ladder fixture: x=200000 top=768 bottom=1088");
+        return true;
+    }
+    if (args[0]=="edgestage") {
+        Handle({"combatstage","-1","80","0"},actors);
+        static WeakActorPtr edgeClaw;
+        if(edgeClaw.lock()!=claw) {
+            // Upper ledge and lower catch floor, using ordinary production ground.
+            physics->VAddStaticGeometry(Point(205872,768),Point(256,20),CollisionType_Ground,FixtureType_Solid);
+            physics->VAddStaticGeometry(Point(205200,2368),Point(1600,20),CollisionType_Ground,FixtureType_Solid);
+            edgeClaw=claw;
+        }
+        SDL_Log("Pazur edge fixture: left=205872 right=206128 top=768 catch=2368");
         return true;
     }
     if (args[0]=="ladderstatus") {

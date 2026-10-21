@@ -70,6 +70,7 @@ public class ControllerSettingsActivity extends Activity {
             int[] previous=bindings.clone();System.arraycopy(DEFAULTS,0,bindings,0,7);
             try {save();refresh();} catch(IOException error) {System.arraycopy(previous,0,bindings,0,7);showError(error);}
         });layout.addView(reset);
+        Button files=new Button(this);files.setText(tr("Kopie zapisów i wibracje","Save backups and vibration"));files.setOnClickListener(v->startActivity(new android.content.Intent(this,FileToolsActivity.class)));layout.addView(files);
         Button done=new Button(this);done.setText(tr("Wróć do gry","Return to game"));done.setOnClickListener(v -> finish());layout.addView(done);
         scroll.addView(layout);setContentView(scroll);refresh();
     }

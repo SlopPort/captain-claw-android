@@ -1,5 +1,15 @@
 # Weryfikacja
 
+Walidacja 0.4.8 i ograniczenia pomiarów: [raport](validation/PORT-0.4.8.md). Nowe scenariusze:
+
+- `python tools/ladder_smoke.py --expect-fixed --bottom --edges` sprawdza szczyt i dół izolowanej drabiny, ponowne wejście oraz obie strony podestu. Osobno uruchom `--first-map-ladder` dla rzeczywistej pierwszej drabiny poziomu 1.
+- `python tools/omar_app_smoke.py` wykonuje kontrolowaną walkę i finał przez wejście lokalne aplikacji. Używa ochrony, mocy i teleportów; nie jest normalnym przejściem gry. Historyczne opcje bossów w `level_boot_smoke.py` nie są aktualną metodą testowania.
+- `python tools/direct_rez_runtime_smoke.py` sprawdza runtime pełnego REZ wraz ze wsparciem z APK, zachowując i przywracając dane telefonu. Nie używaj 168-bajtowej atrapy REZ z instalacji CrazyHook.
+- `PortFeaturesTest` sprawdza rzeczywiste klasy importu danych i zapisów w izolowanym katalogu. Zbuduj test APK z `-PtestRunner=pl.pazur.port.PortFeaturesTest`, zainstaluj go i uruchom `adb shell am instrument -w pl.pazur.port.test/pl.pazur.port.PortFeaturesTest`. Przed testami dotyku odbuduj test APK z domyślnym runnerem.
+- `python tools/check_patches.py` nakłada oba patche na czyste kopie zmienionych plików przypiętych zależności i porównuje wynik ze źródłami roboczymi. Nie resetuje upstreamu.
+
+Scenariusze urządzenia uruchamiaj kolejno. Wymagają wolnej aplikacji i nie mogą działać równocześnie z ręczną grą; konfiguracja i postęp są przywracane w bloku końcowym. FPS mierzy tylko aktywną symulację. Profiler komponentów zwiększa koszt klatki i nie służy do porównywania FPS.
+
 Sprzęt używany do prób: Redmi Note 8, Android 16, ARM64 oraz Huawei P9 Lite, Android 10 / LineageOS, około 2 GB RAM. Biblioteki budowane również dla ARMv7, minimum API 21. Nie ma potwierdzenia na wszystkich wersjach Androida ani na telefonach z 1 GB RAM. Wyniki krótkich prób FPS Huawei i ograniczenia: [audyt](validation/TODO-AUDIT.md).
 
 Aktualny test wejścia: zbuduj `:app:assembleDebugAndroidTest`, zainstaluj oba APK i uruchom `python tools/jump_touch_smoke.py`. Scenariusz mierzy wysokość i opóźnienie skoku przy dotknięciach 10/100/250/700/1800 ms oraz przesunięciu palca; sprawdza ruch ze skokiem, przyciski akcji, pauzę i utratę fokusu. Zmienna `ANDROID_SERIAL` wybiera urządzenie. Opcja `--size` pozwala wykonać tę samą próbę przy innych proporcjach i przywraca poprzedni rozmiar ekranu.

@@ -2,7 +2,9 @@
 
 [English README](README.en.md)
 
-Natywna adaptacja [OpenClaw](https://github.com/pjasicek/OpenClaw) na Androida, z polskimi zasobami dostarczanymi przez użytkownika. Silnik C++/SDL budowany dla ARM64 i ARMv7. Aktualna wersja: 0.4.7-dev. Minimum API 21. Wyniki krótkich pomiarów na Huawei i zakres audytu błędów: [raport](docs/validation/TODO-AUDIT.md).
+Natywna adaptacja [OpenClaw](https://github.com/pjasicek/OpenClaw) na Androida, z zasobami dostarczanymi przez użytkownika. Silnik C++/SDL dla ARM64 i ARMv7, minimum API 21. Aktualna wersja: 0.4.8-dev w walidacji. [Funkcje, FPS, audyt i granice testów](docs/validation/PORT-0.4.8.md).
+
+Od 0.4.8 można wskazać sam pełny **CLAW.REZ** zamiast przygotowanego ZIP. Pod **PAD → Kopie zapisów i wibracje** są eksport/import postępu i opcjonalne wibracje. Funkcje inspirowane Claw Web (Arthur Boss i współtwórcy), z przypisaniem pochodzenia w [NOTICE](NOTICE.md). Instalacja z 168-bajtową atrapą REZ i luźnym folderem Assets nadal wymaga ZIP.
 
 Gałka dotykowa, większe przyciski i regulowana wysokość skoku, szeroki widok planszy z zachowaniem proporcji, muzyka MIDI w APK, uzupełnienia poziomu 14 oraz walka z Omarem i inscenizacja zakończenia. Port korzysta z istniejącego silnika i rozgrywki OpenClaw.
 
@@ -12,7 +14,7 @@ Gałka dotykowa, większe przyciski i regulowana wysokość skoku, szeroki widok
 
 **[Polski: instalacja krok po kroku](docs/INSTALL-PL.md)** · **[English: step-by-step installation](docs/INSTALL-EN.md)**
 
-Gotowy APK instaluje aplikację. Dane z własnej kopii gry importuje się osobno jako `game-data.zip`. Instrukcja wyjaśnia kopiowanie plików, instalowanie i najczęstsze problemy. Nie trzeba kompilować programu, jeśli ma się gotowy APK.
+Gotowy APK instaluje aplikację. Dane z własnej kopii gry importuje się osobno jako pełny `CLAW.REZ` albo `game-data.zip`. Instrukcja wyjaśnia kopiowanie plików, instalowanie i najczęstsze problemy. Nie trzeba kompilować programu, jeśli ma się gotowy APK.
 
 ## Transparentność
 

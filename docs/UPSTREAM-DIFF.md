@@ -1,5 +1,7 @@
 # Co wykonano ponad OpenClaw
 
+Aktualizacja 0.4.8: import pełnego REZ, walidowane kopie zapisów i opcjonalne wibracje mają inspirację w Claw Web (Arthur Boss i współautorzy), z odrębną implementacją integracji Androida. Dodano też ThinLTO, ograniczenie pustych aktualizacji komponentów, węższe ładowanie zasobów, reset zegara po ładowaniu oraz diagnostykę kosztów klatki. Autorstwo, wyniki i niepotwierdzone obszary opisuje [raport 0.4.8](validation/PORT-0.4.8.md). Implementację i narzędzia adaptacji wykonywał Codex (LLM), pod kierunkiem użytkownika.
+
 Punkt odniesienia: [pjasicek/OpenClaw](https://github.com/pjasicek/OpenClaw), commit `5ee5740ca98377c76b13b50c84f610b0066a4717`. Nie jest to gra napisana od zera. Istniejąca implementacja zapewnia silnik SDL/C++, libwap, fizykę Box2D, odczyt zasobów, bohatera, większość zwykłej AI, menu i znaczną część rozgrywki.
 
 | Obszar | Praca tej adaptacji | Gdzie sprawdzić |

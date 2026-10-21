@@ -1,0 +1,12 @@
+Claw Web — Arthur Boss and contributors
+https://github.com/arthurboss/claw-web
+Reference revision: e723d3d48b5ba2cc723751209954cfc46c82d202
+License: GNU General Public License version 3 (see project LICENSE.txt).
+
+Direct REZ import and save export/import workflows are inspired by Claw Web.
+The haptic event/preset design and narrower startup preloading approach are
+adapted from Claw Web. Android storage, validation, SDL/Android haptic output,
+and UI implementations were written/adapted by OpenAI Codex (LLM).
+
+The complete game engine originates from pjasicek/OpenClaw and contributors.
+These notices do not grant rights to the original Captain Claw game assets.
