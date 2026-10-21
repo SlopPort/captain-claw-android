@@ -241,6 +241,15 @@ void PazurGamepad::UseTouch() {usingController=false;}
 
 bool PazurGamepad::DebugCommand(const std::vector<std::string>& args) {
     if (args.empty() || args[0]!="padvirtual") return false;
+    if(args.size()==4 && args[1]=="tap") {
+        // Test-only engine boundary input. Android window touch is covered by
+        // instrumentation separately; never inject a system-wide Android event.
+        SDL_Event event{};event.type=SDL_MOUSEBUTTONDOWN;
+        event.button.which=SDL_TOUCH_MOUSEID;event.button.button=SDL_BUTTON_LEFT;
+        event.button.state=SDL_PRESSED;event.button.x=std::stoi(args[2]);event.button.y=std::stoi(args[3]);
+        SDL_PushEvent(&event);event.type=SDL_MOUSEBUTTONUP;event.button.state=SDL_RELEASED;
+        SDL_PushEvent(&event);return true;
+    }
     if (args.size()==2 && args[1]=="attach") {
         if (virtualPad) return true;
         SDL_VirtualJoystickDesc desc{};desc.version=SDL_VIRTUAL_JOYSTICK_DESC_VERSION;

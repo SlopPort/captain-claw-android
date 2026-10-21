@@ -14,6 +14,8 @@
 #include "Engine/Actor/Components/ControllerComponents/AmmoComponent.h"
 #include "Engine/Actor/Components/ControllerComponents/PowerupComponent.h"
 #include "Engine/Actor/Components/AIComponents/TogglePegAIComponent.h"
+#include "Engine/Actor/Components/PickupComponents/PickupComponent.h"
+#include "Engine/Actor/Components/CheckpointComponent.h"
 #include "Engine/Actor/Components/EnemyAI/EnemyAIComponent.h"
 #include "Engine/Actor/Components/AIComponents/ProjectileAIComponent.h"
 #include "Engine/Actor/Components/AreaDamageComponent.h"
@@ -101,6 +103,45 @@ bool PazurCombatProbe::Handle(const std::vector<std::string>& args, const ActorM
     auto claw = logic->GetClawActor();
     if (!claw) return false;
     auto physics = logic->VGetGamePhysics();
+    if(args[0]=="campaignmap" || args[0]=="campaignfinish") {
+        const int level=logic->GetCurrentLevelData()->GetLevelNumber();
+        int endings=0;
+        for(const auto& pair:actors) {
+            const auto actor=pair.second;
+            const auto position=actor->GetPositionComponent();
+            if(!position)continue;
+            const bool ending=actor->GetRawComponent<EndLevelPickupComponent>(false)!=nullptr;
+            const bool checkpoint=actor->GetRawComponent<CheckpointComponent>(false)!=nullptr;
+            const auto name=actor->GetName();
+            bool boss=false;
+            for(const std::string suffix:{"_LaRaux","_Katherine","_Wolvington","_Gabriel","_Marrow","_Aquatis","_RedTail","_Omar"})
+                if(name.size()>=suffix.size() && name.compare(name.size()-suffix.size(),suffix.size(),suffix)==0)boss=true;
+            if(ending || checkpoint || boss) {
+                auto hp=actor->GetRawComponent<HealthComponent>(false);
+                SDL_Log("Pazur campaign object: level=%d kind=%s id=%u name=%s x=%.1f y=%.1f hp=%d",
+                    level,ending?"exit":checkpoint?"checkpoint":"boss",actor->GetGUID(),name.c_str(),
+                    position->GetX(),position->GetY(),hp?hp->GetHealth():-1);
+            }
+            if(ending) {
+                ++endings;
+                if(args[0]=="campaignfinish") {
+                    // Explicit technical fixture: reach the EXISTING end item.
+                    // Normal physics must collect it; never synthesize completion.
+                    Handle({"combatkey","release","0"},actors);
+                    const auto p=position->GetPosition();
+                    physics->VSetLinearSpeed(claw->GetGUID(),Point(0,0));
+                    physics->VSetPosition(claw->GetGUID(),p);
+                    claw->GetPositionComponent()->SetPosition(p.x,p.y);
+                    SDL_Log("Pazur campaign fixture: teleport-to-existing-exit level=%d",level);
+                    break;
+                }
+            }
+        }
+        SDL_Log("Pazur campaign state: level=%d exits=%d health=%d lives=%d",
+            level,endings,claw->GetRawComponent<HealthComponent>(true)->GetHealth(),
+            claw->GetRawComponent<LifeComponent>(true)->GetLives());
+        return true;
+    }
     if(args[0]=="laddertrace" && args.size()==3) {
         ladderTrace=LadderTrace{};
         ladderTrace.label=args[1];

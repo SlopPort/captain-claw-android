@@ -2204,7 +2204,7 @@ index 8042f57..6b94448 100644
  
      if (!extraData)
 diff --git a/OpenClaw/Engine/UserInterface/HumanView.cpp b/OpenClaw/Engine/UserInterface/HumanView.cpp
-index ec64d79..ee9a16b 100644
+index ec64d79..6b2f621 100644
 --- a/OpenClaw/Engine/UserInterface/HumanView.cpp
 +++ b/OpenClaw/Engine/UserInterface/HumanView.cpp
 @@ -1,4 +1,7 @@
@@ -2237,7 +2237,22 @@ index ec64d79..ee9a16b 100644
          {
              LOG_ERROR("Unknown ammo type: " + ToStr(pCastEventData->GetAmmoType()));
          }
-@@ -825,6 +834,10 @@ void HumanView::ClawDiedDelegate(IEventDataPtr pEventData)
+@@ -633,7 +642,13 @@ void HumanView::RequestPlaySoundDelegate(IEventDataPtr pEventData)
+             if (play)
+             {
+                 shared_ptr<Mix_Chunk> pSound = WavResourceLoader::LoadAndReturnSound(pSoundInfo->soundToPlay.c_str());
+-                assert(pSound != nullptr);
++                // Regional game archives may omit optional voice clips. A missing
++                // clip must not abort level completion or other gameplay events.
++                if (!pSound)
++                {
++                    LOG("Skipping unavailable sound: " + pSoundInfo->soundToPlay);
++                    return;
++                }
+                 g_pApp->GetAudio()->PlaySound(pSound.get(), soundProperties);
+             }
+         }
+@@ -825,6 +840,10 @@ void HumanView::ClawDiedDelegate(IEventDataPtr pEventData)
  
          shared_ptr<ScreenElementMenu> pGameOverMenu(new ScreenElementMenu(g_pApp->GetRenderer()));
          DO_AND_CHECK(pGameOverMenu->Initialize(pXmlGameOverMenuRoot));
@@ -2248,7 +2263,7 @@ index ec64d79..ee9a16b 100644
  
          m_ScreenElements.push_back(pGameOverMenu);
          pGameOverMenu->VSetVisible(true);
-@@ -1340,4 +1353,4 @@ void TeleportFadeInOutProcess::VRender(uint32 msDiff)
+@@ -1340,4 +1359,4 @@ void TeleportFadeInOutProcess::VRender(uint32 msDiff)
      SDL_DestroyTexture(pRightRectTexture);
  
      Util::RenderForcePresent(pRenderer);
@@ -2256,7 +2271,7 @@ index ec64d79..ee9a16b 100644
 \ No newline at end of file
 +}
 diff --git a/OpenClaw/Engine/UserInterface/ScoreScreen/EndLevelScoreScreen.cpp b/OpenClaw/Engine/UserInterface/ScoreScreen/EndLevelScoreScreen.cpp
-index 88c97c9..8053170 100644
+index 88c97c9..26ba79e 100644
 --- a/OpenClaw/Engine/UserInterface/ScoreScreen/EndLevelScoreScreen.cpp
 +++ b/OpenClaw/Engine/UserInterface/ScoreScreen/EndLevelScoreScreen.cpp
 @@ -287,6 +287,9 @@ uint8_t g_ScoreScreenPalette[] =
@@ -2282,7 +2297,7 @@ index 88c97c9..8053170 100644
      assert(m_pBackground != nullptr);
  
      SDL_Rect backgroundRect = GetScreenRect();
-@@ -374,6 +383,9 @@ void ScreenElementScoreScreen::VOnRender(uint32 msDiff)
+@@ -374,10 +383,22 @@ void ScreenElementScoreScreen::VOnRender(uint32 msDiff)
      //LOG("Rendered. Image width: " + ToStr(m_pBackground->GetWidth()));
  
      Scene::OnRender();
@@ -2292,7 +2307,20 @@ index 88c97c9..8053170 100644
  }
  
  bool ScreenElementScoreScreen::VOnEvent(SDL_Event& evt)
-@@ -484,7 +496,9 @@ void ScreenElementScoreScreen::LoadNextLevel()
+ {
++#ifdef __ANDROID__
++    // SDL translates a screen tap into a left mouse press. Use the same
++    // progression as Enter, including the existing intro/score state guards.
++    if (evt.type == SDL_MOUSEBUTTONDOWN && evt.button.button == SDL_BUTTON_LEFT)
++    {
++        ForceNextState();
++        return true;
++    }
++#endif
+     switch (evt.type)
+     {
+         case SDL_KEYDOWN:
+@@ -484,7 +505,9 @@ void ScreenElementScoreScreen::LoadNextLevel()
      SAFE_DELETE(m_pProcessMgr);
      IEventMgr::Get()->VAbortAllEvents();
  
