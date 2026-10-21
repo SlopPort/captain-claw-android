@@ -18,7 +18,13 @@ def main():
     parser.add_argument('--edges',action='store_true',help='Also check falling off both ledge sides and rejection of air jumps')
     parser.add_argument('--bottom',action='store_true',help='Check held Down when a ladder ends on a solid floor')
     parser.add_argument('--idle-edges',action='store_true',help='Measure idle drift near both platform edges; positive inset means the body centre is inside')
+    parser.add_argument('--seam-audit',action='store_true',help='Trace short inputs at and beside the actual first ladder cap')
+    parser.add_argument('--seam-exits',action='store_true',help='Trace short sideways exits after starting descent at the real cap')
+    parser.add_argument('--seam-jumps',action='store_true',help='Trace short/full jumps at and just below the first cap, with late sideways input')
+    parser.add_argument('--jump-case',choices=['jump_'+s+'_'+str(h)+'_'+d for s in ('cap','below') for h in (100,250) for d in ('none','left','right')],help='Select one jump trace instead of the full matrix')
     args=parser.parse_args()
+    if args.jump_case:args.seam_jumps=True
+    if args.seam_audit or args.seam_exits or args.seam_jumps:args.first_map_ladder=True
     if args.idle_edges:args.edges=True
     report=PORT/'reports'/args.report;report.mkdir(parents=True,exist_ok=True)
     for name in ('combat-command.txt','combat-response.txt'):
@@ -33,9 +39,11 @@ def main():
     if flag is None:flag=ET.SubElement(config.find('DebugOptions'),'PreviewIncompleteLevel14')
     flag.text='true'
     config.write(report/'config-test.xml',encoding='utf-8',xml_declaration=True)
-    ticket=0;pid='';rows=[];checks_passed=False
+    ticket=0;pid='';rows=[];checks_passed=False;log_stream=None;log_output=None;stuck_fall=[]
 
-    def logs():return adb('logcat','-d','--pid='+pid,'-s','SDL/APP','libc','AndroidRuntime')
+    def logs():
+        if log_stream is not None:return (report/'native-live.log').read_text(encoding='utf-8',errors='replace')
+        return adb('logcat','-d','--pid='+pid,'-s','SDL/APP','libc','AndroidRuntime')
 
     def command(value):
         nonlocal ticket
@@ -50,10 +58,15 @@ def main():
         raise RuntimeError('No acknowledgement: '+value)
 
     def sample(label):
-        before=logs();command('ladderstatus')
-        delta=logs()[len(before):]
         pattern=r'Pazur ladder status: x=([\d.-]+) y=([\d.-]+) bottom=(-?\d+) climb=(\d) ladder=(\d) ground=(\d) vy=([\d.-]+) animation=(\S+) paused=(\d)'
-        match=re.search(pattern,delta);assert match,delta
+        previous=len(re.findall(pattern,logs()))
+        command('ladderstatus')
+        deadline=time.monotonic()+3
+        matches=list(re.finditer(pattern,logs()))
+        while len(matches)<=previous and time.monotonic()<deadline:
+            time.sleep(.05);matches=list(re.finditer(pattern,logs()))
+        assert len(matches)>previous,'Missing fresh ladder status'
+        match=matches[-1]
         x,y,b,c,l,g,v,a,p=match.groups()
         row=dict(label=label,x=float(x),y=float(y),bottom=int(b),climb=int(c),ladder=int(l),ground=int(g),vy=float(v),animation=a,paused=int(p))
         rows.append(row);print(json.dumps(row),flush=True)
@@ -62,6 +75,11 @@ def main():
         adb('push',str(report/'config-test.xml'),REMOTE+'config.xml')
         adb('shell','am','start','-n','pl.pazur.port/.LauncherActivity');time.sleep(2)
         pid=adb('shell','pidof','pl.pazur.port').strip().split()[0]
+        # Keep the full stream locally: Android's finite log ring can overwrite
+        # early cases during a long matrix. Never use string length as a cursor.
+        log_output=(report/'native-live.log').open('wb')
+        log_stream=subprocess.Popen(['adb','logcat','--pid='+pid,'-s','SDL/APP','libc','AndroidRuntime'],
+            stdout=log_output,stderr=subprocess.DEVNULL)
         deadline=time.monotonic()+45
         while 'Level loaded !' not in logs() and time.monotonic()<deadline:time.sleep(.5)
         assert 'Level loaded !' in logs()
@@ -90,6 +108,55 @@ def main():
         command('combatjumpmeasure ladder_jump')
         command('combatkey jump 250');time.sleep(.2);sample('jump_off')
         command('combatkey release 0')
+        if args.seam_audit:
+            for offset in (-28,-16,0,16,28):
+                for direction in ('down','up'):
+                    label='seam_'+str(offset)+'_'+direction
+                    command('combatkey release 0')
+                    command('teleport '+str(x+32+offset)+' '+str(top-55));time.sleep(.8)
+                    command('laddertrace '+label+' 2500')
+                    command('combatkey '+direction+' 100');time.sleep(.3)
+                    command('combatkey release 0');time.sleep(2.2)
+                    sample(label)
+        if args.seam_exits:
+            for duration in (60,100,180):
+                for direction in ('left','right'):
+                    label='exit_'+str(duration)+'_'+direction
+                    command('combatkey release 0')
+                    command('teleport '+str(x+32)+' '+str(top-55));time.sleep(.8)
+                    command('laddertrace '+label+' 3500')
+                    command('combatkey down '+str(duration));time.sleep(.25)
+                    command('combatkey '+direction+' 100');time.sleep(.3)
+                    command('combatkey release 0');time.sleep(2.7)
+                    sample(label)
+            # Teleport is only a position change: it deliberately does not
+            # rewrite production climbing state. Finish climbing before the
+            # unrelated cap walk/jump checks below instead of carrying that
+            # test-only state into them.
+            command('combatkey up 2000');time.sleep(2.3)
+            command('combatkey release 0');time.sleep(.3)
+        if args.seam_jumps:
+            for start in ('cap','below'):
+                for hold in (100,250):
+                    for side in ('none','left','right'):
+                        label='jump_'+start+'_'+str(hold)+'_'+side
+                        if args.jump_case and args.jump_case!=label:continue
+                        command('combatkey release 0')
+                        command('teleport '+str(x+32)+' '+str(top-55));time.sleep(.4)
+                        command('combatkey up 1500');time.sleep(1.7)
+                        command('combatkey release 0');time.sleep(.3)
+                        if start=='below':
+                            command('combatkey down 100');time.sleep(.3)
+                            command('combatkey release 0');time.sleep(.2)
+                        command('laddertrace '+label+' 4500')
+                        command('combatkey jump '+str(hold))
+                        # Deliberately later than takeoff, not a simultaneous
+                        # button chord: inspect returning beside the cap.
+                        if side!='none':command('combatkey '+side+' 100')
+                        time.sleep(4.7);sample(label)
+            command('teleport '+str(x+32)+' '+str(top-55));time.sleep(.4)
+            command('combatkey up 1500');time.sleep(1.7)
+            command('combatkey release 0');time.sleep(.3)
         time.sleep(2.3)
         # Further edge cases: horizontal exit and Up+Jump from the cap.
         time.sleep(.5);command('teleport '+str(x+32)+' '+str(top-55));time.sleep(.8)
@@ -159,7 +226,28 @@ def main():
                             assert row['ground'] and abs(row['x']-start)<2 and abs(row['y']-712.6)<2,row
         if args.expect_fixed:checks_passed=True
     finally:
-        if pid:(report/'native.log').write_text(logs(),encoding='utf-8')
+        if log_stream is not None:
+            log_stream.terminate()
+            try:log_stream.wait(timeout=5)
+            except subprocess.TimeoutExpired:log_stream.kill();log_stream.wait(timeout=5)
+        if log_output is not None:log_output.close()
+        native_log=logs() if pid else ''
+        if pid:(report/'native.log').write_text(native_log,encoding='utf-8')
+        trace_pattern=r'Pazur ladder trace: label=(\S+) tick=(\d+) x=([\d.-]+) y=([\d.-]+) ground=(\d) ladder=(\d) climb=(\d) vx=([\d.-]+) vy=([\d.-]+) animation=(\S+)'
+        traces=[dict(label=l,tick=int(t),x=float(x),y=float(y),ground=int(g),ladder=int(a),climb=int(c),
+            vx=float(vx),vy=float(vy),animation=anim) for l,t,x,y,g,a,c,vx,vy,anim in re.findall(trace_pattern,native_log)]
+        # Candidates are observations, not automatically bugs: a single landing
+        # transition can legitimately precede its animation update by one frame.
+        stationary_fall=[r for r in traces if 'fall' in r['animation'] and abs(r['vy'])<.01 and abs(r['vx'])<.01]
+        streak=None
+        for row in traces:
+            stationary=row['ground'] and 'fall' in row['animation'] and abs(row['vy'])<.01 and abs(row['vx'])<.01
+            if not stationary:streak=None;continue
+            if streak is None or streak['label']!=row['label'] or abs(streak['x']-row['x'])>.25 or abs(streak['y']-row['y'])>.25:
+                streak=row
+            elif row['tick']-streak['tick']>=300 and not any(v['label']==row['label'] for v in stuck_fall):
+                stuck_fall.append(dict(label=row['label'],duration_ms=row['tick']-streak['tick'],x=row['x'],y=row['y']))
+        if args.expect_fixed and args.seam_jumps and stuck_fall:checks_passed=False
         adb('shell','am','force-stop','pl.pazur.port')
         for name in ('config.xml','SAVES.XML'):adb('push',str(report/name),REMOTE+name)
         for name in ('combat-command.txt','combat-response.txt','combat-command.tmp'):adb('shell','rm','-f',REMOTE+name)
@@ -167,7 +255,14 @@ def main():
             'fixed_checks_passed':checks_passed if args.expect_fixed else None,
             'edges_requested':args.edges,'bottom_requested':args.bottom,
             'idle_edges_requested':args.idle_edges,
+            'seam_audit_requested':args.seam_audit,
+            'seam_exits_requested':args.seam_exits,
+            'seam_jumps_requested':args.seam_jumps,
+            'trace_samples':len(traces),'trace_labels':sorted({r['label'] for r in traces}),
+            'stationary_fall_candidates':stationary_fall,
+            'stuck_grounded_fall':stuck_fall,
             'apk_sha256':hashlib.file_digest((PORT/'app/build/outputs/apk/debug/app-debug.apk').open('rb'),'sha256').hexdigest()},indent=2),encoding='utf-8')
+    if args.expect_fixed and args.seam_jumps:assert not stuck_fall,stuck_fall
 
 
 if __name__=='__main__':main()

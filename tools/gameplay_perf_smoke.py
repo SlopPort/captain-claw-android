@@ -23,8 +23,12 @@ def main():
     parser.add_argument('--protect-player',action='store_true',help='Explicitly labelled player protection for observing enemy attacks')
     parser.add_argument('--observe',action='store_true',help='Observe live enemies without moving or attacking')
     parser.add_argument('--cyclic-pegs',action='store_true',help='Controlled ordinary-jump trials on actual level-one cyclic platforms')
+    parser.add_argument('--pair-filter',choices=('on','off'),help='Compare early Box2D pair rejection in the same APK; restores fallback marker')
     args=parser.parse_args()
     report=PORT/'reports'/args.report;report.mkdir(parents=True,exist_ok=True)
+    pair_marker='physics-pairs-unfiltered'
+    if args.pair_filter and subprocess.run(['adb','shell','test','-e',REMOTE+pair_marker],capture_output=True).returncode==0:
+        raise RuntimeError('Existing pair-filter fallback marker; leave it untouched')
     for name in ('combat-command.txt','combat-response.txt'):
         if subprocess.run(['adb','shell','test','-e',REMOTE+name],capture_output=True).returncode==0:
             raise RuntimeError('Existing diagnostic mailbox: '+name)
@@ -44,7 +48,7 @@ def main():
         level=copy.deepcopy(saves.find('Level'));level.find('LevelNumber').text=str(args.level)
         saves.getroot().append(level)
     saves.write(report/'saves-test.xml',encoding='utf-8',xml_declaration=True)
-    pid='';ticket=0;actions=[]
+    pid='';ticket=0;actions=[];pair_marker_created=False
     def logs():return adb('logcat','-d','--pid='+pid,'-s','SDL/APP','libc','AndroidRuntime')
     def command(value):
         nonlocal ticket
@@ -58,6 +62,10 @@ def main():
             time.sleep(.1)
         raise RuntimeError('No app-local response: '+value)
     try:
+        if args.pair_filter=='off':
+            (report/'pair-fallback.tmp').write_bytes(b'')
+            pair_marker_created=True
+            adb('push',str(report/'pair-fallback.tmp'),REMOTE+pair_marker)
         adb('push',str(report/'test.xml'),REMOTE+'config.xml')
         adb('push',str(report/'saves-test.xml'),REMOTE+'SAVES.XML')
         adb('shell','am','start','-n','pl.pazur.port/.LauncherActivity');time.sleep(2)
@@ -66,6 +74,8 @@ def main():
         while 'Level loaded !' not in logs() and time.monotonic()<deadline:time.sleep(.5)
         assert 'Level loaded !' in logs()
         assert 'Pazur renderer batching: 1' in logs()
+        if args.pair_filter:
+            assert 'Pazur physics pair filtering: '+('1' if args.pair_filter=='on' else '0') in logs()
         if args.protect_player:command('invincible 1')
         if args.scene:command('teleport '+str(args.scene[0])+' '+str(args.scene[1]));time.sleep(1)
         command('combatstatus');start=len(logs())
@@ -106,8 +116,16 @@ def main():
             'observed_positions':snapshots,'movement_observed':moved,
             'fixture':'controlled real-map scene' if args.scene else 'real map start',
             'observation_only':args.observe,'scene':args.scene,
+            'early_pair_filtering':args.pair_filter,
             'player_invincible_fixture':args.protect_player,'teleported':bool(args.scene),'ammo_modified':False,
             'apk_sha256':hashlib.file_digest((PORT/'app/build/outputs/apk/debug/app-debug.apk').open('rb'),'sha256').hexdigest()}
+        result['box2d_steps']=[dict(total_ms=float(t),collide_ms=float(c),solve_ms=float(s),toi_ms=float(i),
+            other_ms=float(o),bodies=int(b),contacts=int(n)) for t,c,s,i,o,b,n in re.findall(
+            r'Pazur Box2D (?:step|slow): total=([\d.]+) collide=([\d.]+) solve=([\d.]+) toi=([\d.]+) other=([\d.]+) ms bodies=(\d+) contacts=(\d+)',log)]
+        viewport=re.search(r'Pazur display: physical=(\d+)x(\d+) logical=(\d+)x(\d+)',log)
+        if viewport:
+            sw,sh,lw,lh=map(int,viewport.groups())
+            result.update(startup_surface=[sw,sh],logical_size=[lw,lh])
         (report/'results.json').write_text(json.dumps(result,indent=2),encoding='utf-8')
         if args.cyclic_pegs:
             trials=re.findall(r'Pazur peg result: landed=(\d) rise=([\d.]+)',log)
@@ -125,6 +143,7 @@ def main():
         for name in ('config.xml','SAVES.XML'):adb('push',str(report/name),REMOTE+name)
         for name in ('combat-command.txt','combat-response.txt','combat-command.tmp'):
             adb('shell','rm','-f',REMOTE+name)
+        if pair_marker_created:adb('shell','rm','-f',REMOTE+pair_marker)
         print('Original config and saves restored',flush=True)
 
 

@@ -48,6 +48,11 @@ struct PegTrial {
     double baseY=0, rise=0;
 } pegTrial;
 
+struct LadderTrace {
+    Uint32 end=0, nextSample=0;
+    std::string label, previousState;
+} ladderTrace;
+
 void keyEvent(SDL_Keycode key, bool down) {
     if (key==SDLK_SPACE) PazurCombatProbe::JumpInput(down,0);
     SDL_Event event{};
@@ -96,6 +101,12 @@ bool PazurCombatProbe::Handle(const std::vector<std::string>& args, const ActorM
     auto claw = logic->GetClawActor();
     if (!claw) return false;
     auto physics = logic->VGetGamePhysics();
+    if(args[0]=="laddertrace" && args.size()==3) {
+        ladderTrace=LadderTrace{};
+        ladderTrace.label=args[1];
+        ladderTrace.end=SDL_GetTicks()+(std::max)(100,(std::min)(10000,std::stoi(args[2])));
+        return true;
+    }
     if(args[0]=="pegtrial" && args.size()==5) {
         ResetKeys();
         pegTrial=PegTrial{};
@@ -368,6 +379,28 @@ void PazurCombatProbe::Poll() {
         !g_pApp->GetGameLogic()) return;
     const bool playing=g_pApp->GetGameLogic()->IsRunning() &&
         g_pApp->GetGameLogic()->GetGameState()==GameState_IngameRunning;
+    if(ladderTrace.end) {
+        if(!playing || (Sint32)(now-ladderTrace.end)>=0) {
+            SDL_Log("Pazur ladder trace end: label=%s",ladderTrace.label.c_str());
+            ladderTrace.end=0;
+        } else {
+            auto claw=g_pApp->GetGameLogic()->GetClawActor();
+            auto pc=claw->GetPhysicsComponent();
+            const auto animation=claw->GetRawComponent<AnimationComponent>(true)->GetCurrentAnimationName();
+            const auto state=std::to_string(pc->IsOnGround())+std::to_string(pc->IsOnLadder())+
+                std::to_string(pc->IsClimbing())+animation;
+            // Sample every transition, including one-frame contact changes;
+            // unchanged states need only ten samples per second.
+            if(state!=ladderTrace.previousState || (Sint32)(now-ladderTrace.nextSample)>=0) {
+                const auto p=claw->GetPositionComponent()->GetPosition();
+                const auto v=pc->GetVelocity();
+                SDL_Log("Pazur ladder trace: label=%s tick=%u x=%.2f y=%.2f ground=%d ladder=%d climb=%d vx=%.9f vy=%.9f animation=%s falling=%d jumping=%d",
+                    ladderTrace.label.c_str(),now,p.x,p.y,pc->IsOnGround(),pc->IsOnLadder(),pc->IsClimbing(),
+                    v.x,v.y,animation.c_str(),pc->IsFalling(),pc->IsJumping());
+                ladderTrace.previousState=state;ladderTrace.nextSample=now+100;
+            }
+        }
+    }
     if(pegTrial.active) {
         auto source=pegTrial.source.lock(), destination=pegTrial.destination.lock();
         auto logic=g_pApp->GetGameLogic();

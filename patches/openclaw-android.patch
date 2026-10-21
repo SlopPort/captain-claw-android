@@ -1,3 +1,79 @@
+diff --git a/Box2D/Box2D/Collision/b2BroadPhase.cpp b/Box2D/Box2D/Collision/b2BroadPhase.cpp
+index 6cddf71..dd6595c 100644
+--- a/Box2D/Box2D/Collision/b2BroadPhase.cpp
++++ b/Box2D/Box2D/Collision/b2BroadPhase.cpp
+@@ -21,6 +21,7 @@
+ b2BroadPhase::b2BroadPhase()
+ {
+ 	m_proxyCount = 0;
++    m_querySubsetFilter = NULL;
+ 
+ 	m_pairCapacity = 16;
+ 	m_pairCount = 0;
+diff --git a/Box2D/Box2D/Collision/b2BroadPhase.h b/Box2D/Box2D/Collision/b2BroadPhase.h
+index 4905710..aa893a5 100644
+--- a/Box2D/Box2D/Collision/b2BroadPhase.h
++++ b/Box2D/Box2D/Collision/b2BroadPhase.h
+@@ -23,6 +23,7 @@
+ #include <Box2D/Collision/b2Collision.h>
+ #include <Box2D/Collision/b2DynamicTree.h>
+ #include <algorithm>
++#include <vector>
+ 
+ struct b2Pair
+ {
+@@ -42,6 +43,13 @@ public:
+ 		e_nullProxy = -1
+ 	};
+ 
++    // Modified by OpenAI Codex: select a complete query subset for full batches.
++    // Optional callback keeps this collision-layer class independent of bodies.
++    typedef bool (*QuerySubsetFilter)(void*);
++    // Only valid if every possible pair has at least one eligible endpoint.
++    // Used exclusively when ALL active proxies are in this update batch.
++    void SetQuerySubsetFilter(QuerySubsetFilter filter) { m_querySubsetFilter = filter; }
++
+ 	b2BroadPhase();
+ 	~b2BroadPhase();
+ 
+@@ -126,6 +134,7 @@ private:
+ 	int32 m_pairCount;
+ 
+ 	int32 m_queryProxyId;
++    QuerySubsetFilter m_querySubsetFilter;
+ };
+ 
+ /// This is used to sort pairs.
+@@ -187,6 +196,19 @@ void b2BroadPhase::UpdatePairs(T* callback)
+ 	// Reset pair buffer
+ 	m_pairCount = 0;
+ 
++    // OpenAI Codex adaptation: a fresh map moves every proxy. Since all
++    // contacts require a dynamic endpoint, querying that subset finds the same
++    // pairs without thousands of static-only tree walks. Count DISTINCT valid
++    // IDs: duplicate touches/removals must never masquerade as a full batch.
++    bool allMoved = false;
++    if (m_querySubsetFilter && m_proxyCount > 0 && m_moveCount >= m_proxyCount) {
++        std::vector<int32> moved(m_moveBuffer, m_moveBuffer + m_moveCount);
++        std::sort(moved.begin(), moved.end());
++        const auto last = std::unique(moved.begin(), moved.end());
++        const auto distinct = last - moved.begin() - (moved.front() == e_nullProxy ? 1 : 0);
++        allMoved = distinct == m_proxyCount;
++    }
++
+ 	// Perform tree queries for all moving proxies.
+ 	for (int32 i = 0; i < m_moveCount; ++i)
+ 	{
+@@ -196,6 +218,9 @@ void b2BroadPhase::UpdatePairs(T* callback)
+ 			continue;
+ 		}
+ 
++        if (allMoved && !m_querySubsetFilter(m_tree.GetUserData(m_queryProxyId)))
++            continue;
++
+ 		// We have to query the tree with the fat AABB so that
+ 		// we don't fail to create a pair that may touch later.
+ 		const b2AABB& fatAABB = m_tree.GetFatAABB(m_queryProxyId);
 diff --git a/Box2D/Box2D/Common/b2Timer.cpp b/Box2D/Box2D/Common/b2Timer.cpp
 index a2546b8..889f41f 100644
 --- a/Box2D/Box2D/Common/b2Timer.cpp
@@ -40,6 +116,60 @@ index 823404f..d512742 100644
  #elif defined(__linux__) || defined (__APPLE__)
  	unsigned long m_start_sec;
  	unsigned long m_start_usec;
+diff --git a/Box2D/Box2D/Dynamics/b2ContactManager.cpp b/Box2D/Box2D/Dynamics/b2ContactManager.cpp
+index d71439c..b9c981b 100644
+--- a/Box2D/Box2D/Dynamics/b2ContactManager.cpp
++++ b/Box2D/Box2D/Dynamics/b2ContactManager.cpp
+@@ -32,6 +32,7 @@ b2ContactManager::b2ContactManager()
+ 	m_contactFilter = &b2_defaultFilter;
+ 	m_contactListener = &b2_defaultListener;
+ 	m_allocator = NULL;
++    m_broadPhase.SetQuerySubsetFilter(NeedsPairQuery);
+ }
+ 
+ void b2ContactManager::Destroy(b2Contact* c)
+@@ -169,6 +170,12 @@ void b2ContactManager::Collide()
+ 	}
+ }
+ 
++// Modified by OpenAI Codex; original Box2D authorship/license is retained.
++bool b2ContactManager::NeedsPairQuery(void* proxy)
++{
++    return static_cast<b2FixtureProxy*>(proxy)->fixture->GetBody()->GetType() == b2_dynamicBody;
++}
++
+ void b2ContactManager::FindNewContacts()
+ {
+ 	m_broadPhase.UpdatePairs(this);
+diff --git a/Box2D/Box2D/Dynamics/b2ContactManager.h b/Box2D/Box2D/Dynamics/b2ContactManager.h
+index dc1f77f..8b5ad22 100644
+--- a/Box2D/Box2D/Dynamics/b2ContactManager.h
++++ b/Box2D/Box2D/Dynamics/b2ContactManager.h
+@@ -35,6 +35,9 @@ public:
+ 	// Broad-phase callback.
+ 	void AddPair(void* proxyUserDataA, void* proxyUserDataB);
+ 
++    // Every possible contact has a dynamic endpoint. No user filter or contact
++    // callback runs here; retain normal sorted order for all remaining pairs.
++    static bool NeedsPairQuery(void* proxyUserData);
+ 	void FindNewContacts();
+ 
+ 	void Destroy(b2Contact* c);
+diff --git a/Box2D/Box2D/Dynamics/b2World.h b/Box2D/Box2D/Dynamics/b2World.h
+index 7534756..c69aa1e 100644
+--- a/Box2D/Box2D/Dynamics/b2World.h
++++ b/Box2D/Box2D/Dynamics/b2World.h
+@@ -56,6 +56,10 @@ public:
+ 	/// Otherwise the default filter is used (b2_defaultFilter). The listener is
+ 	/// owned by you and must remain in scope. 
+ 	void SetContactFilter(b2ContactFilter* filter);
++    // OpenAI Codex adaptation; disabling restores upstream pair buffering for A/B.
++    void SetEarlyPairFiltering(bool enabled) {
++        m_contactManager.m_broadPhase.SetQuerySubsetFilter(enabled ? b2ContactManager::NeedsPairQuery : NULL);
++    }
+ 
+ 	/// Register a contact event listener. The listener is owned by you and must
+ 	/// remain in scope.
 diff --git a/OpenClaw/Engine/Actor/Actor.cpp b/OpenClaw/Engine/Actor/Actor.cpp
 index 0da69f0..7d2354e 100644
 --- a/OpenClaw/Engine/Actor/Actor.cpp
@@ -838,7 +968,7 @@ index 39554a3..d399e83 100644
  #endif
 \ No newline at end of file
 diff --git a/OpenClaw/Engine/Actor/Components/PhysicsComponent.cpp b/OpenClaw/Engine/Actor/Components/PhysicsComponent.cpp
-index ade3b61..cf13488 100644
+index ade3b61..6c111a8 100644
 --- a/OpenClaw/Engine/Actor/Components/PhysicsComponent.cpp
 +++ b/OpenClaw/Engine/Actor/Components/PhysicsComponent.cpp
 @@ -433,26 +433,25 @@ void PhysicsComponent::VUpdate(uint32 msDiff)
@@ -885,7 +1015,20 @@ index ade3b61..cf13488 100644
          if (fabs(m_ClimbingSpeed.y) > DBL_EPSILON)
          {
              m_CurrentSpeed = Point(0, 0);
-@@ -977,6 +976,23 @@ void PhysicsComponent::SetJumping(bool jumping)
+@@ -802,7 +801,11 @@ set_velocity:
+             {
+                 m_pControllableComponent->VOnRun();
+             }
+-            else if (m_IsStopped && (((fabs(GetVelocity().y) < DBL_EPSILON) && (fabs(GetVelocity().x) < DBL_EPSILON)) || !m_OverlappingKinematicBodiesList.empty()) && IsOnGround())
++            // Box2D can retain float residuals and slow position corrections on
++            // tile corners. Double epsilon leaves the falling animation stuck.
++            // A 0.01 m/s tolerance is below one pixel/second at 75 px/m and
++            // affects only this animation callback, never physical velocity.
++            else if (m_IsStopped && (((fabs(GetVelocity().y) < 0.01) && (fabs(GetVelocity().x) < DBL_EPSILON)) || !m_OverlappingKinematicBodiesList.empty()) && IsOnGround())
+             {
+                 m_pControllableComponent->VOnStopMoving();
+             }
+@@ -977,6 +980,23 @@ void PhysicsComponent::SetJumping(bool jumping)
      }
  }
  
@@ -909,7 +1052,7 @@ index ade3b61..cf13488 100644
  bool PhysicsComponent::AttachToLadder()
  {
      if (!m_CanClimb)
-@@ -989,6 +1005,8 @@ bool PhysicsComponent::AttachToLadder()
+@@ -989,6 +1009,8 @@ bool PhysicsComponent::AttachToLadder()
          return false;
      }
  
@@ -1880,7 +2023,7 @@ index 2bb4694..74a47c3 100644
  };
  
 diff --git a/OpenClaw/Engine/Physics/ClawPhysics.cpp b/OpenClaw/Engine/Physics/ClawPhysics.cpp
-index 0c037b8..237690d 100644
+index 0c037b8..9c6bc27 100644
 --- a/OpenClaw/Engine/Physics/ClawPhysics.cpp
 +++ b/OpenClaw/Engine/Physics/ClawPhysics.cpp
 @@ -119,7 +119,7 @@ b2AABB GetBodyAABB(b2Body* pBody, bool discardSensors)
@@ -1892,7 +2035,23 @@ index 0c037b8..237690d 100644
          {
              fixture = fixture->GetNext();
              continue;
-@@ -395,7 +395,20 @@ void ClawPhysics::VOnUpdate(const uint32 msDiff)
+@@ -192,6 +192,15 @@ bool ClawPhysics::VInitialize()
+ {
+     b2Vec2 gravity(0, 9.8f);
+     m_pWorld.reset(new b2World(gravity));
++#ifdef __ANDROID__
++    // OpenAI Codex: same APK A/B and local fallback. Filtering preserves all
++    // pairs allowed by Box2D; no solver, timing or gameplay filter changes.
++    FILE* pairFallback = fopen("physics-pairs-unfiltered", "rb");
++    const bool earlyPairs = pairFallback == nullptr;
++    if(pairFallback) fclose(pairFallback);
++    m_pWorld->SetEarlyPairFiltering(earlyPairs);
++    SDL_Log("Pazur physics pair filtering: %d",earlyPairs);
++#endif
+     m_pDebugDrawer.reset(new PhysicsDebugDrawer());
+ 
+     // Create debug drawer
+@@ -395,7 +404,27 @@ void ClawPhysics::VOnUpdate(const uint32 msDiff)
  {
      //PROFILE_CPU("ClawPhysics::VOnUpdate");
  
@@ -1903,6 +2062,13 @@ index 0c037b8..237690d 100644
 +    // than changing solver iterations or simulation cadence to reach an FPS goal.
 +    static double collide=0,solve=0,toi=0;static int samples=0;
 +    const auto& profile=m_pWorld->GetProfile();
++    static unsigned slowSteps=0;
++    if(g_pApp->GetDebugOptions()->bPreviewIncompleteLevel14 && (profile.step>20 || slowSteps==0) && slowSteps++<12) {
++        SDL_Log("Pazur Box2D step: total=%.2f collide=%.2f solve=%.2f toi=%.2f other=%.2f ms bodies=%d contacts=%d",
++            profile.step,profile.collide,profile.solve,profile.solveTOI,
++            profile.step-profile.collide-profile.solve-profile.solveTOI,
++            m_pWorld->GetBodyCount(),m_pWorld->GetContactCount());
++    }
 +    collide+=profile.collide;solve+=profile.solve;toi+=profile.solveTOI;
 +    if(++samples==300) {
 +        SDL_Log("Pazur Box2D sample: collide=%.2f solve=%.2f toi=%.2f ms bodies=%d contacts=%d",
@@ -1914,7 +2080,7 @@ index 0c037b8..237690d 100644
  
      // Remove actors form physics simulation which are scheduled to be destroyed
      for (uint32 actorId : m_ActorsToBeDestroyed)
-@@ -1431,6 +1444,16 @@ void ClawPhysics::VScaleActor(uint32_t actorId, double scale)
+@@ -1431,6 +1460,16 @@ void ClawPhysics::VScaleActor(uint32_t actorId, double scale)
  // Private implementations
  //=====================================================================================================================
  
