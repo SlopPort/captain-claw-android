@@ -2,9 +2,11 @@
 
 Adaptation changes in this session were made by an LLM; upstream source retains its original authorship. This guide explains entry points and reasons for the non-obvious design choices. It does not claim that every inherited source line has been reviewed or commented.
 
+Version 0.4.9: `native/android_main.cpp` explicitly enables SDL render batching because choosing GLES2 disables it by default in the pinned SDL. A local `render-batching-off` file restores the old submission policy on next start for measurement/driver fallback. No direct GL calls are mixed into the SDL draw queue. See `validation/FPS-0.4.9.md` for measurements and the separate startup viewport race.
+
 | Source | Responsibility and important constraint |
 |---|---|
-| `app/.../LauncherActivity.java` | Imports only the exact required ZIP entries into application storage. The allowlist excludes path traversal and save replacement. It currently accepts a prepared ZIP, not bare REZ. |
+| `app/.../LauncherActivity.java` | Imports complete REZ or exact required ZIP entries into application storage. ZIP allowlisting excludes path traversal and save replacement; raw REZ validation and generated support live in ImportSupport. |
 | `app/.../GameActivity.java` | Hosts SDL and Android lifecycle handling. Device input must remain scoped to the game. |
 | `app/.../ControllerSettingsActivity.java` | Captures physical Android button codes or triggers, swaps occupied assignments within each action group and atomically saves the binding file. PL/EN UI; bindings currently shared by devices. |
 | `native/android_main.cpp` | Android startup, paths and engine entry. |

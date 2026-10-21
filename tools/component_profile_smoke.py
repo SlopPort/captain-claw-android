@@ -1,4 +1,5 @@
-"""Opt-in component timing on level 13; instrumentation affects frame timings."""
+"""Opt-in component timing; instrumentation affects frame timings."""
+import argparse
 import json
 import copy
 import re
@@ -9,18 +10,22 @@ from gamepad_quit_smoke import adb, REMOTE, PORT
 
 
 def main():
-    report=PORT/'reports/component-profile-0.4.8';report.mkdir(parents=True,exist_ok=True)
+    parser=argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--level',type=int,choices=range(1,15),default=13)
+    parser.add_argument('--report',default='component-profile-0.4.8')
+    args=parser.parse_args()
+    report=PORT/'reports'/args.report;report.mkdir(parents=True,exist_ok=True)
     for name in ('combat-command.txt','combat-response.txt'):
         if subprocess.run(['adb','shell','ls',REMOTE+name],capture_output=True).returncode==0:raise RuntimeError('Existing mailbox')
     adb('shell','am','force-stop','pl.pazur.port')
     for name in ('config.xml','SAVES.XML'):adb('pull',REMOTE+name,str(report/name))
-    tree=ET.parse(report/'config.xml');tree.find('DebugOptions/SkipMenu').text='true';tree.find('DebugOptions/SkipMenuToLevel').text='13'
+    tree=ET.parse(report/'config.xml');tree.find('DebugOptions/SkipMenu').text='true';tree.find('DebugOptions/SkipMenuToLevel').text=str(args.level)
     flag=tree.find('DebugOptions/PreviewIncompleteLevel14')
     if flag is None:flag=ET.SubElement(tree.find('DebugOptions'),'PreviewIncompleteLevel14')
     flag.text='true';tree.write(report/'test.xml',encoding='utf-8',xml_declaration=True)
     saves=ET.parse(report/'SAVES.XML')
-    if not any(level.findtext('LevelNumber')=='13' for level in saves.findall('Level')):
-        level=copy.deepcopy(saves.find('Level'));level.find('LevelNumber').text='13';saves.getroot().append(level)
+    if not any(level.findtext('LevelNumber')==str(args.level) for level in saves.findall('Level')):
+        level=copy.deepcopy(saves.find('Level'));level.find('LevelNumber').text=str(args.level);saves.getroot().append(level)
     saves.write(report/'saves-test.xml',encoding='utf-8',xml_declaration=True)
     pid=''
     try:

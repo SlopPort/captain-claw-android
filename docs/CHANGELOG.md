@@ -1,5 +1,9 @@
 # Historia adaptacji
 
+## 0.4.9 — grupowanie rysowania SDL
+
+Jawne włączenie kolejki rysowania, domyślnie wyłączanej przez SDL po wybraniu sterownika GLES2. W porównaniu wyłączone/włączone/wyłączone na jednym APK początki poziomów 8/9/13 osiągnęły około 60 FPS zamiast około 57/54/58 FPS. Bez zmian rozdzielczości, filtrowania, fizyki i tempa logiki. Lokalny opt-out pozwala wrócić do poprzedniej ścieżki przy problemie sterownika. [Metoda, wyniki i ograniczenia](validation/FPS-0.4.9.md).
+
 ## 0.4.8 — funkcje Claw Web, optymalizacja i audyt
 
 Bezpośredni REZ, eksport/import zapisów z kopią poprzedniego postępu, opcjonalne wibracje oraz węższy preload, z przypisaniem inspiracji/adaptacji Claw Web (Arthur Boss i współtwórcy). ThinLTO/O3, cache wyszukiwania komponentów i pominięcie odziedziczonych pustych aktualizacji; bez obniżenia obrazu i solvera. Reset zegara po ładowaniu, pomiary tylko aktywnej gry. Audyt dołu drabiny i czasu życia kontaktu, poprawka diagnostycznego zegara Box2D oraz zgodności odbiornika USB nowszych Androidów. [Raport i pozostałe ograniczenia](validation/PORT-0.4.8.md); pełne naturalne przejście nadal niepotwierdzone.

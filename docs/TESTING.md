@@ -1,5 +1,9 @@
 # Weryfikacja
 
+`tools/render_batch_smoke.py --levels 8 9 13 --hold-seconds 35` porównuje ten sam APK z grupowaniem SDL wyłączonym, włączonym i ponownie wyłączonym. Wymaga wersji 0.4.9; zachowuje poprzedni plik opt-out i korzysta z przywracania konfiguracji/zapisów w teście map. Wyniki i granice porównania: [FPS-0.4.9](validation/FPS-0.4.9.md). `component_profile_smoke.py --level 9 --report nazwa` pozwala wybrać mapę profilera; jego narzut wyklucza używanie go jako benchmarku FPS.
+
+`tools/gameplay_perf_smoke.py --level 9 --seconds 45` mierzy krótką sekwencję ruchu w obie strony, skoku, szabli, strzału i kucania na rzeczywistej mapie. Nie chroni bohatera, nie teleportuje i nie dodaje amunicji. Sprawdza obserwowaną zmianę położenia oraz aktywne próbki FPS; samo potwierdzenie komendy nie wystarcza. To scena wydajnościowa, nie przejście poziomu. Po próbie przywraca zapis i konfigurację.
+
 Walidacja 0.4.8 i ograniczenia pomiarów: [raport](validation/PORT-0.4.8.md). Nowe scenariusze:
 
 - `python tools/ladder_smoke.py --expect-fixed --bottom --edges` sprawdza szczyt i dół izolowanej drabiny, ponowne wejście oraz obie strony podestu. Osobno uruchom `--first-map-ladder` dla rzeczywistej pierwszej drabiny poziomu 1.

@@ -245,6 +245,13 @@ def main():
                 (REPORT/f'level-{number}.log').write_text(log, encoding='utf-8')
                 result['frame_samples'] = [dict(fps=float(f), p95_ms=int(p), max_ms=int(m))
                     for f,p,m in re.findall(r'Pazur frame sample: fps=([\d.]+) p95=(\d+) ms max=(\d+) ms', log)]
+                # Immersive mode can settle after startup on this ROM. Record
+                # the engine's actual chosen viewport, not only wm size.
+                viewport=re.search(r'Pazur display: physical=(\d+)x(\d+) logical=(\d+)x(\d+)',log)
+                if viewport:
+                    sw,sh,lw,lh=map(int,viewport.groups())
+                    result['startup_surface']=[sw,sh]
+                    result['logical_size']=[lw,lh]
                 physics_samples=[tuple(map(float,row)) for row in re.findall(
                     r'Pazur Box2D sample: collide=([\d.]+) solve=([\d.]+) toi=([\d.]+)',log)]
                 if physics_samples:
