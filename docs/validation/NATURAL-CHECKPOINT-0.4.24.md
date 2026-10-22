@@ -144,3 +144,82 @@ na następną półkę około (9063,4114), zdrowie 60. Następnie Pazur zginął
 trafień Oficera około (9094,4114). Przyjmowanie sterowania w trakcie reakcji na
 obrażenia nadal wymaga audytu uczciwości walki. Nie zmieniano odporności, czasu
 reakcji na obrażenia, zasięgu ani tempa ataków. Poziom 1 nadal nieukończony.
+
+## Later route attempts / Kolejne próby trasy
+
+The fifth ordinary continuation defeated the next Officer by firing from the
+moving platform, reached x9236 with HP70 and boarded the second carrier. A late
+jump began at x9606.8, outside the ladder column x9568; it fell and reached Game
+Over. This is retained as a failed route, not a ladder-collision fix.
+The sixth continuation instead held Up early and attached to that ladder:
+HP60, x9568, y3548. The helper stopped its test 19.4 pixels below the cap because
+it did not allow enough held-input time for both the carrier return and ascent.
+It restored the user files; this is a test-duration failure, not a death or a
+completed ascent. The seventh attempt died to a Soldier before this transfer:
+a requested pistol action during hurt recovery had not defeated it. Blindly
+continuing after a requested attack is therefore not a reliable route controller.
+The game APK was unchanged throughout these attempts.
+
+`second-carrier-ladder-redmi-0.4.24-r1` separately confirms the ordinary early-Up
+sequence reaches x9568,y3528.6, HP100 in an explicit controlled fixture. The
+reusable observer now allows three two-second Up holds, accounting for variation
+in the platform's return timing. This fixture removes enemies and initializes
+HP100/ammo99 before initial placement. It is not natural campaign completion.
+
+Piąta naturalna kontynuacja pokonała Oficera strzałem z ruchomej platformy,
+dotarła do x9236 ze zdrowiem 70 i weszła na kolejną platformę. Za późny skok
+rozpoczął się przy x9606,8, poza kolumną drabiny x9568, i zakończył się śmiercią.
+Szósta próba wcześniej przytrzymała „góra” i poprawnie zaczepiła się o drabinę:
+zdrowie 60, x9568, y3548. Narzędzie zakończyło test 19,4 piksela przed szczytem,
+ponieważ nie uwzględniło całego czasu powrotu platformy i wspinania. Przywróciło
+pliki użytkownika; to za krótki czas próby, nie śmierć ani pełne wejście.
+Siódma próba zginęła wcześniej od żołnierza: strzał zlecony podczas reakcji na
+obrażenia nie pokonał przeciwnika. Dalsza automatyzacja wymaga potwierdzania
+wyniku walki, zamiast zakładać skuteczność naciśnięcia przycisku. APK nie zmieniano.
+
+Osobna jawnie kontrolowana próba potwierdziła wejście po wcześniejszym
+przytrzymaniu „góra”: x9568,y3528,6, zdrowie 100. Obserwator pozwala teraz na trzy
+przytrzymania po dwie sekundy, aby uwzględnić fazę powrotu platformy. Scena
+kontrolowana usuwa przeciwników i ustawia zdrowie/amunicję przed początkowym
+umieszczeniem bohatera. Nie zaliczamy jej jako naturalnego przejścia.
+
+The eighth natural attempt confirmed a Soldier defeat before departure but again
+missed the second ladder after boarding. The controlled landing offset was not
+representative of every natural state: a real catnip pickup changes movement
+speed. The helper's status-query round trips also allowed the carrier to move
+past the sensor before Up began. The observer now presses Up during the boarding
+jump, rather than waiting for post-landing queries. Controlled candidate r3
+(`second-carrier-ladder-redmi-0.4.24-r3`) reaches the cap at (9568,3528.6), HP100.
+This is still not a complete natural-route or campaign pass. Earlier r1/r2
+controlled passes remain evidence only for their own fixture and input timing.
+
+Ósma naturalna próba potwierdziła pokonanie żołnierza przed dalszym ruchem, lecz
+ponownie minęła drabinę po wejściu na platformę. Naturalnie zdobyta kocimiętka
+zmienia prędkość i miejsce lądowania; odczyty po lądowaniu pozwalały też platformie
+wyjechać poza kolumnę drabiny przed naciśnięciem „góra”. Obserwator przytrzymuje
+teraz wspinanie już podczas skoku. Próba kontrolowana r3 przeszła do szczytu
+(9568,3528,6), zdrowie 100. Nie jest to ukończenie naturalnej trasy ani kampanii.
+Poprzednie próby kontrolowane potwierdzają wyłącznie własne ustawienie i sterowanie.
+
+## Natural ninth continuation / Dziewiąta naturalna kontynuacja
+
+The corrected ordinary sequence now passes in the natural run too:
+`natural-campaign-0.4.24-resume9/second-carrier-natural-ladder.json` records HP60,
+x9568,y3528.6 at the ladder cap. The following ordinary left jump boarded the
+real x9442 vertical elevator. Riding it and a short jump with held Up reached
+the next ladder cap x9568,y2440.6, HP30 (`tower-transfer.json`). The next Soldier
+subsequently killed the hero; the attempted longer jump/shot did not survive.
+Level 1 remains incomplete. This is incremental natural route coverage, not a
+single uninterrupted clear, all-level pass, FPS guarantee or 1.0 release.
+After ending this owned run the real device configuration and save were pulled
+again and matched both original backups byte for byte (`restoration.json`).
+
+Poprawiona sekwencja zwykłych przycisków przeszła również w naturalnej próbie:
+zdrowie 60, x9568,y3528,6 na szczycie drabiny. Kolejny skok w lewo wszedł na
+prawdziwą pionową windę x9442. Przejazd i krótki skok z przytrzymaną wspinaczką
+pozwoliły dotrzeć na następną drabinę x9568,y2440,6, zdrowie 30. Następny żołnierz
+zabił jednak bohatera; próba dłuższego skoku ze strzałem nie zapewniła przeżycia.
+Pierwszy poziom nadal nieukończony. Są to kolejne sprawdzone fragmenty naturalnej
+trasy, nie nieprzerwane przejście całej gry ani gwarancja FPS czy wersja 1.0.
+Po zakończeniu ponownie pobrano konfigurację i zapis z telefonu — oba pliki były
+identyczne bajt w bajt z kopiami użytkownika sprzed próby.
