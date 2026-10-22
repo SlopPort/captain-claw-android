@@ -36,3 +36,24 @@ The follow-up `vertical-contact-48-passive` recorded actual area creation and co
 `vertical-officer-48-escape` observed takeoff in all four active cases. When the hero started above, both cases moved away and lost 10 HP. When the officer started above, both cases suffered continued hits and did not establish a lasting escape. These are not validated long-held directional escape tests: the diagnostic command caps jump hold at 1000 ms even when supplied 1500, and holds direction for only 250 ms. The script's `escape` label describes an attempted input, not proven sustained movement or survival. Preserve this limitation when interpreting the reports.
 
 The diagnostic APK built in `build-area-contact-probes.log` compiled for ARM64 and ARMv7 and ran the two exact-contact trials on Huawei Android 10. Original configuration and saves were restored after each trial. Natural map stairs, other enemy types, remaining heights and original-game parity are still open.
+
+## Additional heights, sustained escape and shorter bodies
+
+The first 0.4.13 iteration (`5ccf38b86262bcc53369792021d446377a876c0ef942d7bb9ca03410d67b3ed7`) ran these additional officer cases:
+
+| Step height | Passive standing, enemy above | Passive standing, hero above |
+| --- | --- | --- |
+| 16 px | Both sides hit/defeat | Both sides hit/defeat |
+| 32 px | Both sides hit/defeat | Both sides hit/defeat |
+| 48 px (earlier batch) | Both sides hit/defeat | Both sides hit/defeat |
+| 64 px | Both sides miss | Both sides hit/defeat |
+
+The 64 px crouching cases likewise missed from below and dealt 5 damage from above. An observed hero-above standing area at y=986..1012 overlaps officer body y=999..1099; an enemy-above body's bottom is about 1035 while the grounded hero area begins at 1050. These are geometry-dependent outcomes, not symmetric vertical reach or proven original-game parity.
+
+`vertical-officer-48-held-0.4.13` holds jump and the away direction for 1000 ms, with an ordinary sword input scheduled at 450 ms. All four trials observed takeoff and displacement away from the opponent. Enemy-above trials lost 20 and 10 HP after the initial sample; hero-above trials lost 10 HP each. None observed player death during the captured interval. This establishes an available escape in these isolated cases, not indefinite safety from pursuing AI or a natural staircase test.
+
+The final Java chooser APK (`994a2f1b94c256aebd642e23f761103619d6737b9d45f86bd495d130d0532eaa`) ran `vertical-officer-jump150-0.4.13`: four accepted jumping swipes, 250 ms jump hold, 20 ms direction hold, 150 ms attack delay. All missed. Enemy-above areas at y=919..945 passed above the body starting at y=951; hero-above areas were higher still. Recording accepted animation and actual area location prevents these from being misreported as dropped sword input.
+
+`vertical-rat-48-0.4.13` on the same final APK covers eight passive cases with the actual 5 HP level-one Rat prototype. From below, standing and crouching attacks defeated the rat on both sides. From above, all four attacks passed above the shorter body (rat starts around y=1058; grounded hero area ends around 1028). One boundary contact against the higher left rat had integer `SDL_HasIntersection=false` while Box2D delivered contact/damage at the touching edge. Integer rounding and Box2D skin are different geometries; do not add an integer-overlap health gate based on this diagnostic flag alone.
+
+These tests still do not cover every normal enemy, natural map route, projectile trajectory or descending attack. The script now accepts a source prototype and loads its own level, records installed APK hashes, and separates direction duration, jump hold and attack delay. Existing reports retain their original results and limitations.

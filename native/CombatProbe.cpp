@@ -320,15 +320,20 @@ bool PazurCombatProbe::Handle(const std::vector<std::string>& args, const ActorM
         SDL_Log("Pazur map enemy count: %d",count);
         return true;
     }
-    if (args[0] == "combatjumpattack" && (args.size() == 3 || args.size() == 4)) {
+    if (args[0] == "combatjumpattack" && args.size() >= 3 && args.size() <= 5) {
         ResetKeys();
         const auto now=SDL_GetTicks();
         keyEvent(SDLK_SPACE,true);
         heldKeys[SDLK_SPACE]=now+(std::max)(20,(std::min)(1000,std::stoi(args[1])));
         scheduledSwordAt=now+(std::max)(20,(std::min)(1000,std::stoi(args[2])));
-        if(args.size()==4 && (args[3]=="left" || args[3]=="right")) {
+        if(args.size()>=4 && (args[3]=="left" || args[3]=="right")) {
             const auto direction=args[3]=="left"?SDLK_LEFT:SDLK_RIGHT;
-            keyEvent(direction,true);heldKeys[direction]=now+250;
+            // Optional duration separates real held escape input from the old
+            // short direction pulse. This changes diagnostic input only.
+            const int directionMs=args.size()==5?(std::max)(20,(std::min)(2000,std::stoi(args[4]))):250;
+            keyEvent(direction,true);heldKeys[direction]=now+directionMs;
+            SDL_Log("Pazur jump attack input: jump_ms=%u direction_ms=%d attack_delay_ms=%u",
+                heldKeys[SDLK_SPACE]-now,directionMs,scheduledSwordAt-now);
         }
         return true;
     }

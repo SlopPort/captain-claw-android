@@ -1,6 +1,9 @@
 """Check combat animation frames and map placements against extracted original assets."""
 from collections import Counter
 from pathlib import Path
+import argparse
+import hashlib
+import io
 import json
 import re
 import xml.etree.ElementTree as ET
@@ -8,6 +11,11 @@ import zipfile
 
 PORT = Path(__file__).resolve().parents[1]
 REPORT = PORT/'reports/combat-audit'
+parser=argparse.ArgumentParser(description=__doc__)
+parser.add_argument('--apk',type=Path,default=PORT/'app/build/outputs/apk/debug/app-debug.apk')
+args=parser.parse_args()
+provenance=json.loads((REPORT/'provenance.json').read_text(encoding='utf-8'))
+assert provenance['apk_sha256']==hashlib.sha256(args.apk.read_bytes()).hexdigest(),'Rerun audit_combat.py for this APK'
 inventory = json.loads((REPORT/'inventory.json').read_text(encoding='utf-8'))
 lines = (REPORT/'assets.txt').read_text(encoding='utf-8').splitlines()
 animations = {parts[1]: int(parts[2]) for line in lines
@@ -32,7 +40,9 @@ if compiled != [e['prototype'] for e in inventory]:
     errors.append('Diagnostic prototype order differs from inventory')
 counts = Counter()
 custom_fields = []
-with zipfile.ZipFile(PORT/'build/game-data/ASSETS.ZIP') as archive:
+with zipfile.ZipFile(args.apk) as apk:
+    support=apk.read('assets/import-support/ASSETS.ZIP')
+with zipfile.ZipFile(io.BytesIO(support)) as archive:
     mappings = {}
     for level in range(1, 15):
         root = ET.fromstring(archive.read(f'LEVEL_METADATA/LEVEL{level}.XML'))

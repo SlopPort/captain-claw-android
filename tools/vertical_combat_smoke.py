@@ -5,12 +5,14 @@ Enemy offensive AI and normal damage remain active; no invincibility/health
 edits. Fixture setup supplies pistol ammo, but no shots are fired here.
 """
 import argparse
+import hashlib
 import json
 import re
+import subprocess
 import time
 from pathlib import Path
 from campaign_session import CampaignSession
-from gamepad_quit_smoke import PORT
+from gamepad_quit_smoke import PORT, adb
 
 
 def state(session):
@@ -28,34 +30,51 @@ def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--report',required=True)
     parser.add_argument('--height',type=int,choices=(16,32,48,64),default=48)
+    parser.add_argument('--prototype',default='ActorPrototype_Level1_Officer',help='Exact prototype from native/CombatPrototypes.h; loads its own source level')
+    parser.add_argument('--jump-direction-ms',type=int,choices=range(20,2001),metavar='20..2000',default=250)
+    parser.add_argument('--attack-delay-ms',type=int,choices=range(20,1001),metavar='20..1000',default=80)
+    parser.add_argument('--jump-hold-ms',type=int,choices=range(20,1001),metavar='20..1000',default=250)
     parser.add_argument('--actions',nargs='+',choices=('standing','jump','duck','escape'),default=['standing','jump'])
     parser.add_argument('--passive',action='store_true',help='Disable enemy offensive AI to separate geometric misses from interrupted hero input; parry remains')
     parser.add_argument('--above',choices=('enemy','hero'),help='Run only one vertical relation')
     parser.add_argument('--side',type=int,choices=(-1,1),help='Run only one enemy side')
     args=parser.parse_args()
+    # Hash the package actually installed, not a build output that another ABI
+    # build can replace while the phone is under test. No APK data is printed.
+    package=adb('shell','pm','path','pl.pazur.port').strip()
+    base=next(line.removeprefix('package:') for line in package.splitlines() if line.endswith('/base.apk'))
+    digest=hashlib.sha256()
+    with subprocess.Popen(['adb','exec-out','cat',base],stdout=subprocess.PIPE) as process:
+        while chunk:=process.stdout.read(65536):digest.update(chunk)
+        assert process.wait()==0,'Cannot hash installed APK'
+    apk_sha256=digest.hexdigest()
     prototypes=re.findall(r'ActorPrototype_\w+', (PORT/'native/CombatPrototypes.h').read_text())
-    officer=prototypes.index('ActorPrototype_Level1_Officer')
+    enemy=prototypes.index(args.prototype)
+    level=int(re.search(r'_Level(\d+)_',args.prototype)[1])
     rows=[]
     for above in ((args.above,) if args.above else ('enemy','hero')):
         for side in ((args.side,) if args.side else (-1,1)):
             for action in args.actions:
                 label=f'{args.report}-{above}-{side}-{action}'
-                with CampaignSession(label,level=1) as session:
+                with CampaignSession(label,level=level) as session:
                     command='combatstairs' if above=='enemy' else 'combatheroabove'
                     setup_start=len(session.logs())
-                    session.command(f'{command} {officer} {side*80} {args.height}'+(' passive' if args.passive else ''))
+                    session.command(f'{command} {enemy} {side*80} {args.height}'+(' passive' if args.passive else ''))
                     assert f'hero_above={int(above=="hero")} passive={int(args.passive)}' in session.logs()[setup_start:],'Wrong diagnostic build/setup'
                     initial=state(session)
-                    assert initial['enemy']=='Officer' and initial['enemy_box'],'Wrong enemy fixture'
-                    player_y=initial['player_box'][1]+initial['player_box'][3]/2
-                    enemy_y=initial['enemy_box'][1]+initial['enemy_box'][3]/2
+                    assert initial['enemy']!='none' and initial['enemy_box'] and initial['enemy_hp']>0,'Missing live enemy fixture'
+                    # Compare supporting height, not body centers: a short rat
+                    # on a step can still have its center below a tall hero's.
+                    player_y=initial['player_box'][1]+initial['player_box'][3]
+                    enemy_y=initial['enemy_box'][1]+initial['enemy_box'][3]
                     assert (player_y<enemy_y) == (above=='hero'),'Requested vertical relation not established'
                     start=len(session.logs())
                     direction='right' if side>0 else 'left'
                     session.command('laddertrace vertical-'+action+' 2600')
                     if action in ('jump','escape'):
                         if action=='escape':direction='left' if side>0 else 'right'
-                        session.command(('combatjumpattack 1500 450 ' if action=='escape' else 'combatjumpattack 250 80 ')+direction)
+                        session.command(('combatjumpattack 1000 450 '+direction+' 1000') if action=='escape' else
+                                        f'combatjumpattack {args.jump_hold_ms} {args.attack_delay_ms} {direction} {args.jump_direction_ms}')
                     else:
                         session.command('combatkey '+direction+' 70')
                         if action=='duck':session.command('combatkey down 1600')
@@ -64,12 +83,24 @@ def main():
                     session.command('combatkey release 0');time.sleep(1.2)
                     final=state(session);session.capture('after')
                     evidence=session.logs()[start:]
-                    defeated=bool(re.search(r'Pazur enemy defeated: Officer\s*$',evidence,re.M))
-                    row=dict(above=above,side=side,step_height=args.height,action=action,
+                    contacts=[dict(source=int(source),target=target,damage=int(damage),
+                                   area=list(map(int,area.split(','))),body=list(map(int,body.split(','))),
+                                   integer_overlap=overlap=='1')
+                              for source,target,damage,area,body,overlap in re.findall(
+                                  r'area contact: source=(\d+) target=(\S+) damage=(\d+) area=([\d,-]+) body=([\d,-]+) integer_overlap=(\d)',evidence)]
+                    created=[dict(source=int(source),damage=int(damage),box=list(map(int,box.split(','))))
+                             for source,damage,box in re.findall(r'area created: source=(\d+) damage=(\d+) box=([\d,-]+)',evidence)]
+                    defeated=bool(re.search(r'Pazur enemy defeated: '+re.escape(initial['enemy'])+r'\s*$',evidence,re.M))
+                    row=dict(apk_sha256=apk_sha256,prototype=args.prototype,source_level=level,above=above,side=side,step_height=args.height,action=action,
                              initial=initial,after=after,final=final,enemy_defeated=defeated,
                              player_damage=initial['player_hp']-final['player_hp'],
                              enemy_damage_observed=defeated or 0<=final['enemy_hp']<initial['enemy_hp'],
                              offensive_ai_disabled=args.passive,
+                             area_contacts=contacts,
+                             area_created=created,
+                             jump_input=dict(hold_ms=1000 if action=='escape' else args.jump_hold_ms,
+                                             direction_ms=1000 if action=='escape' else args.jump_direction_ms,
+                                             attack_delay_ms=450 if action=='escape' else args.attack_delay_ms) if action in ('jump','escape') else None,
                              attack_animations_observed=sorted(set(re.findall(r'animation=(swipe|kick|uppercut|jumpswipe|duckswipe)\b',evidence))),
                              jump_observed=bool(re.search(r'jumping=1',evidence)),
                              player_death_observed=bool(re.search(r'combat: actor=Claw health=\d+->0\b',evidence)),

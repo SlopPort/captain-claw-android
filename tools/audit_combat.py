@@ -1,6 +1,9 @@
 """Inventory effective enemy prototypes from the exact packaged support archive."""
 from pathlib import Path
+import argparse
 import copy
+import hashlib
+import io
 import json
 import math
 import xml.etree.ElementTree as ET
@@ -26,8 +29,18 @@ def merge(parent, child):
 
 
 def main():
+    parser=argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--apk',type=Path,default=PORT/'app/build/outputs/apk/debug/app-debug.apk')
+    args=parser.parse_args()
     REPORT.mkdir(parents=True, exist_ok=True)
-    with zipfile.ZipFile(PORT/'build/game-data/ASSETS.ZIP') as archive:
+    # EngineSupport now installs the APK's canonical XML bundle. Imported
+    # game-data/ASSETS.ZIP can be older and is not the effective engine source.
+    with zipfile.ZipFile(args.apk) as apk:
+        support=apk.read('assets/import-support/ASSETS.ZIP')
+    (REPORT/'provenance.json').write_text(json.dumps(dict(
+        apk_name=args.apk.name,apk_sha256=hashlib.sha256(args.apk.read_bytes()).hexdigest(),
+        support_sha256=hashlib.sha256(support).hexdigest()),indent=2),encoding='utf-8')
+    with zipfile.ZipFile(io.BytesIO(support)) as archive:
         raw = {}
         for name in archive.namelist():
             if name.upper().startswith('ACTOR_PROTOTYPES/') and name.lower().endswith('.xml'):
