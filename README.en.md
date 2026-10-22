@@ -4,7 +4,9 @@
 
 A native Android adaptation of [OpenClaw](https://github.com/pjasicek/OpenClaw), using game data supplied from the user's own copy of Claw. C++/SDL, ARM64 and ARMv7, minimum build API 21. Compatibility with every Android version or device is not established.
 
-Current development version: **0.4.12-dev**. A final 1.0 release remains in preparation. Current work covers Aquatis/Marrow encounters, level transitions, attack sounds and menu fixes; see the [evidence and release gates](docs/validation/CAMPAIGN-1.0.md). Earlier [physics/ladder tests](docs/validation/FPS-0.4.11.md), [gameplay audit](docs/validation/BUG-AUDIT-2026-10-21.md) and [rendering measurements](docs/validation/FPS-0.4.9.md) record the scope of previous changes.
+Current development version: **0.4.13-dev**. A final 1.0 release remains in preparation. Current work covers Aquatis/Marrow encounters, level transitions, attack sounds and menu fixes; see the [evidence and release gates](docs/validation/CAMPAIGN-1.0.md). Earlier [physics/ladder tests](docs/validation/FPS-0.4.11.md), [gameplay audit](docs/validation/BUG-AUDIT-2026-10-21.md) and [rendering measurements](docs/validation/FPS-0.4.9.md) record the scope of previous changes.
+
+**Language:** before data import, or under **PAD → Language / Język**, choose Polski or English. Android screens and our added captions support both languages; in-game labels change after restarting the game. Original menu artwork and voices depend on your game data. [Translation scope and evidence](docs/validation/ENGLISH-UI-PLAN.md).
 
 Select your own complete **CLAW.REZ** directly, or use a prepared game-data.zip. PAD → Save backups and vibration provides save export/import and optional haptics. These workflows/designs are inspired by Claw Web, Arthur Boss and contributors; see [credits](NOTICE.md) and the [validation report](docs/validation/PORT-0.4.8.md). A 168-byte placeholder REZ with loose Assets still requires ZIP preparation.
 

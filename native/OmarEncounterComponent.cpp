@@ -1,3 +1,4 @@
+#include "UiLanguage.h"
 #include "OmarEncounterComponent.h"
 #include "Engine/Actor/Actor.h"
 #include "Engine/Actor/ActorTemplates.h"
@@ -279,9 +280,9 @@ void OmarEncounterComponent::VUpdate(uint32 ms) {
     if (m_Opening > 0 && (m_Opening -= ms) <= 0) { m_Opening = 0; m_Battle.bullets = 0; SDL_Log("Pazur Omar opening closed"); }
     if (m_Recovery > 0 && (m_Recovery -= ms) <= 0) { m_Recovery = 0; m_Animation->SetAnimation("idle"); }
     if (!m_Battle.secondPhase()) {
-        hint = m_Battle.fireShield ? "OGIEN: uzyj lodowego miecza przez luke" : "LOD: uzyj ognistego miecza przez luke";
+        hint = m_Battle.fireShield ? PazurUi::Text("OGIEN: uzyj lodowego miecza przez luke","FIRE: strike through the gap with the ice sword") : PazurUi::Text("LOD: uzyj ognistego miecza przez luke","ICE: strike through the gap with the fire sword");
         UpdateRing(ms);
-    } else hint = m_Battle.bullets == 3 ? "TERAZ: podejdz i zaatakuj kucajac" : "OMAR: trzy strzaly otwieraja obrone";
+    } else hint = m_Battle.bullets == 3 ? PazurUi::Text("TERAZ: podejdz i zaatakuj kucajac","NOW: get close and attack while crouching") : PazurUi::Text("OMAR: trzy strzaly otwieraja obrone","OMAR: three shots open his defense");
     if (const auto claw = g_pApp->GetGameLogic()->GetClawActor()) m_Render->SetMirrored(claw->GetPositionComponent()->GetX() > m_pOwner->GetPositionComponent()->GetX());
     UpdateBolts(ms);
     m_AttackTimer -= ms;
@@ -326,7 +327,7 @@ void OmarEncounterComponent::Draw(SDL_Renderer* renderer) {
     const int centerOffset = extra/2;
     if (endingMs) {
         boxRGBA(renderer, 0, 0, 639+extra, 479, 8, 6, 18, 230);
-        stringRGBA(renderer, 248+centerOffset, 110, "OMAR POKONANY", 255, 213, 110, 255);
+        stringRGBA(renderer, 248+centerOffset, 110, PazurUi::Text("OMAR POKONANY","OMAR DEFEATED"), 255, 213, 110, 255);
         const auto image = endingMs < 3500 ? gemImage : (endingMs < 7000 ? adoraImage : amuletImage);
         if (image) {
             const double scale = (std::min)(2.0, (std::min)(180.0/image->GetHeight(), 220.0/image->GetWidth()));
@@ -336,9 +337,9 @@ void OmarEncounterComponent::Draw(SDL_Renderer* renderer) {
             SDL_SetTextureColorMod(image->GetTexture(), 255, 255, 255);
             SDL_RenderCopy(renderer, image->GetTexture(), nullptr, &r);
         }
-        stringRGBA(renderer, 204+centerOffset, 327, "AMULET DZIEWIECIU ZYC", 255, 229, 170, 255);
-        stringRGBA(renderer, 164+centerOffset, 354, "Zdobyles ostatni klejnot i amulet.", 235, 230, 245, 255);
-        stringRGBA(renderer, 172+centerOffset, 376, "Adora powierza ci ich ochrone.", 235, 230, 245, 255);
+        stringRGBA(renderer, 204+centerOffset, 327, PazurUi::Text("AMULET DZIEWIECIU ZYC","AMULET OF NINE LIVES"), 255, 229, 170, 255);
+        stringRGBA(renderer, 164+centerOffset, 354, PazurUi::Text("Zdobyles ostatni klejnot i amulet.","You recovered the last gem and the amulet."), 235, 230, 245, 255);
+        stringRGBA(renderer, 172+centerOffset, 376, PazurUi::Text("Adora powierza ci ich ochrone.","Adora entrusts their protection to you."), 235, 230, 245, 255);
     } else {
         boxRGBA(renderer, 112+centerOffset, 65, 535+centerOffset, 88, 15, 10, 25, 195);
         stringRGBA(renderer, 120+centerOffset, 73, hint, 255, 232, 190, 255);

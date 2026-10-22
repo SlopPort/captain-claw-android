@@ -6,6 +6,9 @@ import android.view.KeyEvent;
 import java.io.*;
 
 public class GameActivity extends SDLActivity {
+    @Override protected void attachBaseContext(android.content.Context context) {
+        super.attachBaseContext(AppLanguage.wrap(context));
+    }
     public static native void nativePadButton(int device, int key, boolean down);
     @Override public void onBackPressed() {
         // Let the game open its pause menu or return to the previous menu page.
@@ -46,7 +49,7 @@ public class GameActivity extends SDLActivity {
         pad.setText("PAD");
         pad.setTextSize(12);
         pad.setFocusable(false);
-        pad.setContentDescription("Ustawienia pada / Controller settings");
+        pad.setContentDescription(getString(R.string.pad_accessibility));
         pad.setOnClickListener(v -> startActivity(new android.content.Intent(this,ControllerSettingsActivity.class)));
         android.widget.RelativeLayout.LayoutParams position = new android.widget.RelativeLayout.LayoutParams(
             (int)(64*getResources().getDisplayMetrics().density), (int)(44*getResources().getDisplayMetrics().density));

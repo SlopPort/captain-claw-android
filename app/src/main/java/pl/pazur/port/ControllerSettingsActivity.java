@@ -14,20 +14,18 @@ import java.util.Properties;
  * Saves atomically; the SDL thread reloads only a complete binding file.
  * LLM-authored adaptation: see docs/DEVELOPMENT-NOTES.md.
  */
-public class ControllerSettingsActivity extends Activity {
+public class ControllerSettingsActivity extends LocalizedActivity {
     private static final String[] ACTIONS={"jump","attack","fire","weapon","pause","confirm","back"};
     private static final int[] DEFAULTS={96,99,97,100,108,96,97};
     private final int[] bindings=DEFAULTS.clone();
     private final Button[] rows=new Button[7];
-    private boolean english;
     private int capturing=-1;
     private AlertDialog capture;
     private boolean triggerReady;
 
-    private String tr(String pl,String en) { return english?en:pl; }
     private String action(int i) {
-        return (english ? new String[]{"Jump","Sword attack","Shoot","Change weapon","Pause","Menu: confirm","Menu: back"}
-            : new String[]{"Skok","Atak szablą","Strzał","Zmiana broni","Pauza","Menu: zatwierdź","Menu: wstecz"})[i];
+        return getString(new int[]{R.string.action_jump,R.string.action_attack,R.string.action_fire,
+            R.string.action_weapon,R.string.action_pause,R.string.action_confirm,R.string.action_back}[i]);
     }
     private File file() { return new File(getExternalFilesDir(null),"controller-bindings.txt"); }
     private String name(int code) {
@@ -45,7 +43,6 @@ public class ControllerSettingsActivity extends Activity {
     }
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
-        english=!getResources().getConfiguration().locale.getLanguage().equals("pl");
         try (InputStream input=new FileInputStream(file())) {
             Properties values=new Properties();values.load(input);
             for(int i=0;i<7;i++) {
@@ -58,31 +55,32 @@ public class ControllerSettingsActivity extends Activity {
         int padding=(int)(16*getResources().getDisplayMetrics().density);
         layout.setPadding(padding,padding,padding,padding);
         TextView intro=new TextView(this);
-        intro.setText(tr("Ustawienia pada\nWybierz czynność, a potem naciśnij przycisk lub spust. Ustawienia zapisują się automatycznie. Zajęty przycisk zamienia przypisania w tej samej grupie. Nazwy przycisków pochodzą z Androida. Ruch: gałka / krzyżak.",
-            "Controller settings\nChoose an action, then press a button or trigger. Changes save automatically. Occupied buttons swap assignments within the same group. Button names come from Android. Movement: left stick / D-pad."));
+        intro.setText(getString(R.string.controller_intro));
         intro.setTextSize(18);layout.addView(intro);
         for(int i=0;i<7;i++) {
             final int index=i;rows[i]=new Button(this);
             rows[i].setOnClickListener(v -> beginCapture(index));layout.addView(rows[i]);
         }
-        Button reset=new Button(this);reset.setText(tr("Przywróć domyślne","Restore defaults"));
+        Button reset=new Button(this);reset.setText(getString(R.string.restore_defaults));
         reset.setOnClickListener(v -> {
             int[] previous=bindings.clone();System.arraycopy(DEFAULTS,0,bindings,0,7);
             try {save();refresh();} catch(IOException error) {System.arraycopy(previous,0,bindings,0,7);showError(error);}
         });layout.addView(reset);
-        Button files=new Button(this);files.setText(tr("Kopie zapisów i wibracje","Save backups and vibration"));files.setOnClickListener(v->startActivity(new android.content.Intent(this,FileToolsActivity.class)));layout.addView(files);
-        Button done=new Button(this);done.setText(tr("Wróć do gry","Return to game"));done.setOnClickListener(v -> finish());layout.addView(done);
+        Button files=new Button(this);files.setText(getString(R.string.save_tools));files.setOnClickListener(v->startActivity(new android.content.Intent(this,FileToolsActivity.class)));layout.addView(files);
+        Button language=new Button(this);language.setText(R.string.language);
+        language.setOnClickListener(v->AppLanguage.choose(this));layout.addView(language);
+        TextView languageHelp=new TextView(this);languageHelp.setText(R.string.language_restart);layout.addView(languageHelp);
+        Button done=new Button(this);done.setText(getString(R.string.return_game));done.setOnClickListener(v -> finish());layout.addView(done);
         scroll.addView(layout);setContentView(scroll);refresh();
     }
     private void showError(Exception error) {
-        new AlertDialog.Builder(this).setMessage(tr("Nie zapisano ustawień: ","Settings were not saved: ")+error.getMessage()).setPositiveButton("OK",null).show();
+        new AlertDialog.Builder(this).setMessage(getString(R.string.settings_save_error)+error.getMessage()).setPositiveButton("OK",null).show();
     }
     private void beginCapture(int index) {
         capturing=index;triggerReady=false;
         capture=new AlertDialog.Builder(this).setTitle(action(index))
-            .setMessage(tr("Puść przyciski i spusty, potem naciśnij wybrany. Ruch gałką nie zmienia przypisania.",
-                "Release buttons and triggers, then press the desired one. Stick movement does not bind an action."))
-            .setNegativeButton(tr("Anuluj","Cancel"),(d,w)->capturing=-1).create();
+            .setMessage(getString(R.string.capture_hint))
+            .setNegativeButton(getString(R.string.cancel),(d,w)->capturing=-1).create();
         capture.setOnDismissListener(d -> capturing=-1);
         capture.setOnKeyListener((d,key,event)->captureKey(event));
         capture.show();

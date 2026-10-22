@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="controller_intro">Controller settings\nChoose an action, then press a button or trigger. Changes save automatically. Occupied buttons swap assignments within the same group. Button names come from Android. Movement: left stick / D-pad.</string>
+    <string name="restore_defaults">Restore defaults</string>
+    <string name="save_tools">Save backups and vibration</string>
+    <string name="return_game">Return to game</string>
+    <string name="settings_save_error">"Settings were not saved: "</string>
+    <string name="capture_hint">Release buttons and triggers, then press the desired one. Stick movement does not bind an action.</string>
+    <string name="cancel">Cancel</string>
+    <string name="saves_vibration">Saves and vibration</string>
+    <string name="export_progress">Export progress to file</string>
+    <string name="import_progress">Import progress</string>
+    <string name="import_progress_hint">Import replaces progress on the next game start. The previous save is backed up. Use this port\'s XML, not Windows saves or Claw Web JSON.</string>
+    <string name="import_cancel">Cancel</string>
+    <string name="choose_file">Choose file</string>
+    <string name="vibration_optional">Vibration (optional)</string>
+    <string name="back">Back</string>
+    <string name="backup_exported">Backup exported.</string>
+    <string name="progress_import_prepared">Import prepared. Quit from the game menu and launch again to apply it.</string>
+    <string name="progress_error">"Progress unchanged: "</string>
+    <string name="language">Language / Język</string>
+    <string name="language_restart">In-game labels change after restarting the game. Voices and original menus depend on your game data.</string>
+    <string name="storage_unavailable">App storage is unavailable.</string>
+    <string name="pad_accessibility">Controller and language settings</string>
+    <string name="action_jump">Jump</string>
+    <string name="action_attack">Sword attack</string>
+    <string name="action_fire">Shoot</string>
+    <string name="action_weapon">Change weapon</string>
+    <string name="action_pause">Pause</string>
+    <string name="action_confirm">Menu: confirm</string>
+    <string name="action_back">Menu: back</string>
+    <string name="prepare_error">"Cannot prepare game: "</string>
+    <string name="retry">"Retry"</string>
+    <string name="close">"Close"</string>
+    <string name="pin_help">"Hold the game icon in the app drawer and drag it to your home screen."</string>
+    <string name="import_intro">"Captain Claw\n\nChoose CLAW.REZ from your own game or game-data.zip.\n\nDirect REZ import inspired by Claw Web (Arthur Boss and contributors), GPLv3."</string>
+    <string name="import_choose">"Choose game data"</string>
+    <string name="import_busy">"Importing game data…"</string>
+    <string name="import_stage_error">"Cannot prepare import."</string>
+    <string name="import_content_error">"Invalid archive content: "</string>
+    <string name="import_size_error">"Archive exceeds 1 GB."</string>
+    <string name="import_missing_error">"Archive is missing required game data."</string>
+    <string name="import_save_error">"Cannot save: "</string>
+    <string name="import_failed">"Game data import failed."</string>
+</resources>

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="controller_intro">Ustawienia pada\nWybierz czynność, a potem naciśnij przycisk lub spust. Ustawienia zapisują się automatycznie. Zajęty przycisk zamienia przypisania w tej samej grupie. Nazwy przycisków pochodzą z Androida. Ruch: gałka / krzyżak.</string>
+    <string name="restore_defaults">Przywróć domyślne</string>
+    <string name="save_tools">Kopie zapisów i wibracje</string>
+    <string name="return_game">Wróć do gry</string>
+    <string name="settings_save_error">"Nie zapisano ustawień: "</string>
+    <string name="capture_hint">Puść przyciski i spusty, potem naciśnij wybrany. Ruch gałką nie zmienia przypisania.</string>
+    <string name="cancel">Anuluj</string>
+    <string name="saves_vibration">Zapisy i wibracje</string>
+    <string name="export_progress">Zapisz kopię postępu do pliku</string>
+    <string name="import_progress">Wczytaj kopię postępu</string>
+    <string name="import_progress_hint">Import zastąpi postęp przy następnym uruchomieniu gry. Dotychczasowy zapis pozostanie jako kopia. To format XML naszego portu, nie zapis Windows ani JSON Claw Web.</string>
+    <string name="import_cancel">Anuluj</string>
+    <string name="choose_file">Wybierz plik</string>
+    <string name="vibration_optional">Wibracje (opcjonalne)</string>
+    <string name="back">Wróć</string>
+    <string name="backup_exported">Kopia zapisana.</string>
+    <string name="progress_import_prepared">Import przygotowany. Zakończ grę z jej menu i uruchom ponownie, aby go zastosować.</string>
+    <string name="progress_error">"Nie zmieniono postępu: "</string>
+    <string name="language">Język / Language</string>
+    <string name="language_restart">Napisy w grze zmienią się po jej ponownym uruchomieniu. Głosy i oryginalne menu zależą od danych gry.</string>
+    <string name="storage_unavailable">Pamięć aplikacji jest niedostępna.</string>
+    <string name="pad_accessibility">Ustawienia pada i języka</string>
+    <string name="action_jump">Skok</string>
+    <string name="action_attack">Atak szablą</string>
+    <string name="action_fire">Strzał</string>
+    <string name="action_weapon">Zmiana broni</string>
+    <string name="action_pause">Pauza</string>
+    <string name="action_confirm">Menu: zatwierdź</string>
+    <string name="action_back">Menu: wstecz</string>
+    <string name="prepare_error">"Nie można przygotować gry: "</string>
+    <string name="retry">"Spróbuj ponownie"</string>
+    <string name="close">"Zamknij"</string>
+    <string name="pin_help">"Przytrzymaj ikonę gry na liście aplikacji i przeciągnij na pulpit."</string>
+    <string name="import_intro">"Kapitan Pazur\n\nWybierz CLAW.REZ z własnej gry albo game-data.zip.\n\nImport REZ inspirowany Claw Web (Arthur Boss i współtwórcy), GPLv3."</string>
+    <string name="import_choose">"Wybierz dane gry"</string>
+    <string name="import_busy">"Importowanie danych…"</string>
+    <string name="import_stage_error">"Nie można przygotować importu."</string>
+    <string name="import_content_error">"Nieprawidłowa zawartość paczki: "</string>
+    <string name="import_size_error">"Paczka przekracza 1 GB."</string>
+    <string name="import_missing_error">"Paczka nie zawiera kompletu danych gry."</string>
+    <string name="import_save_error">"Nie można zapisać: "</string>
+    <string name="import_failed">"Nie udało się zaimportować danych."</string>
+</resources>

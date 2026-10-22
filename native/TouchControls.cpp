@@ -3,6 +3,7 @@
 #include "GamepadControls.h"
 #include "PlatformInput.h"
 #include "OmarEncounterComponent.h"
+#include "UiLanguage.h"
 #include <SDL2/SDL2_gfxPrimitives.h>
 #include <map>
 #include <set>
@@ -11,13 +12,14 @@
 #include "Engine/GameApp/BaseGameLogic.h"
 
 namespace {
-struct Button { SDL_Rect rect; SDL_Keycode key; const char* label; bool round; };
+struct Button { SDL_Rect rect; SDL_Keycode key; const char* polish; bool round; const char* english; };
+const char* label(const Button& button) { return PazurUi::Text(button.polish,button.english); }
 const Button buttons[] = {
-    {{506, 346, 120, 120}, SDLK_SPACE, "SKOK", true},
-    {{378, 358, 104, 104}, SDLK_LCTRL, "ATAK", true},
-    {{447, 228, 96, 96}, SDLK_LALT, "STRZAL", true},
-    {{562, 110, 62, 34}, SDLK_LSHIFT, "BRON", false},
-    {{16, 80, 66, 34}, SDLK_ESCAPE, "PAUZA", false},
+    {{506, 346, 120, 120}, SDLK_SPACE, "SKOK", true, "JUMP"},
+    {{378, 358, 104, 104}, SDLK_LCTRL, "ATAK", true, "ATTACK"},
+    {{447, 228, 96, 96}, SDLK_LALT, "STRZAL", true, "SHOOT"},
+    {{562, 110, 62, 34}, SDLK_LSHIFT, "BRON", false, "WEAPON"},
+    {{16, 80, 66, 34}, SDLK_ESCAPE, "PAUZA", false, "PAUSE"},
 };
 std::map<SDL_FingerID, SDL_Keycode> fingers;
 std::set<SDL_Keycode> pressed;
@@ -175,8 +177,8 @@ void drawRoundButton(SDL_Renderer* renderer,const Button& button,const SDL_Rect&
                 filledTrigonRGBA(renderer,cx+10,cy-12,cx+23,cy-4,cx+10,cy+3,255,242,206,235);
                 vlineRGBA(renderer,cx-15,cy-12,cy+3,235,218,170,235);
             }
-            const int textWidth=SDL_strlen(button.label)*8;
-            stringRGBA(renderer,cx-textWidth/2,cy+24,button.label,255,242,206,235);
+            const int textWidth=SDL_strlen(label(button))*8;
+            stringRGBA(renderer,cx-textWidth/2,cy+24,label(button),255,242,206,235);
 }
 
 bool drawCachedButton(SDL_Renderer* renderer,const Button& button,const SDL_Rect& r,bool held) {
@@ -287,7 +289,7 @@ void PazurTouch::Draw(SDL_Renderer* renderer) {
     if (!active()) { Reset(); return; }
     if (g_pApp->GetDebugOptions()->bPreviewIncompleteLevel14) {
         boxRGBA(renderer, 140, 100, 500, 125, 90, 20, 10, 220);
-        stringRGBA(renderer, 160, 109, "TRYB TESTOWY / TEST MODE", 255, 235, 180, 255);
+        stringRGBA(renderer, 160, 109, PazurUi::Text("TRYB TESTOWY","TEST MODE"), 255, 235, 180, 255);
     }
     if (PazurGamepad::UsingController()) return;
     if(!drawCachedStick(renderer)) {
@@ -304,7 +306,7 @@ void PazurTouch::Draw(SDL_Renderer* renderer) {
         roundedBoxRGBA(renderer, r.x, r.y, r.x+r.w-1, r.y+r.h-1, 8,
             held ? 140 : 12, held ? 105 : 18, held ? 35 : 28, held ? 190 : 115);
         roundedRectangleRGBA(renderer, r.x, r.y, r.x+r.w-1, r.y+r.h-1, 8, 235, 218, 170, 170);
-        const int textWidth = SDL_strlen(button.label)*8;
-        stringRGBA(renderer, r.x+(r.w-textWidth)/2, r.y+(r.h-8)/2, button.label, 255, 242, 206, 235);
+        const int textWidth = SDL_strlen(label(button))*8;
+        stringRGBA(renderer, r.x+(r.w-textWidth)/2, r.y+(r.h-8)/2, label(button), 255, 242, 206, 235);
     }
 }

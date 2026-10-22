@@ -2,7 +2,9 @@
 
 [English README](README.en.md)
 
-Natywna adaptacja [OpenClaw](https://github.com/pjasicek/OpenClaw) na Androida, z danymi dostarczanymi przez użytkownika. Silnik C++/SDL dla ARM64 i ARMv7, minimum API 21. Aktualna wersja rozwojowa: **0.4.12-dev**. Pełne wydanie 1.0 pozostaje w przygotowaniu.
+Natywna adaptacja [OpenClaw](https://github.com/pjasicek/OpenClaw) na Androida, z danymi dostarczanymi przez użytkownika. Silnik C++/SDL dla ARM64 i ARMv7, minimum API 21. Aktualna wersja rozwojowa: **0.4.13-dev**. Pełne wydanie 1.0 pozostaje w przygotowaniu.
+
+**Język:** przed importem danych lub w **PAD → Język / Language** wybierz Polski albo English. Ustawienia i nasze napisy obsługują oba języki; napisy w grze zmienią się po jej ponownym uruchomieniu. Oryginalne menu i głosy zależą od danych użytkownika. [Zakres tłumaczenia i testy](docs/validation/ENGLISH-UI-PLAN.md).
 
 Bieżące prace obejmują walki z Aquatisem i Marrowem, przechodzenie między mapami, dźwięki ataków i poprawki menu. [Wyniki i pozostałe warunki wydania](docs/validation/CAMPAIGN-1.0.md). Wcześniejsze [pomiary fizyki i drabin](docs/validation/FPS-0.4.11.md), [audyt zgłoszeń](docs/validation/BUG-AUDIT-2026-10-21.md) i [optymalizacja rysowania](docs/validation/FPS-0.4.9.md) opisują dokładny zakres sprawdzonych zmian.
 

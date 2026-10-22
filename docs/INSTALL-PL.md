@@ -11,6 +11,8 @@ To wersja testowa. Od 0.4.8 potrzebujesz telefonu z Androidem, APK tego portu i 
 3. Dotknij **Wybierz dane gry** i wskaż **CLAW.REZ**. Poczekaj; gra uruchomi się sama. Nie potrzebujesz Pythona ani przygotowania ZIP.
 4. Przy kolejnych uruchomieniach dane są już w aplikacji.
 
+Od 0.4.13 język wybierzesz przed importem lub w grze przez **PAD → Język / Language**. Dostępne są Polski i English. Ekrany Androida zmieniają język od razu, a nasze napisy w grze po jej ponownym uruchomieniu. Oryginalne obrazki menu i głosy zależą od Twoich danych gry.
+
 Pomysł bezpośredniego REZ pochodzi z Claw Web (Arthur Boss i współtwórcy); implementacja Androida i walidacja są lokalną adaptacją. Oryginalne grafiki gry nadal pochodzą wyłącznie z Twojego REZ. Jeśli Twoja polska instalacja ma dodatkowy folder `Assets`, paczka ZIP przygotowana poniższym narzędziem uwzględni także te zasoby. Bezpośredni REZ używa zawartości samego archiwum.
 
 **CrazyHook i REZ o rozmiarze 168 bajtów:** to atrapa, nie pełna gra. Dla takiej instalacji przygotuj ZIP z folderu `Assets` według instrukcji poniżej.

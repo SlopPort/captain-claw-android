@@ -8,8 +8,10 @@ This is a test version. From 0.4.8, you need an Android phone, this port's APK a
 
 1. Open your own PC game folder. Copy `CLAW.REZ` and the APK to your phone's Download folder.
 2. Install the APK using the steps below, then open Kapitan Pazur.
-3. Tap **Wybierz dane gry** (Select game data), choose **CLAW.REZ** and wait. The game starts automatically. No Python or ZIP preparation is needed.
+3. Tap **Choose game data**, choose **CLAW.REZ** and wait. The game starts automatically. No Python or ZIP preparation is needed. On a Polish interface, the button is **Wybierz dane gry**.
 4. You only import once.
+
+From 0.4.13, choose **Language / Język → English** before importing, or open **PAD → Language / Język** in the game. Android screens change immediately; restart the game to change its added labels. Original menu pictures and voices still use the language of your game data.
 
 The direct REZ workflow is inspired by Claw Web (Arthur Boss and contributors); Android implementation and validation are local adaptations. Original game artwork comes from your REZ. If a Polish installation has additional loose `Assets`, the ZIP workflow below also includes those files. Direct REZ uses only the archive contents.
 
@@ -24,7 +26,7 @@ In the game, tap **PAD**, then **Save backups and vibration**. Export writes XML
 1. Copy both files to your phone's **Download** folder. For USB transfer, unlock the phone, select **File transfer**, open the phone storage on your computer and copy the files into Download.
 2. Open **Files** on the phone, open **Downloads**, then tap the file ending in `.apk`.
 3. If Android blocks installation, follow the displayed Settings link and allow this Files application to install apps. Return and tap **Install**. Labels vary between Android versions. You can turn this permission off afterwards.
-4. Open **Kapitan Pazur**. Tap **Wybierz dane gry** (Select game data).
+4. Open **Kapitan Pazur**. Tap **Choose game data** (Polish: **Wybierz dane gry**).
 5. In the system file picker, open **Downloads** and select `game-data.zip`. Wait for the import; the game starts automatically.
 6. Future launches do not require importing the data again.
 
