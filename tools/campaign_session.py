@@ -97,7 +97,10 @@ class CampaignSession:
     def __enter__(self):
         self.report.mkdir(parents=True,exist_ok=True)
         if (self.report/'config.original.xml').exists():raise RuntimeError('Use a new report name; preserve prior evidence')
-        for name in ('combat-command.txt','combat-response.txt','startup_commands.txt'):
+        # Never consume a user's pending progress restore or import recovery as
+        # part of a fixture, then overwrite it when restoring our own backup.
+        for name in ('combat-command.txt','combat-response.txt','startup_commands.txt',
+                     'SAVES.pending.xml','import-transaction'):
             exists=adb('shell','if [ -e '+REMOTE+name+' ]; then echo pazur-file-present; fi',check=False)
             if 'pazur-file-present' in exists:
                 raise RuntimeError('Existing diagnostic file: '+name)

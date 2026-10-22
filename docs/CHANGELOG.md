@@ -1,5 +1,9 @@
 # Historia adaptacji
 
+## 0.4.16 — menu PL/EN i zgodność 16 KB
+
+Własne napisy menu, pomoc i autorstwo PL/EN, bez dołączania komercyjnych angielskich grafik. Wyłączenie odziedziczonych przycisków bez działającej funkcji, czytelne pola dotyku i przenoszenie ustawień ponad menu. Czcionki współdzielone podczas jednego wczytywania. Huawei: nawigacja PL/EN, skok, podsumowanie i powrót z końca gry. Osobny emulator Androida 15 ze stronami 16 KB: menu PL/EN, natywna biblioteka, skok i przejście poziomu. To nie pełna kampania ani potwierdzenie 60 FPS. [Dokładne APK i ograniczenia](validation/MENU-LANGUAGE-0.4.16.md).
+
 ## 0.4.9 — grupowanie rysowania SDL
 
 Jawne włączenie kolejki rysowania, domyślnie wyłączanej przez SDL po wybraniu sterownika GLES2. W porównaniu wyłączone/włączone/wyłączone na jednym APK początki poziomów 8/9/13 osiągnęły około 60 FPS zamiast około 57/54/58 FPS. Bez zmian rozdzielczości, filtrowania, fizyki i tempa logiki. Lokalny opt-out pozwala wrócić do poprzedniej ścieżki przy problemie sterownika. [Metoda, wyniki i ograniczenia](validation/FPS-0.4.9.md).

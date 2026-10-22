@@ -43,3 +43,11 @@ The first update attempt used a different debug certificate because the emulator
 ## 0.4.14 viewport follow-up
 
 See [the exact APK hashes, reports and limitations](PORT-0.4.14.md). Physical Huawei ARM64 touch, score and Game Over checks passed, as did all fourteen map starts and explicit ARMv7 native/menu/jump/exit coverage. Same-APK dense-scene ARMv7 FPS was lower than ARM64; ARM64 was restored. Android-5 emulator native/menu/100 ms jump/exit passed. Android-15 emulator menu and separately declared exit-only coverage passed, but its 600 ms jump failed under very long frames. The failed jump remains open; exit-only success is not jump coverage. Neither emulator test establishes physical-device or 16 KB page runtime support.
+
+## 0.4.16 actual 16 KB emulator runtime
+
+Official Android 15/API 35 Google APIs `google_apis_ps16k;x86_64` image revision 5, task-local headless AVD, software graphics. `getconf PAGE_SIZE` returned **16384**. APK SHA-256 `891da6d0348f447c00f8cb2e9f98d6fdb9285c3c9eb20cad21ef267c1bf73951` is a separate x86_64 test build, preceding the final ARM font-batch optimization. All three native libraries also passed static 16 KB LOAD alignment checks.
+
+`menu-api35-16k-0.4.16-r3-en/pl` passed full menu navigation in both languages. `compat-api35-16k-0.4.16-menu/level` passed actual native library mapping, menu, a declared 600 ms held jump (151.6 px rise, 613 ms effective hold, 93 ms takeoff under emulation), real exit pickup, score and level two. Initial data was supplied as a local fixture, so this is not SAF/file-picker coverage. Original fixture progress/configuration was restored. No physical-phone USB/network settings changed.
+
+This establishes actual 16 KB runtime evidence for this emulator/build, not physical ARM 16 KB coverage or a resolution of earlier long-frame jump failures on the different 4 KB image. Those failed reports remain valid failures. ARM 0.4.16 Huawei touch/menu evidence is recorded [separately](MENU-LANGUAGE-0.4.16.md).

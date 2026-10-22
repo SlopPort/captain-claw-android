@@ -8,10 +8,24 @@
 #include <map>
 #include <set>
 #include <cmath>
+#include <jni.h>
 #include "Engine/GameApp/BaseGameApp.h"
 #include "Engine/GameApp/BaseGameLogic.h"
 
 namespace {
+void updateSettingsPosition(bool menu) {
+    static int previous=-1;
+    if(previous==int(menu))return;
+    auto env=static_cast<JNIEnv*>(SDL_AndroidGetJNIEnv());
+    auto activity=static_cast<jobject>(SDL_AndroidGetActivity());
+    if(!env||!activity)return;
+    auto type=env->GetObjectClass(activity);
+    auto method=env->GetMethodID(type,"setMenuOverlay","(Z)V");
+    if(method)env->CallVoidMethod(activity,method,jboolean(menu));
+    if(env->ExceptionCheck()){env->ExceptionDescribe();env->ExceptionClear();}
+    else if(method)previous=int(menu);
+    env->DeleteLocalRef(type);env->DeleteLocalRef(activity);
+}
 struct Button { SDL_Rect rect; SDL_Keycode key; const char* polish; bool round; const char* english; };
 const char* label(const Button& button) { return PazurUi::Text(button.polish,button.english); }
 const Button buttons[] = {
@@ -284,6 +298,7 @@ bool PazurTouch::Handle(const SDL_Event& event) {
 
 void PazurTouch::Draw(SDL_Renderer* renderer) {
     PazurCombatProbe::Poll();
+    updateSettingsPosition(!active()||OmarEncounterComponent::IsEnding());
     OmarEncounterComponent::Draw(renderer);
     if (OmarEncounterComponent::IsEnding()) { Reset(); return; }
     if (!active()) { Reset(); return; }

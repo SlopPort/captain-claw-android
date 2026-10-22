@@ -19,7 +19,7 @@
     <string name="progress_import_prepared">Import przygotowany. Zakończ grę z jej menu i uruchom ponownie, aby go zastosować.</string>
     <string name="progress_error">"Nie zmieniono postępu: "</string>
     <string name="language">Język / Language</string>
-    <string name="language_restart">Napisy w grze zmienią się po jej ponownym uruchomieniu. Głosy i oryginalne menu zależą od danych gry.</string>
+    <string name="language_restart">Napisy menu i przycisków gry zmienią się po jej ponownym uruchomieniu. Nagrane głosy i grafiki tła pochodzą z Twoich danych gry.</string>
     <string name="storage_unavailable">Pamięć aplikacji jest niedostępna.</string>
     <string name="pad_accessibility">Ustawienia pada i języka</string>
     <string name="action_jump">Skok</string>

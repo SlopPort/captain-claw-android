@@ -6,6 +6,23 @@ import android.view.KeyEvent;
 import java.io.*;
 
 public class GameActivity extends SDLActivity {
+    private android.widget.Button settingsButton;
+    private boolean menuOverlayMode=true;
+    /** Called only when the SDL presentation context changes. Main-menu Quit
+     * occupies the bottom center, so keep settings above the menu there. During
+     * play retain the bottom position that leaves the health HUD unobstructed. */
+    public void setMenuOverlay(boolean menu) {
+        runOnUiThread(()-> {
+            menuOverlayMode=menu;
+            if(settingsButton==null)return;
+            float density=getResources().getDisplayMetrics().density;
+            android.widget.RelativeLayout.LayoutParams position=new android.widget.RelativeLayout.LayoutParams((int)(64*density),(int)(44*density));
+            position.addRule(android.widget.RelativeLayout.CENTER_HORIZONTAL);
+            position.addRule(menu?android.widget.RelativeLayout.ALIGN_PARENT_TOP:android.widget.RelativeLayout.ALIGN_PARENT_BOTTOM);
+            if(menu)position.topMargin=(int)(8*density);else position.bottomMargin=(int)(8*density);
+            settingsButton.setLayoutParams(position);
+        });
+    }
     @Override protected void attachBaseContext(android.content.Context context) {
         super.attachBaseContext(AppLanguage.wrap(context));
     }
@@ -46,6 +63,7 @@ public class GameActivity extends SDLActivity {
         }
         super.onCreate(state);
         android.widget.Button pad = new android.widget.Button(this);
+        settingsButton=pad;
         pad.setText("PAD");
         pad.setTextSize(12);
         pad.setFocusable(false);
@@ -57,6 +75,7 @@ public class GameActivity extends SDLActivity {
         position.addRule(android.widget.RelativeLayout.CENTER_HORIZONTAL);
         position.bottomMargin=(int)(8*getResources().getDisplayMetrics().density);
         mLayout.addView(pad,position);
+        setMenuOverlay(menuOverlayMode);
     }
     @Override protected String[] getLibraries() {
         return new String[] { "SDL2", "openclaw" };

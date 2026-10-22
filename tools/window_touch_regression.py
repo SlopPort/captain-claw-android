@@ -8,6 +8,7 @@ import json
 import re
 import subprocess
 from campaign_session import CampaignSession
+from android_log_evidence import crash_evidence
 from gamepad_quit_smoke import adb, REMOTE
 
 
@@ -35,7 +36,9 @@ def main():
             adb('shell','rm','-f',REMOTE+name)
         log=(session.report/'window-native.log').read_text(errors='replace')
         assert 'INSTRUMENTATION_CODE: 0' in result,result
-        assert 'Fatal signal' not in log and 'FATAL EXCEPTION' not in log,'Crash'
+        crashes=crash_evidence(log)
+        (session.report/'crash-attribution.json').write_text(json.dumps(crashes,indent=2),encoding='utf-8')
+        assert crashes['target_pids'] and not crashes['target_crashes'] and not crashes['unattributed_crashes'],'Game crash or unattributed fatal line'
         viewports=re.findall(r'Pazur viewport: physical=(\d+)x(\d+) logical=(\d+)x(\d+)',log)
         assert viewports and list(map(int,viewports[-1][2:]))==args.expect_logical_size,viewports
         evidence=dict(scenario=args.scenario,passed=False,viewport_events=viewports,input='focused game-window MotionEvents',

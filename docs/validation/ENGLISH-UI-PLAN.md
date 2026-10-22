@@ -12,6 +12,8 @@ Native touch labels and the added Omar encounter/finale captions use a small ASC
 
 ## Remaining scope
 
+Update 0.4.16: [the menu renderer and runtime report](MENU-LANGUAGE-0.4.16.md) supersede the earlier bitmap-menu/help limitations below. Main, pause, Game Over, level/checkpoint selection, help and attribution text now have our own PL/EN labels rendered with an installed system font. Original voices, backgrounds and score-screen artwork remain data-dependent. The following entries preserve the earlier 0.4.13 scope and evidence; they are not a claim that those menu limitations remain unchanged.
+
 Final ARM build `language-selection-0.4.13` passed the same checks plus actual selection of English in the language dialog, Activity recreation and refreshed visible sword-action text. Its isolated native screenshot was also captured. APK SHA-256: `994a2f1b94c256aebd642e23f761103619d6737b9d45f86bd495d130d0532eaa`. The earlier `language-native-preview-0.4.13` screenshot was visually inspected before this last Java-only chooser adjustment. This does not validate the original menu-art language.
 
 `language-preview-ready-0.4.13` connects screenshot automation before starting SDL and requires a focused game window with the Android PAD overlay before capture. Its image was visually inspected with all English controls present. The earlier `language-selection` capture omitted the overlay; that capture alone was not a valid overlay-layout pass. No production rendering change was needed. API-21 selection evidence and its test-harness fixes are recorded in [compatibility](ANDROID-COMPATIBILITY.md).

@@ -136,7 +136,9 @@ public class JumpTouchTest extends Instrumentation {
                 single(MotionEvent.ACTION_DOWN,logicalWidth/2,240);
                 SystemClock.sleep(80);
                 single(MotionEvent.ACTION_UP,logicalWidth/2,240);
-                SystemClock.sleep(1500);
+                // Returning to Main initializes its pages/textures. This is a
+                // functional exit check, not a 1.5-second load-time assertion.
+                SystemClock.sleep(8000);
                 screenshot("game-over-after.png");
                 result.putString("stream","Last-life death and app-local touch completed.\n");
                 finish(0,result);return;

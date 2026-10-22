@@ -30,7 +30,7 @@ def main():
     pair_marker='physics-pairs-unfiltered'
     if args.pair_filter and subprocess.run(['adb','shell','test','-e',REMOTE+pair_marker],capture_output=True).returncode==0:
         raise RuntimeError('Existing pair-filter fallback marker; leave it untouched')
-    for name in ('combat-command.txt','combat-response.txt'):
+    for name in ('combat-command.txt','combat-response.txt','SAVES.pending.xml','import-transaction'):
         if subprocess.run(['adb','shell','test','-e',REMOTE+name],capture_output=True).returncode==0:
             raise RuntimeError('Existing diagnostic mailbox: '+name)
     adb('shell','am','force-stop','pl.pazur.port')

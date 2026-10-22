@@ -2,11 +2,11 @@
 
 [English README](README.en.md)
 
-Natywna adaptacja [OpenClaw](https://github.com/pjasicek/OpenClaw) na Androida, z danymi dostarczanymi przez użytkownika. Silnik C++/SDL dla ARM64 i ARMv7, minimum API 21. Aktualna wersja rozwojowa: **0.4.15-dev**. Pełne wydanie 1.0 pozostaje w przygotowaniu.
+Natywna adaptacja [OpenClaw](https://github.com/pjasicek/OpenClaw) na Androida, z danymi dostarczanymi przez użytkownika. Silnik C++/SDL dla ARM64 i ARMv7, minimum API 21. Aktualna wersja rozwojowa: **0.4.16-dev**. Pełne wydanie 1.0 pozostaje w przygotowaniu.
 
 **[Droga do 1.0 — po polsku i angielsku](docs/ROADMAP-1.0.md)** rozdziela wykonane prace, warunki wydania i potrzebne testy. Najnowsza sprawdzona poprawka pozwala odzyskać dane po przerwaniu importu. [Wyniki 0.4.15](docs/validation/PORT-0.4.15.md), [20 minut ciężkiej sceny](docs/validation/SUSTAINED-0.4.15.md).
 
-**Język:** przed importem danych lub w **PAD → Język / Language** wybierz Polski albo English. Ustawienia i nasze napisy obsługują oba języki; napisy w grze zmienią się po jej ponownym uruchomieniu. Oryginalne menu i głosy zależą od danych użytkownika. [Zakres tłumaczenia i testy](docs/validation/ENGLISH-UI-PLAN.md).
+**Język:** przed importem danych lub w **PAD → Język / Language** wybierz Polski albo English. Ustawienia, menu i nasza pomoc obsługują oba języki; napisy w grze zmienią się po jej ponownym uruchomieniu. Głosy, tła i oryginalne grafiki podsumowań zależą od danych użytkownika. [Menu PL/EN i testy 0.4.16](docs/validation/MENU-LANGUAGE-0.4.16.md).
 
 Bieżące prace obejmują walki z Aquatisem i Marrowem, przechodzenie między mapami, dźwięki ataków i poprawki menu. [Wyniki i pozostałe warunki wydania](docs/validation/CAMPAIGN-1.0.md). Wcześniejsze [pomiary fizyki i drabin](docs/validation/FPS-0.4.11.md), [audyt zgłoszeń](docs/validation/BUG-AUDIT-2026-10-21.md) i [optymalizacja rysowania](docs/validation/FPS-0.4.9.md) opisują dokładny zakres sprawdzonych zmian.
 

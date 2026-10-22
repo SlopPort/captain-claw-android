@@ -19,7 +19,7 @@
     <string name="progress_import_prepared">Import prepared. Quit from the game menu and launch again to apply it.</string>
     <string name="progress_error">"Progress unchanged: "</string>
     <string name="language">Language / Język</string>
-    <string name="language_restart">In-game labels change after restarting the game. Voices and original menus depend on your game data.</string>
+    <string name="language_restart">Menu text and in-game labels change after restarting the game. Recorded voices and background artwork come from your game data.</string>
     <string name="storage_unavailable">App storage is unavailable.</string>
     <string name="pad_accessibility">Controller and language settings</string>
     <string name="action_jump">Jump</string>

@@ -1,4 +1,4 @@
-"""Check ABI coverage and ELF LOAD alignment of every ARM64 library."""
+"""Check declared ABI coverage and ELF LOAD alignment of every 64-bit library."""
 import argparse
 import json
 from pathlib import Path
@@ -6,11 +6,11 @@ import struct
 import zipfile
 
 
-def inspect(apk):
+def inspect(apk,expected_abis=('arm64-v8a','armeabi-v7a')):
     result = []
     with zipfile.ZipFile(apk) as package:
         libs = [name for name in package.namelist() if name.startswith('lib/') and name.endswith('.so')]
-        assert {name.split('/')[1] for name in libs} == {'arm64-v8a', 'armeabi-v7a'}
+        assert {name.split('/')[1] for name in libs} == set(expected_abis)
         for name in libs:
             data = package.read(name)
             assert data[:4] == b'\x7fELF' and data[5] == 1, name
@@ -35,5 +35,6 @@ def inspect(apk):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('apk', type=Path)
+    parser.add_argument('--abis',nargs='+',choices=('arm64-v8a','armeabi-v7a','x86_64'),default=['arm64-v8a','armeabi-v7a'])
     args = parser.parse_args()
-    print(json.dumps(inspect(args.apk), indent=2))
+    print(json.dumps(inspect(args.apk,args.abis), indent=2))

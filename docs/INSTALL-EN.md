@@ -11,7 +11,7 @@ This is a test version. From 0.4.8, you need an Android phone, this port's APK a
 3. Tap **Choose game data**, choose **CLAW.REZ** and wait. The game starts automatically. No Python or ZIP preparation is needed. On a Polish interface, the button is **Wybierz dane gry**.
 4. You only import once.
 
-From 0.4.13, choose **Language / Język → English** before importing, or open **PAD → Language / Język** in the game. Android screens change immediately; restart the game to change its added labels. Original menu pictures and voices still use the language of your game data.
+Choose **Language / Język → English** before importing, or open **PAD → Language / Język** in the game. Android screens change immediately; restart the game to change its menus and in-game labels. From 0.4.16, menu text and help have our own Polish and English translations. Voices, backgrounds and original score-screen pictures still come from your game data.
 
 The direct REZ workflow is inspired by Claw Web (Arthur Boss and contributors); Android implementation and validation are local adaptations. Original game artwork comes from your REZ. If a Polish installation has additional loose `Assets`, the ZIP workflow below also includes those files. Direct REZ uses only the archive contents.
 

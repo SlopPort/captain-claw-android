@@ -2870,10 +2870,20 @@ index 49c7f1e..78d568c 100644
          customData.tap = tap;
          sdlEvent.user.code = type;
 diff --git a/OpenClaw/Engine/UserInterface/UserInterface.cpp b/OpenClaw/Engine/UserInterface/UserInterface.cpp
-index 9966337..d227200 100644
+index 9966337..27065ad 100644
 --- a/OpenClaw/Engine/UserInterface/UserInterface.cpp
 +++ b/OpenClaw/Engine/UserInterface/UserInterface.cpp
-@@ -109,6 +109,9 @@ std::map<std::string, MenuItemType> g_StringToMenuItemType =
+@@ -11,6 +11,9 @@
+ #include "../Audio/Audio.h"
+ 
+ #include <cctype>
++#ifdef __ANDROID__
++#include "MenuLabels.h"
++#endif
+ 
+ std::map<std::string, MenuPage> g_StringToMenuPageEnumMap =
+ {
+@@ -109,6 +112,9 @@ std::map<std::string, MenuItemType> g_StringToMenuItemType =
  
  static SDL_Rect GetScreenRect()
  {
@@ -2883,7 +2893,7 @@ index 9966337..d227200 100644
      Point windowSize = g_pApp->GetWindowSize();
      Point scale = g_pApp->GetScale();
      int targetWidth = (int)(windowSize.x / scale.x);
-@@ -379,6 +382,7 @@ ScreenElementMenu::ScreenElementMenu(SDL_Renderer* pRenderer)
+@@ -379,6 +385,7 @@ ScreenElementMenu::ScreenElementMenu(SDL_Renderer* pRenderer)
      :
      m_pRenderer(pRenderer),
      m_bIsVisible(true),
@@ -2891,7 +2901,7 @@ index 9966337..d227200 100644
      m_MenuType(MenuType_None)
  {
      IEventMgr::Get()->VAddListener(MakeDelegate(
-@@ -427,8 +431,17 @@ void ScreenElementMenu::VOnUpdate(uint32 msDiff)
+@@ -427,8 +434,17 @@ void ScreenElementMenu::VOnUpdate(uint32 msDiff)
  
  void ScreenElementMenu::VOnRender(uint32 msDiff)
  {
@@ -2909,7 +2919,7 @@ index 9966337..d227200 100644
  
      assert(m_pBackground != nullptr);
      assert(m_pBackground->GetTexture() != NULL);
-@@ -438,14 +451,31 @@ void ScreenElementMenu::VOnRender(uint32 msDiff)
+@@ -438,14 +454,31 @@ void ScreenElementMenu::VOnRender(uint32 msDiff)
  
      assert(m_pActiveMenuPage);
      m_pActiveMenuPage->VOnRender(msDiff);
@@ -2941,7 +2951,17 @@ index 9966337..d227200 100644
      return m_pActiveMenuPage->VOnEvent(evt);
  }
  
-@@ -580,7 +610,11 @@ bool ScreenElementMenu::Initialize(TiXmlElement* pElem)
+@@ -488,6 +521,9 @@ void ScreenElementMenu::VSetVisible(bool visible)
+ 
+ bool ScreenElementMenu::Initialize(TiXmlElement* pElem)
+ {
++#ifdef __ANDROID__
++    PazurMenuLabels::FontBatch menuFonts;
++#endif
+     assert(m_pRenderer != NULL);
+ 
+     std::string menuTypeStr;
+@@ -580,7 +616,11 @@ bool ScreenElementMenu::Initialize(TiXmlElement* pElem)
      // Lets just assume that the background will take the whole screen
      // From that we can calculate current scale (can't use predefined scale here)
      Point windowSize = g_pApp->GetWindowSize();
@@ -2953,7 +2973,17 @@ index 9966337..d227200 100644
  
      return true;
  }
-@@ -709,15 +743,19 @@ bool ScreenElementMenuPage::VOnEvent(SDL_Event& evt)
+@@ -596,6 +636,9 @@ void ScreenElementMenu::SwitchPageDelegate(IEventDataPtr pEventData)
+     {
+         m_pActiveMenuPage = findIt->second;
+         m_pActiveMenuPage->OnPageLoaded();
++#ifdef __ANDROID__
++        if(g_pApp->GetDebugOptions()->bPreviewIncompleteLevel14) SDL_Log("Pazur menu page: %s", pCastEventData->GetNewPageName().c_str());
++#endif
+     }
+     else
+     {
+@@ -709,15 +752,19 @@ bool ScreenElementMenuPage::VOnEvent(SDL_Event& evt)
          assert(activeMenuItemIdx >= 0);
      }
  
@@ -2975,7 +3005,7 @@ index 9966337..d227200 100644
          if (keyCode == SDL_SCANCODE_DOWN)
          {
              MoveToMenuItemIdx(activeMenuItemIdx, 1);
-@@ -765,7 +803,11 @@ bool ScreenElementMenuPage::VOnEvent(SDL_Event& evt)
+@@ -765,14 +812,24 @@ bool ScreenElementMenuPage::VOnEvent(SDL_Event& evt)
          if (evt.button.button == SDL_BUTTON_LEFT)
          {
              SDL_Rect clickRect;
@@ -2987,7 +3017,20 @@ index 9966337..d227200 100644
              clickRect.y = (int)(evt.button.y / g_MenuScale.y);
              clickRect.w = 1;
              clickRect.h = 1;
-@@ -926,6 +968,11 @@ bool ScreenElementMenuPage::MoveToMenuItemIdx(int oldIdx, int idxIncrement, bool
++#ifdef __ANDROID__
++            if(g_pApp->GetDebugOptions()->bPreviewIncompleteLevel14) SDL_Log("Pazur menu tap: page=%d x=%d y=%d",int(m_PageType),clickRect.x,clickRect.y);
++#endif
+ 
+             for (shared_ptr<ScreenElementMenuItem> pMenuItem : m_MenuItems)
+             {
+                 SDL_Rect itemRect = pMenuItem->GetMenuItemRect();
++#ifdef __ANDROID__
++                if(g_pApp->GetDebugOptions()->bPreviewIncompleteLevel14) SDL_Log("Pazur menu hit test: item=%s box=%d,%d,%d,%d state=%d focusable=%d",pMenuItem->GetName().c_str(),itemRect.x,itemRect.y,itemRect.w,itemRect.h,int(pMenuItem->GetState()),int(pMenuItem->CanBeFocused()));
++#endif
+                 if (SDL_HasIntersection(&clickRect, &itemRect))
+                 {
+                     if (pMenuItem->CanBeFocused())
+@@ -926,6 +983,11 @@ bool ScreenElementMenuPage::MoveToMenuItemIdx(int oldIdx, int idxIncrement, bool
          tryCount++;
      }
  
@@ -2999,7 +3042,86 @@ index 9966337..d227200 100644
      if (playSound)
      {
          // Play sound
-@@ -1380,4 +1427,4 @@ SDL_Rect ScreenElementMenuItem::GetMenuItemRect()
+@@ -1042,6 +1104,9 @@ bool ScreenElementMenuItem::VOnEvent(SDL_Event& evt)
+ 
+ bool ScreenElementMenuItem::Initialize(TiXmlElement* pElem)
+ {
++#ifdef __ANDROID__
++    bool localizedMenuLabels=false;
++#endif
+     SetPointIfDefined(&m_Position, pElem->FirstChildElement("Position"), "x", "y");
+     SetPointIfDefined(&m_DefaultPosition, pElem->FirstChildElement("Position"), "x", "y");
+     ParseValueFromXmlElem(&m_Name, pElem->FirstChildElement("Name"));
+@@ -1138,14 +1203,23 @@ bool ScreenElementMenuItem::Initialize(TiXmlElement* pElem)
+ 
+     if (shared_ptr<Image> pImage = LoadImageFromXmlElement(pElem->FirstChildElement("DisabledImage")))
+     {
++#ifdef __ANDROID__
++        pImage = PazurMenuLabels::Translate(m_Name, pElem->FirstChildElement("DisabledImage")->GetText(), pImage, m_pRenderer, false, true, &localizedMenuLabels);
++#endif
+         m_Images.insert(std::make_pair(MenuItemState_Disabled, pImage));
+     }
+     if (shared_ptr<Image> pImage = LoadImageFromXmlElement(pElem->FirstChildElement("InactiveImage")))
+     {
++#ifdef __ANDROID__
++        pImage = PazurMenuLabels::Translate(m_Name, pElem->FirstChildElement("InactiveImage")->GetText(), pImage, m_pRenderer, false, false, &localizedMenuLabels);
++#endif
+         m_Images.insert(std::make_pair(MenuItemState_Inactive, pImage));
+     }
+     if (shared_ptr<Image> pImage = LoadImageFromXmlElement(pElem->FirstChildElement("ActiveImage")))
+     {
++#ifdef __ANDROID__
++        pImage = PazurMenuLabels::Translate(m_Name, pElem->FirstChildElement("ActiveImage")->GetText(), pImage, m_pRenderer, true, false, &localizedMenuLabels);
++#endif
+         m_Images.insert(std::make_pair(MenuItemState_Active, pImage));
+     }
+ 
+@@ -1274,6 +1348,44 @@ bool ScreenElementMenuItem::Initialize(TiXmlElement* pElem)
+         return false;
+     }
+ 
++#ifdef __ANDROID__
++    if(localizedMenuLabels) {
++        PazurMenuLabels::Position(m_Name,m_Position);
++        PazurMenuLabels::Position(m_Name,m_DefaultPosition);
++    }
++    // Voices and ambient sounds currently share the master Sound option.
++    // Do not expose their inherited no-op buttons as independent toggles.
++    if(PazurMenuLabels::SharedSoundOption(m_Name) && m_Images.count(MenuItemState_Inactive)) {
++        auto image=pElem->FirstChildElement("InactiveImage");
++        if(image && image->GetText()) {
++            m_Images[MenuItemState_Disabled]=PazurMenuLabels::Translate(m_Name,image->GetText(),m_Images[MenuItemState_Inactive],m_pRenderer,false,true);
++            m_State=MenuItemState_Disabled;
++            SDL_Log("Pazur menu shared sound: item=%s",m_Name.c_str());
++        }
++    }
++    // Several inherited options target pages absent from this single-player
++    // implementation. Disable them instead of accepting a click that goes nowhere.
++    if(m_Type==MenuItemType_Button && pElem->Parent() && pElem->Parent()->Parent()) {
++        auto root=pElem->Parent()->Parent();
++        for(auto event=pElem->FirstChildElement("GeneratedEvent");event;event=event->NextSiblingElement("GeneratedEvent")) {
++            auto type=event->FirstChildElement("Type"),target=event->FirstChildElement("PageName");
++            if(!type || !type->GetText() || std::string(type->GetText())!="SwitchPage" || !target || !target->GetText())continue;
++            bool present=false;
++            for(auto page=root->FirstChildElement("MenuPage");page;page=page->NextSiblingElement("MenuPage")) {
++                auto name=page->FirstChildElement("PageName");
++                if(name && name->GetText() && std::string(name->GetText())==target->GetText()){present=true;break;}
++            }
++            if(!present) {
++                auto image=pElem->FirstChildElement("InactiveImage");
++                if(image && image->GetText() && m_Images.count(MenuItemState_Inactive)) {
++                    m_Images[MenuItemState_Disabled]=PazurMenuLabels::Translate(m_Name,image->GetText(),m_Images[MenuItemState_Inactive],m_pRenderer,false,true);
++                    m_State=MenuItemState_Disabled;
++                    SDL_Log("Pazur unavailable menu page: item=%s destination=%s",m_Name.c_str(),target->GetText());
++                }
++            }
++        }
++    }
++#endif
+     return true;
+ }
+ 
+@@ -1380,4 +1492,4 @@ SDL_Rect ScreenElementMenuItem::GetMenuItemRect()
      itemRect.h = itemHeight;
  
      return itemRect;
