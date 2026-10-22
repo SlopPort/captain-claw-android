@@ -58,3 +58,5 @@ Startup FPS estimates slightly above 60 reflect finite measurement windows, not 
 `compat-redmi-armv7-0.4.21-menu/level` passed actual 32-bit library mapping, native menu, ordinary 100 ms jump, exit pickup, score and level two on this same ARM APK. ARM64 was reinstalled afterwards and confirmed through package metadata. After all menu, performance, map and ABI fixtures, the real save/config bytes were pulled again and compared with their pre-update 0.4.3 copies: both remained identical. This does not claim preservation of every possible preference or verification of untested upgrade paths.
 
 Na Redmi przeszły starty wszystkich 14 map bez diagnostyki oraz rzeczywista próba biblioteki 32-bitowej. Następnie przywrócono ARM64. Pomiary początków map były bliskie 60 FPS, ale wystąpiła pojedyncza klatka 89 ms. Ciężka scena poziomu 9 dała średnio 59,953 FPS przez 90 sekund z przycięciami do 69 ms; nie jest to zaliczenie stałych 60 FPS całej kampanii.
+
+[Twenty-minute follow-up / Próba 20-minutowa](SUSTAINED-REDMI-0.4.21.md): 59.998 harmonic FPS in the controlled dense scene, occasional 65 ms frame, no observed sustained decline.

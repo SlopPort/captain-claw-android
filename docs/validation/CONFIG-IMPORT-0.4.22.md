@@ -25,3 +25,13 @@ The subsequent ARM candidate `0fb591d61b0c40f9528e91d98ad44fad61596dc2a0b1f431b7
 ## Polski
 
 Instalator sprawdza teraz `config.xml` przed podmianą pięciu plików danych gry. Odrzuca m.in. ucięty XML, błędny korzeń, niedopasowane znaczniki i niezdefiniowaną encję. Jedenaście takich prób przeszło na Huawei i emulatorze Androida 5. Pierwsze dwie nieudane iteracje są zachowane w raportach; wykryły realne ograniczenia parsera Androida. Nie jest to pełna kontrola wszystkich wartości ustawień ani zaliczenie całej obsługi selektora plików.
+
+## Committed-source build
+
+`clean-source-0.4.22` exported commit `25477d5db60d88d658f6608bea335a9441c42a07`, source ZIP SHA-256 `f0afd55c9d25e7291c4540cafdbafa80370079344f402922368ef1814fe343d1`, and built both ARM ABIs with fresh native objects in 5m 45s. Clean APK SHA-256 `58fd86ee4517d962e707147cb62a0b211699c6995a3bc97eda16462bf493ed51`. Uses installed JDK/SDK and local dependency/Gradle caches; not a clean-machine download or byte-identical binary proof. Separate candidates retain their own runtime evidence.
+
+## Android 16 and runtime regression
+
+`config-features-redmi-0.4.22-r5.txt` passed all eleven malformed/oversized cases plus existing save/support/startup fixtures on the physical Redmi Android 16. The exact ARM `101e023…` APK also passed `config-redmi-0.4.22-r5-jump` (direct activity restoration, six touch cases, takeoff 17–20 ms, short rise 73.5–74.1 px, held 154.8–155 px) and `config-redmi-0.4.22-r5-score` (single-touch score return and level two). On Huawei, `config-huawei-0.4.22-r5-jump` passed (19–21 ms, short 73.4–74.1 px, held 155 px), as did `config-huawei-0.4.22-r5-game-over`.
+
+The separate fresh-source `58fd86…` APK passed `config-features-clean-source-huawei-0.4.22.txt`, exercising the actual parser/filesystem/startup fixtures from its own Java classes. This is not native-game traversal evidence for that clean binary. The broadly tested `101e023…` ARM64 package was restored afterward. The 14-map starts, PL/EN menu sweeps, dual-ABI Redmi trial and twenty-minute FPS observation remain explicitly recorded against 0.4.21; they are not relabeled as 0.4.22 runs. All original configuration/progress was restored by fixtures.

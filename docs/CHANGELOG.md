@@ -1,5 +1,9 @@
 # Historia adaptacji
 
+## 0.4.22 — kontrola konfiguracji przed importem
+
+Przed podmianą danych sprawdzany jest XML konfiguracji: korzeń, zamknięcia znaczników, encje i limit rozmiaru. Komunikat PL/EN i zachowanie istniejących danych po odrzuceniu. Jedenaście błędnych przypadków odrzuconych na Huawei, Redmi z Androidem 16 i emulatorze Androida 5; dwie nieudane iteracje parsera zachowane w raportach. Czysta kompilacja obu ARM, próba jej parsera oraz skok i wyjścia na telefonach. [Wyniki](validation/CONFIG-IMPORT-0.4.22.md). Osobny długi pomiar 0.4.21 na Redmi dał 59,998 FPS w jednej ciężkiej scenie przez 20 minut; [ograniczenia i przycięcia](validation/SUSTAINED-REDMI-0.4.21.md).
+
 ## 0.4.21 — sprzątanie importu i Android 16
 
 Porzucone pliki robocze importu są usuwane po poprawnym odzyskaniu danych przy starcie i po błędzie importu. Zachowanie kopii przy uszkodzonym dzienniku, 64 próby granic operacji oraz testy Huawei/Android 5. Aktualizacja Redmi z 0.4.3 zachowała zapisy i konfigurację; skok, wielodotyk i wyjścia dotykowe przeszły na Androidzie 16. [Import](validation/IMPORT-CLEANUP-0.4.21.md), [Redmi](validation/REDMI-0.4.21.md).

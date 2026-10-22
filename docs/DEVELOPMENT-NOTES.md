@@ -41,3 +41,10 @@ Measure cold launch/import, level load time, warmed gameplay on levels 1 and 13,
 If performance is poor, profile first. Candidates include rendering resolution, visible sprite work, texture memory, asset loading, audio and expensive AI/physics updates. Change one factor at a time; compare the same scene and preserve readable graphics, correct collisions and game speed. No optimization gains on this device are claimed before measurement.
 
 Planowany test, jeszcze niewykonany. Najpierw sprawdzamy model, system i architekturę, następnie czas uruchamiania, ładowanie poziomów, płynność poziomów 1 i 13, zużycie pamięci, dłuższą grę, powrót z tła i pada. Optymalizacje dobieramy do wyników, bez obietnicy konkretnej liczby FPS.
+
+
+## 2026-10-22: remaining rendering hypothesis / Dalszy kierunek renderowania
+
+Source inspection only, no implementation or speedup claim: `Image::GetTextureFromPid` builds an RGBA surface for every decoded PID; `Util::CreateRGBSurface` supplies an alpha mask; pinned SDL enables surface blending for that mask and copies the blend mode into the texture. A fully opaque tile can therefore still use blending. The next candidate is to classify actual decoded tile pixels once during loading and test blend-NONE only for images proven entirely opaque, keeping original textures, UVs, draw order and uniform scaling. Actor opacity/color changes must retain their original behavior. Actual eligible-tile counts, exact image comparisons on real drivers and same-APK A/B/A timing are required before promotion. This is distinct from the rejected atlas and has no measured benefit yet.
+
+Po przeglądzie kodu kolejnym kandydatem do pomiaru jest pominięcie mieszania przezroczystości wyłącznie dla kafelków, których wszystkie piksele są potwierdzone jako nieprzezroczyste. Nie wdrożono tego i nie przypisano żadnego zysku FPS. Wymagane są rzeczywiste porównania obrazu i wydajności; zachowanie przezroczystych kafelków i postaci pozostaje warunkiem.

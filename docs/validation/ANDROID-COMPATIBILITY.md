@@ -63,3 +63,7 @@ All emulator data was supplied as a fixture, not selected through SAF in these t
 ## 0.4.21 physical Android 16 and minimal Android
 
 [Redmi Note 8 / Android 16 evidence](REDMI-0.4.21.md): preserved old saves/config during upgrade, ARM64 runtime, direct activity restoration, jump/multitouch, score/Game Over touch returns and menus PL/EN. [Import cleanup](IMPORT-CLEANUP-0.4.21.md): physical Huawei ARMv7 native/menu/jump/exit and separate API-21 x86_64 runtime, plus actual Android filesystem fixtures. Page size on Redmi is 4096; this does not establish physical ARM 16 KB coverage.
+
+## 0.4.22 import-parser gate
+
+[Exact APKs and retained failures](CONFIG-IMPORT-0.4.22.md): eleven malformed/oversized config cases pass rejection on Android 5 (separate x86_64), physical Huawei Android 10 and physical Redmi Android 16. Main ARM candidate touch/start/exit regressions passed on both phones. [The 20-minute Redmi FPS observation](SUSTAINED-REDMI-0.4.21.md) remains attributed to 0.4.21. Physical ARM 16 KB runtime and universal Android coverage remain unconfirmed.

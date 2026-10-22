@@ -4,7 +4,7 @@
 
 A native Android adaptation of [OpenClaw](https://github.com/pjasicek/OpenClaw), using game data supplied from the user's own copy of Claw. C++/SDL, ARM64 and ARMv7, minimum build API 21. Compatibility with every Android version or device is not established.
 
-Current validated development version: **0.4.21-dev**. A final 1.0 release remains in preparation. The bilingual **[Road to 1.0](docs/ROADMAP-1.0.md)** separates completed work and release gates. Recent changes protect checkpoint/next-level saves and prepare direct Android activity restoration. See [0.4.18 persistence and clean-source build evidence](docs/validation/ATOMIC-PROGRESS-0.4.18.md), [0.4.17 startup](docs/validation/STARTUP-0.4.17.md) and [twenty-minute dense-scene observation](docs/validation/SUSTAINED-0.4.15.md). Controlled [campaign evidence](docs/validation/CAMPAIGN-1.0.md) is not a natural playthrough.
+Current validated development version: **0.4.22-dev**. A final 1.0 release remains in preparation. The bilingual **[Road to 1.0](docs/ROADMAP-1.0.md)** separates completed work and release gates. Recent changes protect checkpoint/next-level saves and prepare direct Android activity restoration. See [0.4.18 persistence and clean-source build evidence](docs/validation/ATOMIC-PROGRESS-0.4.18.md), [0.4.17 startup](docs/validation/STARTUP-0.4.17.md) and [twenty-minute dense-scene observation](docs/validation/SUSTAINED-0.4.15.md). Controlled [campaign evidence](docs/validation/CAMPAIGN-1.0.md) is not a natural playthrough.
 
 **Language:** before data import, or under **PAD → Language / Język**, choose Polski or English. Android screens, menu text and our help support both languages; in-game labels change after restarting the game. Voices, backgrounds and original score-screen artwork depend on your game data. [PL/EN menus and 0.4.16 evidence](docs/validation/MENU-LANGUAGE-0.4.16.md).
 
@@ -52,3 +52,5 @@ New: [touch audio sliders and physical Huawei PL/EN checks](docs/validation/MENU
 [0.4.21: abandoned-import cleanup](docs/validation/IMPORT-CLEANUP-0.4.21.md) and [physical Redmi Android 16 evidence](docs/validation/REDMI-0.4.21.md).
 
 [Detailed English build instructions](docs/BUILDING.en.md).
+
+[0.4.22: reject malformed configuration before import](docs/validation/CONFIG-IMPORT-0.4.22.md). [Redmi: twenty-minute dense-scene observation on 0.4.21](docs/validation/SUSTAINED-REDMI-0.4.21.md), harmonic 59.998 FPS with an occasional 65 ms frame. This does not close natural-campaign or low-end Huawei sustained-60-FPS gates.

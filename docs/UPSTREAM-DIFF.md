@@ -37,3 +37,5 @@ Stan uporządkowanej podstawy 0.4.3: patch zmienia 34 pliki silnika (572 dodane 
 Zakończenie jest inscenizacją w silniku, nie odtworzeniem oryginalnego filmu. Parametry nowych elementów finału i balans nie mają pełnego porównania z Windows. CrazyHook DLL/FFI i adresy x86 nie są wykonywane przez port. Testy kontrolowane i odczyt wszystkich obiektów nie zastępują naturalnego przejścia wszystkich map. Jednorazowa awaria kontaktu pocisku poziomu 7 jest zachowana w raporcie audytu; po dodaniu kontroli rejestracji nie powtórzyła się w końcowych próbach, ale jej źródła nie ustalono jednoznacznie.
 
 Obsługa padów jest osobną zmianą po uporządkowaniu podstawy 0.4.3. Aktualny zakres i niewykonane jeszcze sprawdzenia zapisano w `docs/validation/GAMEPAD.md`.
+
+Dalsze własne zmiany Androida: [dotykowe suwaki dźwięku](validation/MENU-AUDIO-0.4.19.md), [sprzątanie przerwanego importu](validation/IMPORT-CLEANUP-0.4.21.md), [kontrola konfiguracji przed podmianą danych](validation/CONFIG-IMPORT-0.4.22.md). To kod adaptacji i testów; odziedziczona gra i zasoby nie są przypisywane LLM.

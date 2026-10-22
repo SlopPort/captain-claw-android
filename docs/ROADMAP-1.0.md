@@ -65,3 +65,5 @@ Scope from 2026-10-22: proceed with the remaining work, but defer controller tes
 If 60 FPS or another required gate is not achieved, it remains open. Do not transfer an older build's results to a newer APK or replace natural traversal with teleports. The final report should clearly separate completed work, release blockers and optional post-1.0 improvements.
 
 Aktualizacja 0.4.21 / Update 0.4.21: [Redmi — 14 startów map, PL/EN, ARM64/ARMv7 i pomiary FPS](validation/REDMI-0.4.21.md), [sprzątanie importu i czysta kompilacja](validation/IMPORT-CLEANUP-0.4.21.md), [ograniczone próby aktywnego Tiger Guarda](validation/ACTIVE-TIGER-0.4.21.md). These results do not close the natural-campaign, sustained-60-FPS or full-disk gates.
+
+0.4.22: [kontrola konfiguracji przed importem / pre-publication config checks](validation/CONFIG-IMPORT-0.4.22.md) przeszła 11 przypadków na Androidzie 5/10/16. [20-minute Redmi 0.4.21 observation](validation/SUSTAINED-REDMI-0.4.21.md) averaged 59.998 FPS with occasional stalls; natural campaign, low-end Huawei 60 FPS, real full-disk and physical ARM 16 KB checks remain open.
