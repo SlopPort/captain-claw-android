@@ -26,7 +26,8 @@ public class ImportTransactionChecks {
         write(new File(root,"SAVES.XML"),"keep saves");return root;
     }
     static void check(File root,String mode,boolean committed) throws IOException {
-        ImportTransaction.recover(root);ImportTransaction.recover(root);
+        ImportTransaction.prepareStartup(root);ImportTransaction.prepareStartup(root);
+        if(new File(root,"import-staging").exists())throw new AssertionError("Staging bytes retained");
         for(int i=0;i<ImportTransaction.REQUIRED.length;i++) {
             String name=ImportTransaction.REQUIRED[i];File file=new File(root,name);
             if(committed)equal(file,"new "+name);
@@ -72,6 +73,15 @@ public class ImportTransactionChecks {
             File marker=new File(root,"import-transaction/rollback");write(marker,"truncated");
             try {ImportTransaction.recover(root);throw new AssertionError("Bad journal accepted");}catch(IOException expected){}
             if(!new File(root,"import-transaction/CLAW.REZ").isFile())throw new AssertionError("Backup removed");cases++;
+            // Unknown journal must prevent staging cleanup: preserve evidence.
+            try {ImportTransaction.prepareStartup(root);throw new AssertionError("Bad journal accepted at startup");}catch(IOException expected){}
+            equal(new File(root,"import-staging/CLAW.REZ"),"new CLAW.REZ");cases++;
+            // Rejected extraction before publication: startup frees only staging.
+            root=fixture("full");check(root,"full",false);
+            root=fixture("full");write(new File(root,"import-staging/unknown.bin"),"preserve unknown");
+            try {ImportTransaction.prepareStartup(root);throw new AssertionError("Unknown staging content accepted");}catch(IOException expected){}
+            equal(new File(root,"import-staging/unknown.bin"),"preserve unknown");
+            equal(new File(root,"CLAW.REZ"),"old CLAW.REZ");equal(new File(root,"SAVES.XML"),"keep saves");cases++;
             System.out.println("PASS: "+cases+" interruption/commit/journal cases; save sentinels preserved");
         } finally {
             try(java.util.stream.Stream<Path> paths=Files.walk(base.toPath())) {

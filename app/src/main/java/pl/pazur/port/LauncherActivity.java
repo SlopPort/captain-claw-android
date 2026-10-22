@@ -95,7 +95,7 @@ public class LauncherActivity extends LocalizedActivity {
             try {
                 File root=getExternalFilesDir(null);
                 if(root==null)throw new IOException(getString(R.string.storage_unavailable));
-                synchronized(ImportTransaction.LOCK) { ImportTransaction.recover(root); }
+                synchronized(ImportTransaction.LOCK) { ImportTransaction.prepareStartup(root); }
                 runOnUiThread(()-> {
                     if(isFinishing()||isDestroyed())return;
                     storageChecked=true;
@@ -196,7 +196,7 @@ public class LauncherActivity extends LocalizedActivity {
                 // Normal I/O failures roll back immediately. Process death takes
                 // the same path during the next launcher startup, before ready().
                 File root=getExternalFilesDir(null);
-                if(root!=null)try {ImportTransaction.recover(root);}catch(IOException recovery){error.addSuppressed(recovery);}
+                if(root!=null)try {ImportTransaction.prepareStartup(root);}catch(IOException recovery){error.addSuppressed(recovery);}
                 runOnUiThread(() -> {
                     if(isFinishing()||isDestroyed())return;
                     status.setText(R.string.import_failed);

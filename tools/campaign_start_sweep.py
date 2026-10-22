@@ -38,12 +38,14 @@ def main():
             viewports=re.findall(r'Pazur viewport: physical=(\d+)x(\d+) logical=(\d+)x(\d+)',log)
             if args.expect_logical_size:
                 assert viewports and list(map(int,viewports[-1][2:]))==args.expect_logical_size,viewports
+            frames=[dict(fps=float(f),p95_ms=int(p),max_ms=int(m)) for f,p,m in re.findall(
+                r'Pazur frame sample: fps=([\d.]+) p95=(\d+) ms max=(\d+) ms',log)]
             memory=adb('shell','dumpsys','meminfo','pl.pazur.port')
             (session.report/'memory.txt').write_text(memory,encoding='utf-8')
             session.capture('start')
             row=dict(level=level,passed=True,natural_playthrough=False,
                      apk_sha256=apk_sha256,preview_diagnostics=not args.production,
-                     viewport_events=viewports,
+                     viewport_events=viewports,frame_samples=frames,fps_target_validated=False,
                      fixtures=['isolated map start'],observed_seconds=max(3,args.seconds))
             assert installed_apk_sha256()==apk_sha256,'Package changed during map sweep'
             (session.report/'results.json').write_text(json.dumps(row,indent=2),encoding='utf-8')

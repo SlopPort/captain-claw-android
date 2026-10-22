@@ -59,3 +59,7 @@ Separate x86_64 build SHA-256 `87d78366dc8c65ecf98cbd032f13d0a618ce4093ea3f58ee0
 On Android 5.0.2/API 21, `atomic-features-api21-0.4.18-r2.txt` passed real parser/filesystem fixtures. `compat-api21-0.4.18-r2-menu/level` passed library mapping, native/menu, declared 100 ms jump (59.7 px, 112 ms effective hold, 74 ms takeoff under emulation), real exit/score/level-two loading and atomic next-level publication. The first attempt did not mount this task AVD's existing test SD card and therefore found no config/save files; it failed before game coverage. The AVD alone was restarted with that same task-owned card, without copying phone data or resetting its user progress. Both failed and passing reports remain local.
 
 All emulator data was supplied as a fixture, not selected through SAF in these trials. Config/saves were restored. These observations do not establish physical Android-5/15 or ARM 16 KB coverage, all-map performance or full campaign traversal. Physical Huawei continues to use the separately identified ARM package.
+
+## 0.4.21 physical Android 16 and minimal Android
+
+[Redmi Note 8 / Android 16 evidence](REDMI-0.4.21.md): preserved old saves/config during upgrade, ARM64 runtime, direct activity restoration, jump/multitouch, score/Game Over touch returns and menus PL/EN. [Import cleanup](IMPORT-CLEANUP-0.4.21.md): physical Huawei ARMv7 native/menu/jump/exit and separate API-21 x86_64 runtime, plus actual Android filesystem fixtures. Page size on Redmi is 4096; this does not establish physical ARM 16 KB coverage.

@@ -32,14 +32,14 @@ def main():
             output=adb('shell','am','instrument','-w','-r','-e','phase',phase,'-e','mode',mode,
                        'pl.pazur.port.test/pl.pazur.port.ImportRecoveryTest',check=False)
             (report/(mode+'-'+phase+'.txt')).write_text(output,encoding='utf-8')
-            if phase=='verify':assert 'INSTRUMENTATION_CODE: 0' in output and 'PASS:' in output,output
+            if phase=='verify':assert 'INSTRUMENTATION_CODE: 0' in output and 'PASS:' in output and 'staging reclaimed' in output,output
             else:assert 'Process crashed' in output or 'Process killed' in output,output
         results.append(dict(mode=mode,publication_process_death=True,recovery_process_death=True,
-                            rollback_verified=True,save_sentinel_preserved=True))
+                            rollback_verified=True,save_sentinel_preserved=True,abandoned_staging_reclaimed=True))
     (report/'results.json').write_text(json.dumps(dict(passed=True,version=version,apk_sha256=digest.hexdigest(),
         scope='isolated small fixtures; actual process death; not low-storage/power-loss or picker UX',
         modes=results),indent=2),encoding='utf-8')
-    print('PASS: actual publication and recovery process deaths, empty/partial/full original sets; real game data untouched',flush=True)
+    print('PASS: actual publication/recovery process deaths, empty/partial/full rollback and staging cleanup; real game data untouched',flush=True)
 
 
 if __name__=='__main__':main()

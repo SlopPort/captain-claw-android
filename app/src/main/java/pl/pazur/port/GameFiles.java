@@ -14,7 +14,7 @@ final class GameFiles {
     static void prepare(Context context,File root) throws Exception {
         if(root==null)throw new IOException(context.getString(R.string.storage_unavailable));
         synchronized(ImportTransaction.LOCK) {
-            ImportTransaction.recover(root);
+            ImportTransaction.prepareStartup(root);
             for(String name:ImportTransaction.REQUIRED)
                 if(!new File(root,name).isFile())throw new IOException("Missing game data: "+name);
             if(new File(root,"CLAW.REZ").length()<=168)throw new IOException("Incomplete CLAW.REZ");

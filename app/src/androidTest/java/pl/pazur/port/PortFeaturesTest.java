@@ -82,7 +82,10 @@ public class PortFeaturesTest extends Instrumentation {
             // commercial REZ data; native validation remains a separate test.
             for(String name:ImportTransaction.REQUIRED)
                 SaveFiles.writeAtomic(fixture,name,new byte[name.equals("CLAW.REZ")?169:1]);
+            File abandoned=ImportTransaction.freshStage(fixture);
+            SaveFiles.writeAtomic(abandoned,"CLAW.REZ",new byte[1024*1024]);
             GameFiles.prepare(getTargetContext(),fixture);
+            if(abandoned.exists())throw new AssertionError("Startup retained abandoned import bytes");
             byte[] initial;try(InputStream in=new FileInputStream(new File(fixture,"SAVES.XML"))){initial=SaveFiles.validate(in);}
             SaveFiles.writeAtomic(fixture,"SAVES.XML",new byte[0]);
             GameFiles.prepare(getTargetContext(),fixture);

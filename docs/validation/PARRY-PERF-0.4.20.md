@@ -39,3 +39,7 @@ Wyłączenie części diagnostyki dało w krótkiej próbie około 58,86 FPS wob
 ## Touch regression
 
 On this exact ARM APK, `touch-0.4.20-jump` passed all six focused-window gestures, including direct activity restoration and multitouch: short rises 73.1–73.5 px, held rise 155 px, takeoff 19–24 ms. `touch-0.4.20-score` and `touch-0.4.20-game-over` passed actual single-touch returns. Each fixture restores original configuration/progress. These are app-window injected gestures, not a claim of physical touchscreen latency.
+
+## Starts without preview diagnostics
+
+`production-start-0.4.20-level1..14` passed all fourteen actual map starts on this exact Huawei ARM APK with `PreviewIncompleteLevel14=false`, no mailbox commands, logical viewport 853x480 and three seconds after each load. A separate post-run check verified all saved configs and every log for `NOT LOADED:`, `LEVEL14 PREVIEW:`, unexpected commands and fatal markers. No matches. Checkpoint-zero test saves use HP 100, lives 3, bullets 10, magic 5, dynamite 3; original files were restored after each map. This confirms startup without preview bypasses, not traversal, boss balance or all-map FPS.

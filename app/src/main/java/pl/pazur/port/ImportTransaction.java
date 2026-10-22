@@ -98,8 +98,20 @@ final class ImportTransaction {
             clear(directory);
         }
     }
+    /** Startup and failed-import cleanup share the import lock. Recover the live
+     * installation first, then reclaim abandoned staging bytes. Never call this
+     * inside an active extraction/commit: recover() itself deliberately leaves
+     * staging alone because commit still owns it at that point.
+     * Only fixed import filenames are removed; unknown content fails closed. */
+    static void prepareStartup(File root) throws IOException {
+        synchronized(LOCK) {
+            recover(root);
+            File stage=new File(root,"import-staging");
+            if(stage.exists())clear(stage);
+        }
+    }
     static File freshStage(File root) throws IOException {
-        recover(root);
+        prepareStartup(root);
         File stage=new File(root,"import-staging");
         if(stage.exists())clear(stage);
         if(!stage.mkdir())throw new IOException("Cannot prepare import staging");

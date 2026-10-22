@@ -9,6 +9,7 @@ import json
 import re
 import time
 from campaign_session import CampaignSession
+from android_package import installed_apk_sha256
 from gamepad_quit_smoke import adb, PORT
 
 
@@ -21,6 +22,7 @@ def main():
     parser.add_argument('--expected-version',help='Default: versionName of this source checkout')
     parser.add_argument('--skip-jump',action='store_true',help='Explicit exit-only coverage after a separately recorded jump failure; does not validate jumping')
     args=parser.parse_args()
+    apk_sha256=installed_apk_sha256()
     package=adb('shell','dumpsys','package','pl.pazur.port')
     expected=args.expected_version or re.search(r"versionName '([^']+)'",(PORT/'app/build.gradle').read_text())[1]
     installed=re.search(r'\bversionName=(\S+)',package)
@@ -50,7 +52,8 @@ def main():
                     session.command('padvirtual tap 320 240');time.sleep(.35)
                     if 'Level name: Claw - Level 2' in session.logs():break
                 session.wait('Level name: Claw - Level 2')
-            result=dict(passed=True,version=installed[1],abi=args.abi,process_library_verified=True,
+            assert installed_apk_sha256()==apk_sha256,"Package changed during ABI test"
+            result=dict(passed=True,apk_sha256=apk_sha256,version=installed[1],abi=args.abi,process_library_verified=True,
                         main_menu=menu,level1_jump_and_exit=not menu and not args.skip_jump,
                         level1_exit_verified=not menu,jump_verified=not menu and not args.skip_jump,natural_playthrough=False,
                         jump_skipped=menu or args.skip_jump,

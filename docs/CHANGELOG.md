@@ -1,5 +1,13 @@
 # Historia adaptacji
 
+## 0.4.21 — sprzątanie importu i Android 16
+
+Porzucone pliki robocze importu są usuwane po poprawnym odzyskaniu danych przy starcie i po błędzie importu. Zachowanie kopii przy uszkodzonym dzienniku, 64 próby granic operacji oraz testy Huawei/Android 5. Aktualizacja Redmi z 0.4.3 zachowała zapisy i konfigurację; skok, wielodotyk i wyjścia dotykowe przeszły na Androidzie 16. [Import](validation/IMPORT-CLEANUP-0.4.21.md), [Redmi](validation/REDMI-0.4.21.md).
+
+## 0.4.20 — rozdzielenie parowania od błędu trafienia
+
+Diagnostyka zapisuje istniejący wynik losowania parowania i opór zdrowia, bez zmiany obrażeń ani dodatkowego losowania. Opcjonalne cichsze pomiary nie są reklamowane jako optymalizacja. Wszystkie 14 map wystartowało na Huawei bez flagi podglądu. [Wyniki i ograniczenia](validation/PARRY-PERF-0.4.20.md).
+
 ## 0.4.19 — dotykowe ustawienia dźwięku
 
 Suwaki głośności obsługują przeciąganie i anulowanie dotyku, zapisują ustawienia atomowo i zachowują wybrany kanał po przesunięciu palca między wierszami. Wyciszenie nie włącza ponownie nieobsługiwanych osobnych kontrolek głosów i otoczenia. Próby PL/EN na Huawei Android 10 i emulatorze Androida 5, po 109 etykiet w każdym języku. [Zakres i sumy APK](validation/MENU-AUDIO-0.4.19.md).

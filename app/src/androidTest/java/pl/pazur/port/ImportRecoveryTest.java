@@ -45,7 +45,8 @@ public class ImportRecoveryTest extends Instrumentation {
                 throw new AssertionError("Expected recovery termination");
             }
             if(!phase.equals("verify"))throw new AssertionError("phase");
-            ImportTransaction.recover(root);ImportTransaction.recover(root);
+            ImportTransaction.prepareStartup(root);ImportTransaction.prepareStartup(root);
+            if(new File(root,"import-staging").exists())throw new AssertionError("Abandoned staging survived startup");
             for(int i=0;i<ImportTransaction.REQUIRED.length;i++) {
                 String name=ImportTransaction.REQUIRED[i];File file=new File(root,name);
                 if(mode.equals("full")||(mode.equals("partial")&&i%2==0))verify(file,"old "+name);
@@ -57,7 +58,7 @@ public class ImportRecoveryTest extends Instrumentation {
             if(!stage.delete())throw new IOException("stage cleanup");
             for(File file:root.listFiles())if(!file.delete())throw new IOException("fixture cleanup");
             if(!root.delete())throw new IOException("root cleanup");
-            result.putString("recovery","PASS: "+mode+", actual process death during publish and recovery; original set and save preserved");
+            result.putString("recovery","PASS: "+mode+", actual process death during publish and recovery; original set and save preserved, staging reclaimed");
             finish(0,result);
         }catch(Throwable error){result.putString("error",android.util.Log.getStackTraceString(error));finish(1,result);}
     }
