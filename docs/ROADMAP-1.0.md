@@ -75,3 +75,5 @@ Aktualizacja 0.4.21 / Update 0.4.21: [Redmi — 14 startów map, PL/EN, ARM64/AR
 The user now accepts 55 FPS as the lower threshold in the heavy Huawei scene. 60 FPS remains an optimization target rather than an absolute release requirement there. Report frame-time stalls and sustained observations separately; natural campaign traversal is the current priority.
 
 0.4.23: [awaria beczki znaleziona podczas naturalnej próby kampanii / powder-keg crash found during natural campaign attempt](validation/POWDER-KEG-0.4.23.md). Reproduced on 0.4.22, fixed and regression-tested on Redmi Android 16 and Huawei Android 10. The campaign itself remains incomplete.
+
+0.4.24: [przebieg nieukończonych naturalnych prób / incomplete natural-attempt record](validation/NATURAL-CAMPAIGN-0.4.23.md) oraz [wejście na rzeczywistą platformę i przenoszenie na Redmi/Huawei / real-platform boarding and carrying](validation/PLATFORM-0.4.24.md). Controlled observations pass; natural campaign remains open. The lower route has a vertical elevator and is not established as a dead end.

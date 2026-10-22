@@ -20,6 +20,7 @@
 #include "Engine/Actor/Components/EnemyAI/EnemyAIComponent.h"
 #include "Engine/Actor/Components/AIComponents/ProjectileAIComponent.h"
 #include "Engine/Actor/Components/AreaDamageComponent.h"
+#include "Engine/Actor/Components/KinematicComponent.h"
 #include "Engine/UserInterface/HumanView.h"
 #include "Engine/Scene/SceneNodes.h"
 #include "Engine/Events/EventMgr.h"
@@ -58,6 +59,13 @@ struct LadderTrace {
     Uint32 end=0, nextSample=0;
     std::string label, previousState;
 } ladderTrace;
+
+// Read-only movement evidence; no fixture creation or physics edits.
+struct PlatformTrace {
+    Uint32 end=0, nextSample=0;
+    std::string label;
+    std::vector<WeakActorPtr> platforms;
+} platformTrace;
 
 void keyEvent(SDL_Keycode key, bool down) {
     if (key==SDLK_SPACE) PazurCombatProbe::JumpInput(down,0);
@@ -195,6 +203,15 @@ bool PazurCombatProbe::Handle(const std::vector<std::string>& args, const ActorM
         SDL_Log("Pazur campaign state: level=%d exits=%d health=%d lives=%d",
             level,endings,claw->GetRawComponent<HealthComponent>(true)->GetHealth(),
             claw->GetRawComponent<LifeComponent>(true)->GetLives());
+        return true;
+    }
+    if(args[0]=="platformtrace" && args.size()==3) {
+        platformTrace=PlatformTrace{};
+        platformTrace.label=args[1];
+        for(const auto& pair:actors)
+            if(pair.second->GetRawComponent<KinematicComponent>(false))
+                platformTrace.platforms.push_back(pair.second);
+        platformTrace.end=SDL_GetTicks()+(std::max)(100,(std::min)(10000,std::stoi(args[2])));
         return true;
     }
     if(args[0]=="laddertrace" && args.size()==3) {
@@ -338,7 +355,8 @@ bool PazurCombatProbe::Handle(const std::vector<std::string>& args, const ActorM
         const auto now=SDL_GetTicks();
         keyEvent(SDLK_SPACE,true);
         heldKeys[SDLK_SPACE]=now+(std::max)(20,(std::min)(1000,std::stoi(args[1])));
-        scheduledSwordAt=now+(std::max)(20,(std::min)(1000,std::stoi(args[2])));
+        // Zero requests a plain simultaneous jump/move without an attack.
+        scheduledSwordAt=std::stoi(args[2])==0 ? 0 : now+(std::max)(20,(std::min)(1000,std::stoi(args[2])));
         if(args.size()>=4 && (args[3]=="left" || args[3]=="right")) {
             const auto direction=args[3]=="left"?SDLK_LEFT:SDLK_RIGHT;
             // Optional duration separates real held escape input from the old
@@ -346,14 +364,14 @@ bool PazurCombatProbe::Handle(const std::vector<std::string>& args, const ActorM
             const int directionMs=args.size()==5?(std::max)(20,(std::min)(2000,std::stoi(args[4]))):250;
             keyEvent(direction,true);heldKeys[direction]=now+directionMs;
             SDL_Log("Pazur jump attack input: jump_ms=%u direction_ms=%d attack_delay_ms=%u",
-                heldKeys[SDLK_SPACE]-now,directionMs,scheduledSwordAt-now);
+                heldKeys[SDLK_SPACE]-now,directionMs,scheduledSwordAt ? scheduledSwordAt-now : 0);
         }
         return true;
     }
     if (args[0] == "combatkey" && args.size() == 3) {
         if (args[1] == "release") { ResetKeys(); return true; }
         const std::map<std::string,SDL_Keycode> keys{{"left",SDLK_LEFT},{"right",SDLK_RIGHT},
-            {"down",SDLK_DOWN},{"up",SDLK_UP},{"sword",SDLK_LCTRL},{"pistol",SDLK_LALT},{"jump",SDLK_SPACE}};
+            {"down",SDLK_DOWN},{"up",SDLK_UP},{"sword",SDLK_LCTRL},{"pistol",SDLK_LALT},{"jump",SDLK_SPACE},{"weapon",SDLK_LSHIFT}};
         auto found=keys.find(args[1]);
         if (found == keys.end()) return true;
         if (heldKeys.count(found->second)) keyEvent(found->second,false);
@@ -511,6 +529,28 @@ void PazurCombatProbe::Poll() {
             scheduledSwordAt=0;
             keyEvent(SDLK_LCTRL,true);
             heldKeys[SDLK_LCTRL]=now+100;
+        }
+    }
+    if(platformTrace.end) {
+        if(!playing || (Sint32)(now-platformTrace.end)>=0) platformTrace.end=0;
+        else if((Sint32)(now-platformTrace.nextSample)>=0) {
+            auto claw=g_pApp->GetGameLogic()->GetClawActor();
+            auto pc=claw->GetPhysicsComponent();
+            const auto position=claw->GetPositionComponent()->GetPosition();
+            const auto velocity=pc->GetVelocity();
+            SDL_Log("Pazur platform hero: label=%s tick=%u x=%.2f y=%.2f vx=%.4f vy=%.4f ground=%d falling=%d jumping=%d",
+                platformTrace.label.c_str(),now,position.x,position.y,velocity.x,velocity.y,
+                pc->IsOnGround(),pc->IsFalling(),pc->IsJumping());
+            for(const auto& weak:platformTrace.platforms) {
+                const auto actor=weak.lock();
+                if(!actor) continue;
+                const auto p=actor->GetPositionComponent()->GetPosition();
+                if(std::abs(p.x-position.x)>900 || std::abs(p.y-position.y)>600) continue;
+                const auto v=g_pApp->GetGameLogic()->VGetGamePhysics()->VGetVelocity(actor->GetGUID());
+                SDL_Log("Pazur platform position: label=%s tick=%u id=%u x=%.2f y=%.2f vx=%.4f vy=%.4f",
+                    platformTrace.label.c_str(),now,actor->GetGUID(),p.x,p.y,v.x,v.y);
+            }
+            platformTrace.nextSample=now+50;
         }
     }
     if(ladderTrace.end) {

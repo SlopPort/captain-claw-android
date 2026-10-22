@@ -14,7 +14,7 @@ from campaign_session import CampaignSession
 from gamepad_quit_smoke import adb, REMOTE
 from android_package import installed_apk_sha256
 
-KEYS = {'left', 'right', 'up', 'down', 'jump', 'sword', 'pistol', 'release'}
+KEYS = {'left', 'right', 'up', 'down', 'jump', 'sword', 'pistol', 'weapon', 'release'}
 QUERIES = {'campaignmap', 'laddermap', 'combatstatus', 'ladderstatus'}
 
 
@@ -31,7 +31,7 @@ def validate(request):
         if combo['direction'] not in ('left', 'right'):
             raise ValueError('Invalid direction')
         for name, limit in [('jump', 1000), ('attack', 1000), ('move', 2000)]:
-            if not isinstance(combo[name], int) or not 20 <= combo[name] <= limit:
+            if not isinstance(combo[name], int) or not (0 if name == 'attack' else 20) <= combo[name] <= limit:
                 raise ValueError('Invalid combo duration')
     if request.get('query') and request['query'] not in QUERIES:
         raise ValueError('Only read-only queries are permitted')
