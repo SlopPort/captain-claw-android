@@ -44,4 +44,5 @@
     <string name="import_failed">"Nie udało się zaimportować danych."</string>
     <string name="import_recovering">Sprawdzanie danych gry…</string>
     <string name="import_recovery_error">"Nie można przywrócić danych po przerwanym imporcie. Kopia została zachowana. Zwolnij trochę miejsca i spróbuj ponownie. Szczegóły: "</string>
+    <string name="import_config_error">Nieprawidłowa konfiguracja w paczce.</string>
 </resources>

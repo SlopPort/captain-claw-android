@@ -24,6 +24,20 @@ public class PortFeaturesTest extends Instrumentation {
             reject(new String(valid,"UTF-8").replace("<LevelNumber>1</LevelNumber>","<LevelNumber>99</LevelNumber>"));
             File stage=new File(root,"features-test");if(!stage.isDirectory()&&!stage.mkdirs())throw new IOException("stage");
             ImportSupport.prepare(getTargetContext(),stage);
+            ImportSupport.validateConfig(getTargetContext(),new File(stage,"config.xml"));
+            File invalidConfig=new File(stage,"invalid-config.xml");
+            for(String invalid:new String[]{"", "<Configuration>", "<Wrong/>",
+                    "<!DOCTYPE Configuration [<!ENTITY a 'text'>]><Configuration/>",
+                    "<Configuration/><Configuration/>", "<Configuration></Wrong>", "<Configuration><A></Configuration>", "junk<Configuration/>", "<Configuration/>junk", "<Configuration>&unknown;</Configuration>"}) {
+                try(FileOutputStream out=new FileOutputStream(invalidConfig)){out.write(invalid.getBytes("UTF-8"));}
+                boolean configRejected=false;
+                try{ImportSupport.validateConfig(getTargetContext(),invalidConfig);}catch(IOException expected){configRejected=true;}
+                if(!configRejected)throw new AssertionError("Accepted malformed config: "+invalid);
+            }
+            try(RandomAccessFile out=new RandomAccessFile(invalidConfig,"rw")){out.setLength(1024*1024+1);}
+            boolean largeRejected=false;
+            try{ImportSupport.validateConfig(getTargetContext(),invalidConfig);}catch(IOException expected){largeRejected=true;}
+            if(!largeRejected)throw new AssertionError("Accepted oversized config");
             boolean level14=false;
             java.util.Set<String> generatedPngs=new java.util.HashSet<>(java.util.Arrays.asList(
                 "CONTROLS/touchscreen_title.png","CONTROLS/touchscreen_img.png",
@@ -68,7 +82,7 @@ public class PortFeaturesTest extends Instrumentation {
             for(File file:stage.listFiles())if(!file.delete())throw new IOException("cleanup");
             if(!stage.delete())throw new IOException("cleanup stage");
             checkStartup(root);
-            result.putString("features","PASS: save roundtrip, pending import/backup, invalid import preserves progress, invalid REZ rejected, XML plus exact generated help/credits and system font");
+            result.putString("features","PASS: save roundtrip, pending import/backup, invalid import preserves progress, invalid REZ and eleven malformed/oversized configs rejected, XML plus exact generated help/credits and system font");
             finish(0,result);
         }catch(Throwable error){result.putString("error",android.util.Log.getStackTraceString(error));finish(1,result);}
     }

@@ -50,6 +50,7 @@ Nie musisz kompilować APK, jeśli masz już gotowy instalator. [Budowanie APK z
 
 - **Nie widzę ZIP:** otwórz folder Download/Pobrane w systemowym selektorze, a nie plik wewnątrz archiwum.
 - **Nieprawidłowa lub niekompletna paczka:** przygotuj ją narzędziem portu. Zwykły ZIP całego katalogu gry nie ma wymaganego układu.
+- **Nieprawidłowa konfiguracja w paczce:** przygotuj `game-data.zip` ponownie narzędziem portu. Jeśli masz pełny oryginalny `CLAW.REZ`, możesz wybrać go bez ZIP — aplikacja przygotuje własną konfigurację. Nie usuwaj zapisów gry.
 - **Aplikacja nie została zainstalowana:** zapisz dokładną treść komunikatu, wersję Androida i nazwę APK. Nie usuwaj zapisów w ciemno.
 - **Gra zamyka się lub działa wolno:** podaj model telefonu, Androida, poziom i czynność poprzedzającą problem. Android 5+ jest minimum kompilacji, a nie obietnicą działania na każdym telefonie.
 

@@ -3,6 +3,8 @@ package pl.pazur.port;
 import android.content.Context;
 import java.io.*;
 import java.util.zip.*;
+import org.xmlpull.v1.XmlPullParser;
+import android.util.Xml;
 
 /** Direct-REZ workflow inspired by arthurboss/claw-web, GPLv3.
  * New Android implementation; support assets contain XML and generated artwork only.
@@ -22,6 +24,40 @@ final class ImportSupport {
             long size=((long)Integer.reverseBytes(input.readInt()))&0xffffffffL;
             if(version!=1 || offset<168 || size<16 || offset+size>input.length())
                 throw new IOException("Invalid REZ directory");
+        }
+    }
+    /** Validate imported config before publishing the five-file installation.
+     * A valid outer ZIP CRC does not imply that config.xml is valid XML. This
+     * checks framing/root and rejects DTDs; it is not a full engine schema or
+     * proof that arbitrary numeric settings are meaningful. Existing user
+     * configurations are never silently rewritten by this check. */
+    static void validateConfig(Context context,File file) throws IOException {
+        try {
+            if(file.length()>1024L*1024)throw new IOException("config.xml exceeds 1 MiB");
+            XmlPullParser parser=Xml.newPullParser();
+            parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES,false);
+            boolean root=false;java.util.ArrayDeque<String> elements=new java.util.ArrayDeque<>();
+            try(InputStream input=new FileInputStream(file)) {
+                parser.setInput(input,"UTF-8");
+                while(parser.nextToken()!=XmlPullParser.END_DOCUMENT) {
+                    if(parser.getEventType()==XmlPullParser.DOCDECL)throw new IOException("DOCTYPE is not supported");
+                    // nextToken exposes unresolved entities without necessarily
+                    // throwing; a missing replacement text is invalid XML.
+                    if(parser.getEventType()==XmlPullParser.ENTITY_REF && parser.getText()==null)throw new IOException("Unresolved XML entity");
+                    if(parser.getEventType()==XmlPullParser.START_TAG)elements.push(parser.getName());
+                    if(parser.getEventType()==XmlPullParser.END_TAG &&
+                            (elements.isEmpty()||!elements.pop().equals(parser.getName())))throw new IOException("Mismatched closing tag");
+                    if(parser.getEventType()==XmlPullParser.START_TAG && parser.getDepth()==1) {
+                        if(root||!"Configuration".equals(parser.getName()))throw new IOException("Expected Configuration root");
+                        root=true;
+                    }
+                }
+            }
+            // Android's pull parser can report END_DOCUMENT for an unclosed
+            // root; explicitly reject it instead of trusting EOF as validation.
+            if(!root||!elements.isEmpty())throw new IOException("Incomplete Configuration document");
+        } catch(Exception error) {
+            throw new IOException(context.getString(R.string.import_config_error)+" config.xml: "+error.getMessage(),error);
         }
     }
     static void prepare(Context context,File stage) throws IOException {

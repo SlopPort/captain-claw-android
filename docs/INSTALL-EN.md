@@ -44,12 +44,13 @@ In 0.4.8 you can select the REZ directly as described above. The ZIP workflow be
 4. Run `python tools/pack_assets.py --game-root "C:\Games\Claw"`. Replace the example path with your own game folder containing `CLAW.REZ`. Keep the quotation marks, particularly for paths containing spaces.
 5. Find the resulting `build/game-data.zip` inside the project folder. Copy it to the phone and follow the steps above. The original PC installation is not modified.
 
-You do not need to build an APK if you already have the installer. [Building from source](BUILDING.md) is a separate developer workflow.
+You do not need to build an APK if you already have the installer. [Building from source](BUILDING.en.md) is a separate developer workflow.
 
 ## Troubleshooting
 
 - **Cannot find the ZIP:** open Download in the system picker; select the archive itself.
 - **Invalid or incomplete package:** create it with the port's packaging tool. Zipping the entire PC game folder does not produce the required structure.
+- **Invalid configuration in the game-data package:** rebuild `game-data.zip` with the port tool. If you own a complete original `CLAW.REZ`, select it directly instead; the app generates its own configuration. Do not delete game saves.
 - **App not installed:** record the exact message, Android version and APK filename. Do not delete your saves without a backup.
 - **Crashes or slow gameplay:** report the phone model, Android version, level and action immediately before the problem. Android 5+ is the build minimum, not confirmed compatibility with every device.
 

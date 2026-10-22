@@ -190,6 +190,7 @@ public class LauncherActivity extends LocalizedActivity {
                 if (!seen.equals(allowed) || new File(stage, "CLAW.REZ").length() <= 168)
                     throw new IOException(getString(R.string.import_missing_error));
                 ImportSupport.validateRez(new File(stage,"CLAW.REZ"));
+                ImportSupport.validateConfig(this,new File(stage,"config.xml"));
                 ImportTransaction.commit(root,stage);
                 runOnUiThread(this::play);
             } catch (Exception error) {
