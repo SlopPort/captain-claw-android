@@ -15,7 +15,7 @@ from gamepad_quit_smoke import adb
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--report',required=True)
-    parser.add_argument('--abi',choices=('armeabi-v7a','arm64-v8a'),required=True)
+    parser.add_argument('--abi',choices=('armeabi-v7a','arm64-v8a','x86_64'),required=True)
     args=parser.parse_args()
     package=adb('shell','dumpsys','package','pl.pazur.port')
     assert 'primaryCpuAbi='+args.abi in package,'Installed ABI differs from requested test'
@@ -27,12 +27,13 @@ def main():
             (session.report/'process-maps.txt').write_text(maps,encoding='utf-8')
             library_lines=[line for line in maps.splitlines() if 'libopenclaw.so' in line]
             assert library_lines,'Engine absent from process maps'
-            expected='/lib/arm/' if args.abi=='armeabi-v7a' else '/lib/arm64/'
+            expected='/lib/'+{'armeabi-v7a':'arm','arm64-v8a':'arm64','x86_64':'x86_64'}[args.abi]+'/'
             assert any(expected in line for line in library_lines),'Unexpected engine library path'
             session.capture('menu' if menu else 'level-start')
             if not menu:
                 session.command('combatjumpmeasure abi-jump')
-                session.command('combatkey jump 100');time.sleep(2)
+                session.command('combatkey jump 100')
+                session.wait('Pazur jump trace: label=abi-jump',seconds=6)
                 traces=re.findall(r'Pazur jump trace: label=abi-jump .*rise=([\d.]+).*jumps=(\d+)',session.logs())
                 assert traces and float(traces[-1][0])>40 and int(traces[-1][1])==1,traces
                 session.command('campaignfinish');session.wait('Score screen initialized OK')
