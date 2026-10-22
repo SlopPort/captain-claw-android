@@ -340,6 +340,27 @@ index d219dde..e41bf46 100644
      _lastActorGUID = 0;
  
      _componentFactory.Register<PositionComponent>(ActorComponent::GetIdFromName(PositionComponent::g_Name));
+diff --git a/OpenClaw/Engine/Actor/ActorTemplates.cpp b/OpenClaw/Engine/Actor/ActorTemplates.cpp
+index aff4a25..c13c093 100644
+--- a/OpenClaw/Engine/Actor/ActorTemplates.cpp
++++ b/OpenClaw/Engine/Actor/ActorTemplates.cpp
+@@ -2547,7 +2547,15 @@ namespace ActorTemplates
+ 
+     StrongActorPtr CreateAreaDamage(const Point& position, const Point& size, int32 damage, CollisionFlag collisionFlag, const std::string& shape, DamageType damageType, Direction hitDirection, int sourceActorId, const Point& positionOffset, const std::string& imageSet, zIndexes zCoord)
+     {
+-        return CreateAndReturnActor(CreateXmlData_AreaDamageActor(position, size, damage, collisionFlag, shape, damageType, hitDirection, sourceActorId, positionOffset, imageSet, zCoord));
++        auto actor=CreateAndReturnActor(CreateXmlData_AreaDamageActor(position, size, damage, collisionFlag, shape, damageType, hitDirection, sourceActorId, positionOffset, imageSet, zCoord));
++#ifdef __ANDROID__
++        // Observe actual created attack bounds without changing reach or damage.
++        if(actor && g_pApp->GetDebugOptions()->bPreviewIncompleteLevel14) {
++            const auto box=g_pApp->GetGameLogic()->VGetGamePhysics()->VGetAABB(actor->GetGUID(),false);
++            SDL_Log("Pazur area created: source=%d damage=%d box=%d,%d,%d,%d",sourceActorId,damage,box.x,box.y,box.w,box.h);
++        }
++#endif
++        return actor;
+     }
+ 
+     StrongActorPtr CreateGlitter(const std::string& glitterType, const Point& position, zIndexes zCoord)
 diff --git a/OpenClaw/Engine/Actor/Components/AIComponents/CrumblingPegAIComponent.cpp b/OpenClaw/Engine/Actor/Components/AIComponents/CrumblingPegAIComponent.cpp
 index 2df1194..d7020fd 100644
 --- a/OpenClaw/Engine/Actor/Components/AIComponents/CrumblingPegAIComponent.cpp
@@ -528,6 +549,27 @@ index 5dd2581..ad5586d 100644
 -}
 \ No newline at end of file
 +}
+diff --git a/OpenClaw/Engine/Actor/Components/AreaDamageComponent.cpp b/OpenClaw/Engine/Actor/Components/AreaDamageComponent.cpp
+index eba8809..834d82f 100644
+--- a/OpenClaw/Engine/Actor/Components/AreaDamageComponent.cpp
++++ b/OpenClaw/Engine/Actor/Components/AreaDamageComponent.cpp
+@@ -73,6 +73,16 @@ bool AreaDamageComponent::VOnApply(Actor* pActorWhoPickedThis)
+         SDL_Rect areaDamageAABB = g_pApp->GetGameLogic()->VGetGamePhysics()->VGetAABB(m_pOwner->GetGUID(), false);
+         SDL_Rect actorAABB = g_pApp->GetGameLogic()->VGetGamePhysics()->VGetAABB(pActorWhoPickedThis->GetGUID(), true);
+ 
++#ifdef __ANDROID__
++        // Opt-in diagnostic evidence only; keep Box2D contact/damage behavior.
++        if(g_pApp->GetDebugOptions()->bPreviewIncompleteLevel14) {
++            SDL_Log("Pazur area contact: source=%d target=%s damage=%d area=%d,%d,%d,%d body=%d,%d,%d,%d integer_overlap=%d",
++                m_SourceActorId,pActorWhoPickedThis->GetName().c_str(),m_Damage,
++                areaDamageAABB.x,areaDamageAABB.y,areaDamageAABB.w,areaDamageAABB.h,
++                actorAABB.x,actorAABB.y,actorAABB.w,actorAABB.h,SDL_HasIntersection(&areaDamageAABB,&actorAABB));
++        }
++#endif
++
+         SDL_Rect impactRect;
+         Point contactPoint;
+         if (SDL_IntersectRect(&areaDamageAABB, &actorAABB, &impactRect))
 diff --git a/OpenClaw/Engine/Actor/Components/ControllableComponent.cpp b/OpenClaw/Engine/Actor/Components/ControllableComponent.cpp
 index a131374..52dc51f 100644
 --- a/OpenClaw/Engine/Actor/Components/ControllableComponent.cpp

@@ -86,6 +86,11 @@ void status() {
         position.x, position.y, box.x, box.y, box.w, box.h,
         enemy ? enemy->GetName().c_str() : "none", enemy ? enemy->GetGUID() : 0,
         enemyHp ? enemyHp->GetHealth() : -999, enemyHp ? enemyHp->GetMaxHealth() : -999);
+    if(enemy && enemyHp && enemyHp->GetHealth()>0) {
+        const auto targetBox=logic->VGetGamePhysics()->VGetAABB(enemy->GetGUID(),true);
+        SDL_Log("Pazur probe target box: actor=%s box=%d,%d,%d,%d",
+            enemy->GetName().c_str(),targetBox.x,targetBox.y,targetBox.w,targetBox.h);
+    }
 }
 }
 
@@ -213,16 +218,28 @@ bool PazurCombatProbe::Handle(const std::vector<std::string>& args, const ActorM
         claw->GetRawComponent<HealthComponent>(true)->SetCurrentHealth(0);
         return true;
     }
-    if(args[0]=="combatstairs" && args.size()==4) {
+    if((args[0]=="combatstairs" || args[0]=="combatheroabove") && (args.size()==4 || args.size()==5)) {
         const int rise=std::stoi(args[3]);
         const double distance=std::stod(args[2]);
         if(rise<1 || rise>128 || std::abs(distance)<60 || std::abs(distance)>160)return true;
-        Handle({"combatstage",args[1],args[2],std::to_string(5-rise)},actors);
+        const bool heroAbove=args[0]=="combatheroabove";
+        const bool passive=args.size()==5 && args[4]=="passive";
+        Handle({passive?"combatdummy":"combatstage",args[1],args[2],std::to_string(heroAbove?5:5-rise)},actors);
         // One raised step per fresh process; real offensive AI and normal player
         // health remain enabled. Never accumulate different steps in one arena.
-        physics->VAddStaticGeometry(Point(distance>0?200040:199700,1100-rise),
+        const double stepX=heroAbove?(distance>0?199780:199960):(distance>0?200040:199700);
+        physics->VAddStaticGeometry(Point(stepX,1100-rise),
             Point(260,rise+64),CollisionType_Solid,FixtureType_Solid);
-        SDL_Log("Pazur stairs fixture: rise=%d side=%d",rise,distance>0?1:-1);
+        if(heroAbove) {
+            const Point position(200000,1045-rise);
+            auto body=claw->GetRawComponent<PhysicsComponent>(true);
+            body->SetFallHeight(0);body->SetHeightInAir(0);
+            physics->VSetLinearSpeed(claw->GetGUID(),Point(0,0));
+            physics->VSetPosition(claw->GetGUID(),position);
+            claw->GetPositionComponent()->SetPosition(position);
+            IEventMgr::Get()->VTriggerEvent(IEventDataPtr(new EventData_Move_Actor(claw->GetGUID(),position)));
+        }
+        SDL_Log("Pazur stairs fixture: rise=%d side=%d hero_above=%d passive=%d",rise,distance>0?1:-1,heroAbove,passive);
         return true;
     }
     if (args[0]=="laddermap") {
