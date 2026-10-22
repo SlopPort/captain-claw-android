@@ -16,6 +16,8 @@ def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--report',required=True)
     parser.add_argument('--abi',choices=('armeabi-v7a','arm64-v8a','x86_64'),required=True)
+    parser.add_argument('--jump-hold',type=int,default=100,
+                        help='Ordinary held jump duration; record longer holds explicitly on slow emulators')
     args=parser.parse_args()
     package=adb('shell','dumpsys','package','pl.pazur.port')
     assert 'primaryCpuAbi='+args.abi in package,'Installed ABI differs from requested test'
@@ -31,8 +33,9 @@ def main():
             assert any(expected in line for line in library_lines),'Unexpected engine library path'
             session.capture('menu' if menu else 'level-start')
             if not menu:
+                time.sleep(3)
                 session.command('combatjumpmeasure abi-jump')
-                session.command('combatkey jump 100')
+                session.command('combatkey jump '+str(args.jump_hold))
                 session.wait('Pazur jump trace: label=abi-jump',seconds=6)
                 traces=re.findall(r'Pazur jump trace: label=abi-jump .*rise=([\d.]+).*jumps=(\d+)',session.logs())
                 assert traces and float(traces[-1][0])>40 and int(traces[-1][1])==1,traces
@@ -42,7 +45,8 @@ def main():
                     if 'Level name: Claw - Level 2' in session.logs():break
                 session.wait('Level name: Claw - Level 2')
             result=dict(passed=True,abi=args.abi,process_library_verified=True,
-                        main_menu=menu,level1_jump_and_exit=not menu,natural_playthrough=False)
+                        main_menu=menu,level1_jump_and_exit=not menu,natural_playthrough=False,
+                        requested_jump_hold_ms=args.jump_hold)
             (session.report/'results.json').write_text(json.dumps(result,indent=2),encoding='utf-8')
             print(json.dumps(result),flush=True)
 

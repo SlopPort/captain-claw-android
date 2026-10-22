@@ -21,14 +21,17 @@ def boss(session):
 
 def main():
     parser=argparse.ArgumentParser(description=__doc__);parser.add_argument('--report',required=True)
-    parser.add_argument('--observe',action='store_true');args=parser.parse_args()
+    parser.add_argument('--observe',action='store_true')
+    parser.add_argument('--death-reset',action='store_true',help='After first carry, lose a real life in the arena pit and repeat')
+    args=parser.parse_args()
     with CampaignSession(args.report,level=10) as session:
         session.command('invincible 1');session.command('teleport 32432 7769')
         session.wait('Pazur Marrow fight started')
         session.capture('arena-start')
         if args.observe:
             time.sleep(5);session.command('campaignmap');session.capture('parrot-flight');return
-        for phase in range(3):
+        phase=0;reset_done=False
+        while phase<3:
             bx,by,hp=boss(session);right=bx>40812
             session.command('combatkey '+('right' if right else 'left')+' 30');time.sleep(.1)
             session.command('teleport '+('40562' if right else '41063')+' 7200');time.sleep(.7)
@@ -58,13 +61,26 @@ def main():
                 session.wait('Pazur Marrow parrot phase resumed',seconds=8,after=start)
                 assert boss(session)[2]==100-phase*50,'Unexpected phase health'
             else:session.wait('Pazur enemy defeated: Level10_Marrow')
+            if args.death_reset and not reset_done and phase==0:
+                start=len(session.logs());session.command('invincible 0')
+                # Existing open gap between the bluffs, below the bridge.
+                # Death must come from the level, not a health-edit command.
+                session.command('campaignposition 40812 7600')
+                session.wait('Pazur Marrow fight started',seconds=30,after=start)
+                session.command('invincible 1')
+                start=len(session.logs());session.command('campaignmap')
+                assert 'lives=2' in session.logs()[start:],'Expected one real lost life'
+                assert boss(session)[2]==150,'Boss health did not reset'
+                session.capture('after-real-death-reset')
+                reset_done=True;phase=0;continue
+            phase+=1
         time.sleep(2);session.command('campaignfinish');session.wait('Score screen initialized OK')
         for _ in range(12):
             session.command('padvirtual tap 320 240');time.sleep(.35)
             if 'Level name: Claw - Level 11' in session.logs():break
         session.wait('Level name: Claw - Level 11')
         result=dict(passed=True,natural_playthrough=False,boss_health_edited=False,
-                    phases=3,input='ordinary sword and jump',fixtures=['level start','teleports','player protection'])
+                    phases=3,real_death_reset=reset_done,input='ordinary sword and jump',fixtures=['level start','teleports','player protection'])
         (session.report/'results.json').write_text(json.dumps(result,indent=2),encoding='utf-8')
         print(json.dumps(result),flush=True)
 

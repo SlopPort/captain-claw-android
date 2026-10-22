@@ -25,15 +25,19 @@ public class PortFeaturesTest extends Instrumentation {
             File stage=new File(root,"features-test");if(!stage.isDirectory()&&!stage.mkdirs())throw new IOException("stage");
             ImportSupport.prepare(getTargetContext(),stage);
             boolean level14=false;
+            java.util.Set<String> generatedPngs=new java.util.HashSet<>(java.util.Arrays.asList(
+                "CONTROLS/touchscreen_title.png","CONTROLS/touchscreen_img.png",
+                "CREDITS/credits_ja.png","CREDITS/credits_pavel.png"));
             try(ZipFile zip=new ZipFile(new File(stage,"ASSETS.ZIP"))) {
                 java.util.Enumeration<? extends ZipEntry> entries=zip.entries();
                 while(entries.hasMoreElements()) {
                     String name=entries.nextElement().getName();
                     if(name.equals("LEVEL_METADATA/LEVEL14.XML"))level14=true;
-                    if(!(name.endsWith(".XML")||name.startsWith("CONTROLS/")))throw new AssertionError("Unexpected support content: "+name);
+                    if(!name.endsWith(".XML")&&!generatedPngs.remove(name))throw new AssertionError("Unexpected support content: "+name);
                 }
             }
             if(!level14)throw new AssertionError("Missing level 14");
+            if(!generatedPngs.isEmpty())throw new AssertionError("Missing generated help/credits: "+generatedPngs);
             ImportSupport.validateRez(new File(root,"CLAW.REZ"));
             File bad=new File(stage,"bad.rez");try(FileOutputStream out=new FileOutputStream(bad)){out.write(new byte[168]);}
             boolean rejected=false;try{ImportSupport.validateRez(bad);}catch(IOException expected){rejected=true;}
@@ -57,7 +61,7 @@ public class PortFeaturesTest extends Instrumentation {
             }
             for(File file:stage.listFiles())if(!file.delete())throw new IOException("cleanup");
             if(!stage.delete())throw new IOException("cleanup stage");
-            result.putString("features","PASS: save roundtrip, pending import/backup, invalid import preserves progress, invalid REZ rejected, XML-only support and system font");
+            result.putString("features","PASS: save roundtrip, pending import/backup, invalid import preserves progress, invalid REZ rejected, XML plus exact generated help/credits and system font");
             finish(0,result);
         }catch(Throwable error){result.putString("error",android.util.Log.getStackTraceString(error));finish(1,result);}
     }

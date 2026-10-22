@@ -118,7 +118,14 @@ def main():
             'observation_only':args.observe,'scene':args.scene,
             'early_pair_filtering':args.pair_filter,
             'player_invincible_fixture':args.protect_player,'teleported':bool(args.scene),'ammo_modified':False,
-            'apk_sha256':hashlib.file_digest((PORT/'app/build/outputs/apk/debug/app-debug.apk').open('rb'),'sha256').hexdigest()}
+            'apk_sha256':None}
+        # A concurrent emulator build can replace the local build output with
+        # another ABI. Identify the installed binary, not a workstation path.
+        installed=adb('shell','pm','path','pl.pazur.port').strip().splitlines()[0]
+        assert installed.startswith('package:'),installed
+        adb('pull',installed[len('package:'):],str(report/'installed.apk'))
+        result['apk_sha256']=hashlib.file_digest((report/'installed.apk').open('rb'),'sha256').hexdigest()
+        result['apk_hash_source']='installed Android package'
         result['box2d_steps']=[dict(total_ms=float(t),collide_ms=float(c),solve_ms=float(s),toi_ms=float(i),
             other_ms=float(o),bodies=int(b),contacts=int(n)) for t,c,s,i,o,b,n in re.findall(
             r'Pazur Box2D (?:step|slow): total=([\d.]+) collide=([\d.]+) solve=([\d.]+) toi=([\d.]+) other=([\d.]+) ms bodies=(\d+) contacts=(\d+)',log)]
