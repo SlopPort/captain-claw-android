@@ -1,0 +1,9 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Independent, app-local checks can share a test APK. This avoids
+         rebuilding the app or changing its signing environment between cases. -->
+    <!-- AGP rewrites the FIRST instrumentation name to testInstrumentationRunner. -->
+    <instrumentation android:name="pl.pazur.port.JumpTouchTest" android:targetPackage="pl.pazur.port" />
+    <instrumentation android:name="pl.pazur.port.ImportRecoveryTest" android:targetPackage="pl.pazur.port" />
+    <instrumentation android:name="pl.pazur.port.PortFeaturesTest" android:targetPackage="pl.pazur.port" />
+    <instrumentation android:name="pl.pazur.port.LanguageTest" android:targetPackage="pl.pazur.port" />
+</manifest>

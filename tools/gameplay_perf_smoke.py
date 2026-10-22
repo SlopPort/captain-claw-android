@@ -50,7 +50,10 @@ def main():
         saves.getroot().append(level)
     saves.write(report/'saves-test.xml',encoding='utf-8',xml_declaration=True)
     pid='';ticket=0;actions=[];pair_marker_created=False
-    def logs():return adb('logcat','-d','--pid='+pid,'-s','SDL/APP','libc','AndroidRuntime')
+    reader=None;log_output=None
+    def logs():
+        if reader is not None:return (report/'native.log').read_text(encoding='utf-8',errors='replace')
+        return adb('logcat','-d','--pid='+pid,'-s','SDL/APP','libc','AndroidRuntime')
     def command(value):
         nonlocal ticket
         ticket+=1;tag='perf-'+str(ticket)
@@ -71,6 +74,11 @@ def main():
         adb('push',str(report/'saves-test.xml'),REMOTE+'SAVES.XML')
         adb('shell','am','start','-n','pl.pazur.port/.LauncherActivity');time.sleep(2)
         pid=adb('shell','pidof','pl.pazur.port').strip().split()[0]
+        # Stream continuously: a twenty-minute run can wrap logcat's ring and
+        # invalidate character offsets or silently lose its earliest samples.
+        log_output=(report/'native.log').open('wb')
+        reader=subprocess.Popen(['adb','logcat','--pid='+pid,'-v','threadtime','-s','SDL/APP','libc','AndroidRuntime'],
+                                stdout=log_output,stderr=subprocess.DEVNULL)
         deadline=time.monotonic()+45
         while 'Pazur simulation clock reset' not in logs() and time.monotonic()<deadline:time.sleep(.5)
         assert 'Level loaded !' in logs() and 'Pazur simulation clock reset' in logs(),'Simulation not ready'
@@ -94,7 +102,10 @@ def main():
                 command('combatstatus')
                 adb('shell','screencap','-p',REMOTE+'level-test.png')
                 adb('pull',REMOTE+'level-test.png',str(report/('peg-'+str(source[0])+'.png')))
-        deadline=time.monotonic()+args.seconds
+        battery_before=adb('shell','dumpsys','battery')
+        (report/'battery-before.txt').write_text(battery_before,encoding='utf-8')
+        measurement_started=time.monotonic()
+        deadline=measurement_started+args.seconds
         # Short back-and-forth keeps the player near the spawn platform while
         # scrolling layers, animating, breaking nearby crates and creating shots.
         sequence=[('right',400,.5),('sword',100,.35),('left',400,.5),
@@ -108,7 +119,7 @@ def main():
                 command('combatkey '+key+' '+str(duration));actions.append(key);time.sleep(wait)
                 if len(actions)<=4:command('combatstatus')
         command('combatkey release 0');command('combatstatus')
-        log=logs();(report/'native.log').write_text(log,encoding='utf-8')
+        log=logs()
         rows=[dict(fps=float(f),p95_ms=int(p),max_ms=int(m)) for f,p,m in re.findall(
             r'Pazur frame sample: fps=([\d.]+) p95=(\d+) ms max=(\d+) ms',log[start:])]
         snapshots=[dict(health=int(h),x=float(x),y=float(y)) for h,x,y in re.findall(
@@ -117,6 +128,7 @@ def main():
         alive=pid in adb('shell','pidof','pl.pazur.port',check=False).split()
         passed=alive and (moved or args.observe) and len(rows)>=3 and 'Fatal signal' not in log and 'FATAL EXCEPTION' not in log
         result={'level':args.level,'actions':actions,'frame_samples':rows,'passed':passed,
+            'requested_observation_seconds':args.seconds,'measured_observation_seconds':time.monotonic()-measurement_started,
             'observed_positions':snapshots,'movement_observed':moved,
             'fixture':'controlled real-map scene' if args.scene else 'real map start',
             'observation_only':args.observe,'scene':args.scene,
@@ -134,7 +146,11 @@ def main():
         abi=re.search(r'primaryCpuAbi=(\S+)',package)
         result['primary_cpu_abi']=abi[1] if abi else None
         (report/'memory-after.txt').write_text(adb('shell','dumpsys','meminfo','pl.pazur.port'),encoding='utf-8')
-        temperature=re.search(r'\btemperature:\s*(-?\d+)',adb('shell','dumpsys','battery'))
+        temperature_before=re.search(r'\btemperature:\s*(-?\d+)',battery_before)
+        if temperature_before:result['battery_temperature_c_before']=int(temperature_before[1])/10
+        battery_after=adb('shell','dumpsys','battery')
+        (report/'battery-after.txt').write_text(battery_after,encoding='utf-8')
+        temperature=re.search(r'\btemperature:\s*(-?\d+)',battery_after)
         if temperature:result['battery_temperature_c_after']=int(temperature[1])/10
         result['box2d_steps']=[dict(total_ms=float(t),collide_ms=float(c),solve_ms=float(s),toi_ms=float(i),
             other_ms=float(o),bodies=int(b),contacts=int(n)) for t,c,s,i,o,b,n in re.findall(
@@ -162,7 +178,9 @@ def main():
         print(json.dumps(result),flush=True)
         assert result['passed'],'Incomplete trial or crashed process; see report'
     finally:
-        if pid:(report/'native.log').write_text(logs(),encoding='utf-8')
+        if reader is not None:
+            reader.terminate();reader.wait(timeout=5);log_output.close()
+        elif pid:(report/'native.log').write_text(logs(),encoding='utf-8')
         adb('shell','am','force-stop','pl.pazur.port')
         for name in ('config.xml','SAVES.XML'):adb('push',str(report/name),REMOTE+name)
         for name in ('combat-command.txt','combat-response.txt','combat-command.tmp'):

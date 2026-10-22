@@ -42,4 +42,6 @@
     <string name="import_missing_error">"Archive is missing required game data."</string>
     <string name="import_save_error">"Cannot save: "</string>
     <string name="import_failed">"Game data import failed."</string>
+    <string name="import_recovering">Checking game data…</string>
+    <string name="import_recovery_error">"Cannot recover an interrupted import. Your backup has been kept. Free some storage and retry. Details: "</string>
 </resources>

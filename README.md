@@ -2,9 +2,9 @@
 
 [English README](README.en.md)
 
-Natywna adaptacja [OpenClaw](https://github.com/pjasicek/OpenClaw) na Androida, z danymi dostarczanymi przez użytkownika. Silnik C++/SDL dla ARM64 i ARMv7, minimum API 21. Aktualna wersja rozwojowa: **0.4.14-dev**. Pełne wydanie 1.0 pozostaje w przygotowaniu.
+Natywna adaptacja [OpenClaw](https://github.com/pjasicek/OpenClaw) na Androida, z danymi dostarczanymi przez użytkownika. Silnik C++/SDL dla ARM64 i ARMv7, minimum API 21. Aktualna wersja rozwojowa: **0.4.15-dev**. Pełne wydanie 1.0 pozostaje w przygotowaniu.
 
-**[Droga do 1.0 — po polsku i angielsku](docs/ROADMAP-1.0.md)** rozdziela wykonane prace, warunki wydania i potrzebne testy. Najnowsza poprawka aktualizuje widok po zmianie rozmiaru okna przez Androida. [Wyniki 0.4.14](docs/validation/PORT-0.4.14.md).
+**[Droga do 1.0 — po polsku i angielsku](docs/ROADMAP-1.0.md)** rozdziela wykonane prace, warunki wydania i potrzebne testy. Najnowsza poprawka aktualizuje widok po zmianie rozmiaru okna przez Androida. [Wyniki 0.4.15](docs/validation/PORT-0.4.15.md).
 
 **Język:** przed importem danych lub w **PAD → Język / Language** wybierz Polski albo English. Ustawienia i nasze napisy obsługują oba języki; napisy w grze zmienią się po jej ponownym uruchomieniu. Oryginalne menu i głosy zależą od danych użytkownika. [Zakres tłumaczenia i testy](docs/validation/ENGLISH-UI-PLAN.md).
 
