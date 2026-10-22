@@ -14,6 +14,8 @@ Five attack-effect references were added to existing user-owned recordings. Claw
 
 Huawei Android 10/2 GB RAM: ARM64 campaign tests and real ARMv7 process/menu/jump/level-transition checks passed. The original ARM64 installation was restored. API 35/Android 15 x86_64 emulator: native process, menu, held jump and level transition passed, but a short tap failed under severe stalls. The emulator uses 4 KB pages; 16 KB runtime support remains unverified. See [compatibility limits](ANDROID-COMPATIBILITY.md).
 
+An official Android 5.0.2/API-21 x86_64 emulator subsequently passed menu, both separately tested short/held jumps and real level-one exit/score/level-two loading. Data was staged locally; file-picker import and physical old phones remain unverified. Old toolbox/ADB/logcat differences required test-harness adaptations, documented in the compatibility report. Both task-created emulators were closed after testing.
+
 `perf-0.4.12-level9`: sixty-second action loop near the actual map start, without teleports, protection or ammo edits, passed. Twelve frame samples: 57.8 and 59.3 FPS initially, then 59.7–60.2 FPS; later p95 was 18 ms. This route is not the previously documented dense level-nine scene and does not establish 60 FPS throughout the level or campaign. Startup surface reported 1800×1020, logical view 847×480. Original config/saves restored.
 
 The performance script originally hashed the workstation build output, which had become the separate x86_64 APK. The report now records the actual installed phone package, pulled immediately after testing: `992446a223d42eff8c363c3f1b0f0be1c0bf7a7dc5e9c14814447121eff3b333`. The incorrect hash and reason for correction are retained in its report metadata. The script now hashes the installed package.

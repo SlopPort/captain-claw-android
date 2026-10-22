@@ -6,7 +6,7 @@ Status recorded by OpenAI Codex (LLM), 2026-10-22. Build support and device test
 | --- | --- | --- |
 | Android 10, Huawei P9 Lite, 2 GB RAM | Current campaign/attack-audio regressions on the physical device; user confirmed ZIP import and controller operation in earlier builds | Finish campaign, lifecycle, update/save and sustained performance checks |
 | Android 16, Redmi Note 8 | Historical tests of earlier development builds | Retest the final candidate; do not transfer old results to a new APK |
-| Android 5.0 / API 21 minimum | Project minSdk 21; lint/build checks | No current physical/runtime proof for the minimum API |
+| Android 5 / API 21 minimum | Official default x86_64 emulator: actual engine/menu/held jump/level-one exit to level two passed | No physical API-21 phone, full campaign or file-picker import proof |
 | ARM64 and ARMv7 | Both packaged; 0.4.12-dev actually ran as ARMv7 on Huawei Android 10, with process library mappings checked | Broader 32-bit gameplay/device coverage remains open |
 | 16 KB memory pages | `tools/verify_apk.py` confirms 16 KB ELF load alignment for all packaged ARM64 libraries | Check ZIP alignment/signature and run on a 16 KB runtime; static ELF checks alone are insufficient |
 | Android 15 / API 35 emulator, x86_64 | Separate test APK built; actual native process, menu, held jump and level-one exit to level two passed | Short-tap test failed under severe emulator stalls; lifecycle/import UI and wider gameplay remain open |
@@ -23,5 +23,13 @@ API 35 tests use the installed Google Play x86_64 image, headless software rende
 `compat-api35-x86_64-held-jump-menu` and `compat-api35-x86_64-held-jump-level` passed using a separately declared 600 ms held jump: native x86_64 mapping, menu, jump, actual exit pickup, score confirmation and level two. The original emulator config/saves were restored after both trials. No phone USB, tethering or Bluetooth settings were changed. Emulator timing is not a physical-device FPS measurement. The inherited handling of large update intervals remains an audit item; simulation timing was not changed to force this trial to pass.
 
 The emulator reports Android 15, SDK 35 and 4096-byte memory pages. The held jump measured 151.3 pixels, one jump, 618 ms effective hold and 222 ms input-to-takeoff under emulation. This is expressly not a 16 KB runtime test. After the tests the task's emulator was shut down using its own ADB emulator port; the phone remained connected. The x86_64 test APK remains in ignored reports, separate from the ARM distribution.
+
+## Minimum API runtime
+
+The official `system-images;android-21;default;x86_64` image was installed for a separate task-local AVD. It initially had no writable SD card, so data preparation failed; a new local 512 MB card image was supplied only to that emulator. No game storage permission was bypassed on a phone. The user's local data was copied as a fixture, so this is not a real file-picker/import usability test.
+
+Android 5's shell-v1 does not reliably propagate remote command exit status, its toolbox lacks `pidof`, and its `logcat` lacks `--pid`. The first test falsely reported an existing mailbox despite the path being absent. `CampaignSession` now checks an explicit existence marker, falls back to exact-name `ps` parsing, and uses a recent-line stream on old logcat. These are test-harness fixes, not engine changes. `compat-api21-x86_64-r2-menu` and `compat-api21-x86_64-r2-level` passed actual engine library mapping, menu, declared 600 ms jump and real exit/score/level-two loading. User-fixture config/saves were restored.
+
+The image reports Android 5.0.2 / API 21. `compat-api21-x86_64-short-menu` and `compat-api21-x86_64-short-level` also passed the separately declared 100 ms jump and exit/score/next-map trial. Short jump: one takeoff, 62.9 px rise, 113 ms effective hold, 75 ms input-to-takeoff in emulation. Held jump: 151.3 px, 640 ms effective hold, 69 ms takeoff. These timings are not physical-touch latency. This image has no `getconf` utility; no 16 KB page runtime claim is made. The task's API-21 emulator was then shut down on its own ADB port.
 
 Po polsku: obecnie najmocniejsze dowody dotyczą Huawei z Androidem 10. Obsługa ARMv7, minimum Android 5 i wyrównanie 16 KB wymagają również prób uruchomieniowych, zanim opiszemy je jako sprawdzoną zgodność. Nie obiecujemy działania na wszystkich Androidach na podstawie samej kompilacji.

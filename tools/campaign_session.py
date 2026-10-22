@@ -5,6 +5,7 @@ never evidence of naturally traversing the campaign. No global Android input.
 """
 import copy
 import json
+import re
 import subprocess
 import time
 import xml.etree.ElementTree as ET
@@ -19,6 +20,21 @@ class CampaignSession:
         self.stream=None;self.output=None;self.backed_up=False
         self.apk_support=apk_support;self.support_backed_up=False
         self.start_menu=start_menu
+        self.device_sdk=None
+
+    def process_ids(self):
+        value=adb('shell','pidof','pl.pazur.port',check=False).strip()
+        if re.fullmatch(r'\d+(?:\s+\d+)*',value):return value.split()
+        # Android 5's toolbox has no pidof; shell-v1 also cannot report the
+        # remote command's exit status reliably. Match the exact process name.
+        return [parts[1] for line in adb('shell','ps',check=False).splitlines()
+                if len(parts:=line.split())>2 and parts[-1]=='pl.pazur.port' and parts[1].isdigit()]
+
+    def log_command(self):
+        if self.device_sdk is None:self.device_sdk=int(adb('shell','getprop','ro.build.version.sdk').strip())
+        base=['adb','logcat','-v','threadtime']
+        base+=['--pid='+self.pid] if self.device_sdk>=24 else ['-T','1']
+        return base+['-s','SDL/APP','libc','AndroidRuntime']
 
     def logs(self):
         path=self.report/'native.log'
@@ -46,7 +62,7 @@ class CampaignSession:
             reply=adb('shell','cat',REMOTE+'combat-response.txt',check=False).strip()
             if reply==tag+'|done':return
             if reply.startswith(tag+'|rejected:'):raise RuntimeError(reply)
-            if self.pid not in adb('shell','pidof','pl.pazur.port',check=False).split():raise RuntimeError('Game exited')
+            if self.pid not in self.process_ids():raise RuntimeError('Game exited')
             time.sleep(.1)
         raise RuntimeError('No acknowledgement: '+value)
 
@@ -70,11 +86,11 @@ class CampaignSession:
         adb('shell','am','start','-n','pl.pazur.port/.LauncherActivity')
         deadline=time.monotonic()+30;self.pid=''
         while time.monotonic()<deadline:
-            pids=adb('shell','pidof','pl.pazur.port',check=False).split()
+            pids=self.process_ids()
             if pids:self.pid=pids[0];break
             time.sleep(.2)
         if not self.pid:raise RuntimeError('No game process after restart')
-        self.stream=subprocess.Popen(['adb','logcat','--pid='+self.pid,'-s','SDL/APP','libc','AndroidRuntime'],
+        self.stream=subprocess.Popen(self.log_command(),
             stdout=self.output,stderr=subprocess.DEVNULL)
         self.wait(marker,after=start)
 
@@ -82,7 +98,8 @@ class CampaignSession:
         self.report.mkdir(parents=True,exist_ok=True)
         if (self.report/'config.original.xml').exists():raise RuntimeError('Use a new report name; preserve prior evidence')
         for name in ('combat-command.txt','combat-response.txt','startup_commands.txt'):
-            if subprocess.run(['adb','shell','test','-e',REMOTE+name],capture_output=True).returncode==0:
+            exists=adb('shell','if [ -e '+REMOTE+name+' ]; then echo pazur-file-present; fi',check=False)
+            if 'pazur-file-present' in exists:
                 raise RuntimeError('Existing diagnostic file: '+name)
         adb('shell','am','force-stop','pl.pazur.port')
         adb('pull',REMOTE+'config.xml',str(self.report/'config.original.xml'))
@@ -117,12 +134,12 @@ class CampaignSession:
             adb('shell','am','start','-n','pl.pazur.port/.LauncherActivity')
             deadline=time.monotonic()+30
             while time.monotonic()<deadline:
-                pids=adb('shell','pidof','pl.pazur.port',check=False).split()
+                pids=self.process_ids()
                 if pids:self.pid=pids[0];break
                 time.sleep(.2)
             if not self.pid:raise RuntimeError('No game process')
             self.output=(self.report/'native.log').open('wb')
-            self.stream=subprocess.Popen(['adb','logcat','--pid='+self.pid,'-s','SDL/APP','libc','AndroidRuntime'],
+            self.stream=subprocess.Popen(self.log_command(),
                 stdout=self.output,stderr=subprocess.DEVNULL)
             if self.start_menu:self.wait('Changing to: 3')
             else:
