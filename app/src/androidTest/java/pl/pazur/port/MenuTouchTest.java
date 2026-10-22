@@ -20,6 +20,7 @@ import java.io.*;
 public class MenuTouchTest extends Instrumentation {
     private String language;
     private boolean dismissIntro;
+    private boolean audioSliders;
     private int cycles;
     private volatile Activity game;
     private int width,height;
@@ -36,7 +37,7 @@ public class MenuTouchTest extends Instrumentation {
         public void onActivitySaveInstanceState(Activity activity,Bundle state){}
         public void onActivityDestroyed(Activity activity){}
     };
-    @Override public void onCreate(Bundle args){super.onCreate(args);language=args.getString("language","en");dismissIntro="true".equals(args.getString("dismiss_intro"));cycles=Integer.parseInt(args.getString("cycles","0"));start();}
+    @Override public void onCreate(Bundle args){super.onCreate(args);language=args.getString("language","en");dismissIntro="true".equals(args.getString("dismiss_intro"));audioSliders="true".equals(args.getString("audio_sliders"));cycles=Integer.parseInt(args.getString("cycles","0"));start();}
     private void dismissEmulatorIntro() {
         if(!dismissIntro||game.hasWindowFocus())return;
         if(!android.os.Build.HARDWARE.equals("ranchu")&&!android.os.Build.HARDWARE.equals("goldfish"))
@@ -72,6 +73,47 @@ public class MenuTouchTest extends Instrumentation {
             runOnMainSync(()->{focus();game.getWindow().getDecorView().dispatchKeyEvent(event);});
         }
         SystemClock.sleep(900);
+    }
+    private void slider(float fromX,float fromY,float toX,float toY,boolean cancel) {
+        focus();long down=SystemClock.uptimeMillis();
+        int[] actions={MotionEvent.ACTION_DOWN,MotionEvent.ACTION_MOVE,cancel?MotionEvent.ACTION_CANCEL:MotionEvent.ACTION_UP};
+        for(int i=0;i<actions.length;i++) {
+            float x=i==0?fromX:toX,y=i==0?fromY:toY;
+            MotionEvent event=MotionEvent.obtain(down,SystemClock.uptimeMillis(),actions[i],
+                (logicalWidth/2-320+x)*width/logicalWidth,y*height/480f,0);
+            event.setSource(InputDevice.SOURCE_TOUCHSCREEN);
+            runOnMainSync(()->{focus();game.getWindow().getDecorView().dispatchTouchEvent(event);});event.recycle();
+            SystemClock.sleep(100);
+        }
+        SystemClock.sleep(1000);
+    }
+    private String option(String key) throws Exception {
+        org.xmlpull.v1.XmlPullParser parser=android.util.Xml.newPullParser();
+        try(InputStream in=new FileInputStream(new File(root,"config.xml"))) {
+            parser.setInput(in,"UTF-8");
+            while(parser.next()!=org.xmlpull.v1.XmlPullParser.END_DOCUMENT)
+                if(parser.getEventType()==org.xmlpull.v1.XmlPullParser.START_TAG&&key.equals(parser.getName()))return parser.nextText();
+        }
+        throw new IOException("Missing option "+key);
+    }
+    private void audioSliderCases() throws Exception {
+        String soundOn=option("SoundOn"),musicOn=option("MusicOn");
+        slider(367,238,367,238,false);if(!option("SoundVolume").equals("0"))throw new AssertionError("Sound minimum");
+        capture("audio-zero");
+        slider(367,238,567,238,false);if(!option("SoundVolume").equals("100"))throw new AssertionError("Sound maximum");
+        slider(363,343,363,343,false);if(!option("MusicVolume").equals("0"))throw new AssertionError("Music minimum");
+        slider(363,343,563,343,false);if(!option("MusicVolume").equals("20"))throw new AssertionError("Music maximum");
+        capture("audio-max");
+        slider(427,238,427,343,false); // Cross into the other row while holding the sound slider.
+        if(!option("SoundVolume").equals("30")||!option("MusicVolume").equals("20"))throw new AssertionError("Slider capture crossed channels");
+        slider(467,238,467,238,true);
+        if(!option("SoundVolume").equals("50"))throw new AssertionError("Cancel did not commit last slider value");
+        if(!option("SoundOn").equals(soundOn)||!option("MusicOn").equals(musicOn))throw new AssertionError("Slider toggled mute");
+        capture("audio-cancel");
+        // XML state changes after mute/unmute must not re-enable the inherited
+        // independent voice/ambient switches whose backend is shared.
+        for(int i=0;i<2;i++){tap(220,238);tap(220,268);tap(220,302);}
+        capture("audio-toggle");
     }
     private void capture(String name) throws IOException {
         focus();Bitmap shot=getUiAutomation().takeScreenshot();
@@ -117,6 +159,7 @@ public class MenuTouchTest extends Instrumentation {
             tap(185,217);capture("single");tap(228,217);capture("levels");
             tap(288,427);tap(276,392);
             tap(248,322);capture("options");tap(270,337);capture("audio");tap(220,268);tap(220,302);
+            if(audioSliders)audioSliderCases();
             tap(276,372);tap(276,407);
             tap(248,357);capture("credits");tap(276,427);
             tap(282,427);capture("quit");tap(302,342);capture("returned");

@@ -2933,7 +2933,7 @@ index 49c7f1e..78d568c 100644
          customData.tap = tap;
          sdlEvent.user.code = type;
 diff --git a/OpenClaw/Engine/UserInterface/UserInterface.cpp b/OpenClaw/Engine/UserInterface/UserInterface.cpp
-index 9966337..27065ad 100644
+index 9966337..64357d4 100644
 --- a/OpenClaw/Engine/UserInterface/UserInterface.cpp
 +++ b/OpenClaw/Engine/UserInterface/UserInterface.cpp
 @@ -11,6 +11,9 @@
@@ -3046,7 +3046,82 @@ index 9966337..27065ad 100644
      }
      else
      {
-@@ -709,15 +752,19 @@ bool ScreenElementMenuPage::VOnEvent(SDL_Event& evt)
+@@ -696,28 +739,94 @@ void ScreenElementMenuPage::VOnRender(uint32 msDiff)
+     {
+         if (pMenuItem->VIsVisible())
+         {
++#ifdef __ANDROID__
++            if(m_PageType==MenuPage_Options_Audio && (pMenuItem->GetName()=="SOUND_KNOB" || pMenuItem->GetName()=="MUSIC_KNOB")) {
++                const bool music=pMenuItem->GetName()=="MUSIC_KNOB";
++                Uint8 red,green,blue,alpha;SDL_GetRenderDrawColor(m_pRenderer,&red,&green,&blue,&alpha);
++                SDL_Rect track{int((music?363:367)*g_MenuScale.x),int((music?343:238)*g_MenuScale.y),int(200*g_MenuScale.x),(std::max)(2,int(3*g_MenuScale.y))};
++                SDL_SetRenderDrawColor(m_pRenderer,110,117,128,255);SDL_RenderFillRect(m_pRenderer,&track);
++                SDL_SetRenderDrawColor(m_pRenderer,red,green,blue,alpha);
++            }
++#endif
+             pMenuItem->VOnRender(msDiff);
+         }
+     }
+ }
+ 
++#ifdef __ANDROID__
++// OpenAI Codex: touch slider capture is independent of row activation. Moving
++// across another row must never toggle its mute button or switch the dragged
++// channel. Keep inherited volume limits: sound 0..100, music 0..20.
++void ScreenElementMenuPage::FinishAudioDrag() {
++    if(m_AudioDrag) {
++        if(m_AudioDragChanged)g_pApp->SaveGameOptions();
++        auto audio=g_pApp->GetAudio();
++        if(g_pApp->GetDebugOptions()->bPreviewIncompleteLevel14)
++            SDL_Log("Pazur menu volume: channel=%d sound=%d music=%d soundOn=%d musicOn=%d",m_AudioDrag,
++                audio->GetSoundVolume(),audio->GetMusicVolume(),audio->IsSoundActive(),audio->IsMusicActive());
++    }
++    m_AudioDrag=0;m_AudioDragChanged=false;
++}
++
++bool ScreenElementMenuPage::HandleAudioTouch(SDL_Event& event) {
++    if(m_PageType!=MenuPage_Options_Audio)return false;
++    if(event.type==SDL_KEYDOWN || (event.type==SDL_WINDOWEVENT &&
++        (event.window.event==SDL_WINDOWEVENT_FOCUS_LOST || event.window.event==SDL_WINDOWEVENT_HIDDEN))) {
++        FinishAudioDrag();return false;
++    }
++    const bool down=event.type==SDL_MOUSEBUTTONDOWN && event.button.button==SDL_BUTTON_LEFT;
++    const bool up=event.type==SDL_MOUSEBUTTONUP && event.button.button==SDL_BUTTON_LEFT;
++    const bool motion=event.type==SDL_MOUSEMOTION;
++    if(!down&&!up&&!motion)return false;
++    const int rawX=motion?event.motion.x:event.button.x;
++    const int rawY=motion?event.motion.y:event.button.y;
++    const int x=int((rawX-int(g_pApp->GetWindowSizeScaled().x-640)/2)/g_MenuScale.x);
++    const int y=int(rawY/g_MenuScale.y);
++    if(down) {
++        FinishAudioDrag();
++        if(x<350 || x>600)return false;
++        if(y>=218&&y<=253)m_AudioDrag=1;
++        else if(y>=323&&y<=358)m_AudioDrag=2;
++        else return false;
++    }
++    if(!m_AudioDrag)return false;
++    const int left=m_AudioDrag==1?367:363;
++    const int step=(std::max)(0,(std::min)(10,(x-left+10)/20));
++    auto audio=g_pApp->GetAudio();
++    const int before=m_AudioDrag==1?audio->GetSoundVolume():audio->GetMusicVolume();
++    const int volume=step*(m_AudioDrag==1?10:2);
++    if(m_AudioDrag==1)audio->SetSoundVolume(volume);else audio->SetMusicVolume(volume);
++    const int after=m_AudioDrag==1?audio->GetSoundVolume():audio->GetMusicVolume();
++    m_AudioDragChanged=m_AudioDragChanged||before!=after;
++    if(up)FinishAudioDrag();
++    return true;
++}
++#endif
++
+ bool ScreenElementMenuPage::VOnEvent(SDL_Event& evt)
+ {
++#ifdef __ANDROID__
++    if(HandleAudioTouch(evt))return true;
++#endif
+     int activeMenuItemIdx = GetActiveMenuItemIdx();
+     if (m_MenuItems.size() > 0)
+     {
          assert(activeMenuItemIdx >= 0);
      }
  
@@ -3068,7 +3143,7 @@ index 9966337..27065ad 100644
          if (keyCode == SDL_SCANCODE_DOWN)
          {
              MoveToMenuItemIdx(activeMenuItemIdx, 1);
-@@ -765,14 +812,24 @@ bool ScreenElementMenuPage::VOnEvent(SDL_Event& evt)
+@@ -765,14 +874,24 @@ bool ScreenElementMenuPage::VOnEvent(SDL_Event& evt)
          if (evt.button.button == SDL_BUTTON_LEFT)
          {
              SDL_Rect clickRect;
@@ -3093,7 +3168,7 @@ index 9966337..27065ad 100644
                  if (SDL_HasIntersection(&clickRect, &itemRect))
                  {
                      if (pMenuItem->CanBeFocused())
-@@ -926,6 +983,11 @@ bool ScreenElementMenuPage::MoveToMenuItemIdx(int oldIdx, int idxIncrement, bool
+@@ -926,6 +1045,11 @@ bool ScreenElementMenuPage::MoveToMenuItemIdx(int oldIdx, int idxIncrement, bool
          tryCount++;
      }
  
@@ -3105,7 +3180,17 @@ index 9966337..27065ad 100644
      if (playSound)
      {
          // Play sound
-@@ -1042,6 +1104,9 @@ bool ScreenElementMenuItem::VOnEvent(SDL_Event& evt)
+@@ -939,6 +1063,9 @@ bool ScreenElementMenuPage::MoveToMenuItemIdx(int oldIdx, int idxIncrement, bool
+ 
+ void ScreenElementMenuPage::OnPageLoaded()
+ {
++#ifdef __ANDROID__
++    FinishAudioDrag();
++#endif
+     // Focus on first active button
+     MoveToMenuItemIdx(m_MenuItems.size() - 1, 1, false);
+ }
+@@ -1042,6 +1169,9 @@ bool ScreenElementMenuItem::VOnEvent(SDL_Event& evt)
  
  bool ScreenElementMenuItem::Initialize(TiXmlElement* pElem)
  {
@@ -3115,7 +3200,7 @@ index 9966337..27065ad 100644
      SetPointIfDefined(&m_Position, pElem->FirstChildElement("Position"), "x", "y");
      SetPointIfDefined(&m_DefaultPosition, pElem->FirstChildElement("Position"), "x", "y");
      ParseValueFromXmlElem(&m_Name, pElem->FirstChildElement("Name"));
-@@ -1138,14 +1203,23 @@ bool ScreenElementMenuItem::Initialize(TiXmlElement* pElem)
+@@ -1138,14 +1268,23 @@ bool ScreenElementMenuItem::Initialize(TiXmlElement* pElem)
  
      if (shared_ptr<Image> pImage = LoadImageFromXmlElement(pElem->FirstChildElement("DisabledImage")))
      {
@@ -3139,7 +3224,7 @@ index 9966337..27065ad 100644
          m_Images.insert(std::make_pair(MenuItemState_Active, pImage));
      }
  
-@@ -1274,6 +1348,44 @@ bool ScreenElementMenuItem::Initialize(TiXmlElement* pElem)
+@@ -1274,6 +1413,44 @@ bool ScreenElementMenuItem::Initialize(TiXmlElement* pElem)
          return false;
      }
  
@@ -3184,7 +3269,19 @@ index 9966337..27065ad 100644
      return true;
  }
  
-@@ -1380,4 +1492,4 @@ SDL_Rect ScreenElementMenuItem::GetMenuItemRect()
+@@ -1305,6 +1482,11 @@ bool ScreenElementMenuItem::Press()
+ 
+ bool ScreenElementMenuItem::SetState(MenuItemState state)
+ {
++#ifdef __ANDROID__
++    // Mute/unmute XML events must not re-enable independent controls whose
++    // audio backend shares the master sound switch.
++    if(PazurMenuLabels::SharedSoundOption(m_Name))state=MenuItemState_Disabled;
++#endif
+     if (m_Images.find(state) != m_Images.end())
+     {
+         if (state != m_State)
+@@ -1380,4 +1562,4 @@ SDL_Rect ScreenElementMenuItem::GetMenuItemRect()
      itemRect.h = itemHeight;
  
      return itemRect;
@@ -3192,7 +3289,7 @@ index 9966337..27065ad 100644
 \ No newline at end of file
 +}
 diff --git a/OpenClaw/Engine/UserInterface/UserInterface.h b/OpenClaw/Engine/UserInterface/UserInterface.h
-index 94b988b..b16c000 100644
+index 94b988b..4982a3d 100644
 --- a/OpenClaw/Engine/UserInterface/UserInterface.h
 +++ b/OpenClaw/Engine/UserInterface/UserInterface.h
 @@ -141,6 +141,7 @@ public:
@@ -3211,6 +3308,19 @@ index 94b988b..b16c000 100644
  
      MenuType m_MenuType;
      MenuPage m_DefaultMenuPage;
+@@ -195,6 +197,12 @@ public:
+     shared_ptr<ScreenElementMenuItem> FindMenuItemByName(std::string name);
+ 
+ private:
++#ifdef __ANDROID__
++    int m_AudioDrag = 0; // 1 sound, 2 music; capture until release/cancel.
++    bool m_AudioDragChanged = false;
++    bool HandleAudioTouch(SDL_Event& event);
++    void FinishAudioDrag();
++#endif
+     void DeactivateAllMenuItems();
+     int GetActiveMenuItemIdx();
+     bool MoveToMenuItemIdx(int oldIdx, int idxIncrement, bool playSound = true);
 diff --git a/OpenClaw/Engine/Util/Converters.cpp b/OpenClaw/Engine/Util/Converters.cpp
 index c51d2ee..72463ee 100644
 --- a/OpenClaw/Engine/Util/Converters.cpp

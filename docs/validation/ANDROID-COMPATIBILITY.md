@@ -51,3 +51,11 @@ Official Android 15/API 35 Google APIs `google_apis_ps16k;x86_64` image revision
 `menu-api35-16k-0.4.16-r3-en/pl` passed full menu navigation in both languages. `compat-api35-16k-0.4.16-menu/level` passed actual native library mapping, menu, a declared 600 ms held jump (151.6 px rise, 613 ms effective hold, 93 ms takeoff under emulation), real exit pickup, score and level two. Initial data was supplied as a local fixture, so this is not SAF/file-picker coverage. Original fixture progress/configuration was restored. No physical-phone USB/network settings changed.
 
 This establishes actual 16 KB runtime evidence for this emulator/build, not physical ARM 16 KB coverage or a resolution of earlier long-frame jump failures on the different 4 KB image. Those failed reports remain valid failures. ARM 0.4.16 Huawei touch/menu evidence is recorded [separately](MENU-LANGUAGE-0.4.16.md).
+
+## 0.4.18 persistence follow-up
+
+Separate x86_64 build SHA-256 `87d78366dc8c65ecf98cbd032f13d0a618ce4093ea3f58ee03ac490be08fdffb`, with startup preparation and atomic native progress saves. API-35 16 KB feature tests and a declared 600 ms jump/exit/score/next-map trial passed. Its separately recorded 100 ms jump failed at 37 px rise; details and retained failures are [in the persistence report](ATOMIC-PROGRESS-0.4.18.md). Do not replace that failure with the longer-hold result.
+
+On Android 5.0.2/API 21, `atomic-features-api21-0.4.18-r2.txt` passed real parser/filesystem fixtures. `compat-api21-0.4.18-r2-menu/level` passed library mapping, native/menu, declared 100 ms jump (59.7 px, 112 ms effective hold, 74 ms takeoff under emulation), real exit/score/level-two loading and atomic next-level publication. The first attempt did not mount this task AVD's existing test SD card and therefore found no config/save files; it failed before game coverage. The AVD alone was restarted with that same task-owned card, without copying phone data or resetting its user progress. Both failed and passing reports remain local.
+
+All emulator data was supplied as a fixture, not selected through SAF in these trials. Config/saves were restored. These observations do not establish physical Android-5/15 or ARM 16 KB coverage, all-map performance or full campaign traversal. Physical Huawei continues to use the separately identified ARM package.

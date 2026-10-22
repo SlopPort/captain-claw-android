@@ -45,7 +45,7 @@ inline bool SharedSoundOption(const std::string& name) {
 }
 inline int LayoutWidth(const std::string& name) {
     if(GridLevel(name))return 240;
-    if(VolumeRow(name))return 544;
+    if(VolumeRow(name))return 280; // Leave the touch slider track clear to the right.
     if(name=="BACK_BUTTON"||name=="YES_BUTTON"||name=="NO_BUTTON")return 180;
     if(name.size()>=7&&name.compare(name.size()-7,7,"_BUTTON")==0)return 280;
     if(name.size()>=5&&name.compare(name.size()-5,5,"_TEXT")==0&&name!="SAVE_GAME_TEXT")return 400;
