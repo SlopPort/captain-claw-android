@@ -58,3 +58,5 @@ New: [touch audio sliders and physical Huawei PL/EN checks](docs/validation/MENU
 [0.4.23: powder-keg crash fix](docs/validation/POWDER-KEG-0.4.23.md). Redmi Android 16 + Huawei Android 10: PASS. Natural campaign: in progress; not complete.
 
 [0.4.24: real moving-platform boarding observation](docs/validation/PLATFORM-0.4.24.md). Controlled observations passed on Redmi and Huawei; [the natural campaign remains incomplete](docs/validation/NATURAL-CAMPAIGN-0.4.23.md).
+
+[Natural checkpoint and normal menu reload](docs/validation/NATURAL-CHECKPOINT-0.4.24.md). Level 1 / checkpoint 1 reached; full campaign remains incomplete.

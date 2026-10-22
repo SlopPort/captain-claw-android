@@ -14,7 +14,7 @@ from campaign_session import CampaignSession
 from android_package import installed_apk_sha256
 
 
-def wait_boarding_window(session, after, timeout=8):
+def wait_boarding_window(session, after, timeout=8, rightward=False):
     """Read real platform samples; never move/freeze the platform or hero."""
     deadline = time.monotonic() + timeout
     pattern = r'platform position: label=boarding tick=(\d+) id=\d+ x=([-\d.]+) y=4466.00 vx=([-\d.]+)'
@@ -22,7 +22,7 @@ def wait_boarding_window(session, after, timeout=8):
         samples = re.findall(pattern, session.logs()[after:])
         if samples:
             tick, x, vx = samples[-1]
-            if 3770 <= float(x) <= 3810 and float(vx) < 0:
+            if 3770 <= float(x) <= 3810 and (float(vx) > 0 if rightward else float(vx) < 0):
                 return dict(tick=int(tick), x=float(x), vx=float(vx))
         time.sleep(.02)
     raise RuntimeError('No returning-platform boarding window observed')

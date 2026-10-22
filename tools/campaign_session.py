@@ -5,6 +5,7 @@ never evidence of naturally traversing the campaign. No global Android input.
 """
 import copy
 import json
+from pathlib import Path
 import re
 import subprocess
 import time
@@ -14,7 +15,7 @@ from gamepad_quit_smoke import adb, REMOTE, PORT
 
 
 class CampaignSession:
-    def __init__(self, report, level=1, apk_support=False, start_menu=False, diagnostics=True):
+    def __init__(self, report, level=1, apk_support=False, start_menu=False, diagnostics=True, progress_save=None):
         self.report=PORT/'reports'/report
         self.level=level;self.pid='';self.ticket=0
         self.stream=None;self.output=None;self.backed_up=False
@@ -22,6 +23,14 @@ class CampaignSession:
         self.start_menu=start_menu
         self.diagnostics=diagnostics
         self.device_sdk=None
+        # Resume only an existing game-written save; copy its exact bytes.
+        # Validate selection before any force-stop or user-file replacement.
+        self.progress_bytes=Path(progress_save).read_bytes() if progress_save else None
+        if self.progress_bytes is not None:
+            root=ET.fromstring(self.progress_bytes)
+            levels={int(node.findtext('LevelNumber')) for node in root.findall('Level')}
+            if root.tag!='GameSaves' or self.level not in levels:
+                raise ValueError('Resume save does not contain the selected level')
 
     def process_ids(self):
         value=adb('shell','pidof','pl.pazur.port',check=False).strip()
@@ -124,16 +133,19 @@ class CampaignSession:
             if flag is None:flag=ET.SubElement(config.find('DebugOptions'),'PreviewIncompleteLevel14')
             flag.text='true' if self.diagnostics else 'false' # Mailbox and preview diagnostics; no god mode.
             config.write(self.report/'config.test.xml',encoding='utf-8',xml_declaration=True)
-            original=ET.parse(self.report/'saves.original.xml')
-            root=ET.Element(original.getroot().tag)
-            level=copy.deepcopy(original.find('Level'))
-            level.find('LevelNumber').text=str(self.level)
-            checkpoint=copy.deepcopy(level.find('Checkpoint'))
-            for node in list(level.findall('Checkpoint')):level.remove(node)
-            for key,value in [('CheckpointNumber',0),('Score',0),('Health',100),('Lives',3),
-                              ('BulletCount',10),('MagicCount',5),('DynamiteCount',3)]:checkpoint.find(key).text=str(value)
-            level.append(checkpoint);root.append(level)
-            ET.ElementTree(root).write(self.report/'saves.test.xml',encoding='utf-8',xml_declaration=True)
+            if self.progress_bytes is not None:
+                (self.report/'saves.test.xml').write_bytes(self.progress_bytes)
+            else:
+                original=ET.parse(self.report/'saves.original.xml')
+                root=ET.Element(original.getroot().tag)
+                level=copy.deepcopy(original.find('Level'))
+                level.find('LevelNumber').text=str(self.level)
+                checkpoint=copy.deepcopy(level.find('Checkpoint'))
+                for node in list(level.findall('Checkpoint')):level.remove(node)
+                for key,value in [('CheckpointNumber',0),('Score',0),('Health',100),('Lives',3),
+                                  ('BulletCount',10),('MagicCount',5),('DynamiteCount',3)]:checkpoint.find(key).text=str(value)
+                level.append(checkpoint);root.append(level)
+                ET.ElementTree(root).write(self.report/'saves.test.xml',encoding='utf-8',xml_declaration=True)
             adb('push',str(self.report/'config.test.xml'),REMOTE+'config.xml')
             adb('push',str(self.report/'saves.test.xml'),REMOTE+'SAVES.XML')
             adb('shell','am','start','-n','pl.pazur.port/.LauncherActivity')

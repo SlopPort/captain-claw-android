@@ -1,5 +1,17 @@
 # Historia adaptacji
 
+## 0.4.24 — pomiary platform i naturalny checkpoint
+
+Opcjonalny odczyt ruchu platform i jednoczesny zwykły skok bez dodatkowego ciosu. Próby wejścia i przenoszenia na Redmi/Huawei. Naturalne dotarcie do pierwszego trwałego checkpointu i jego wczytanie przez menu z zachowaniem wyniku, żyć oraz amunicji. Cała kampania nadal nieukończona. [Pomiary](validation/PLATFORM-0.4.24.md), [naturalny zapis i wczytanie](validation/NATURAL-CHECKPOINT-0.4.24.md).
+
+Opt-in platform observations and ordinary input scheduling; no physics changes. Real platform boarding passed on Redmi/Huawei. The first persistent checkpoint was reached naturally and reloaded through the normal menu with matching resources. The campaign remains incomplete.
+
+## 0.4.23 — awaria wybuchu beczki
+
+Naprawiono przedwczesny odczyt obszaru kolizji nowego wybuchu w diagnostyce. Awaria znaleziona w naturalnej próbie kampanii, odtworzona na starej wersji i sprawdzona po poprawce na obu telefonach. Obrażenia i rozmiar wybuchu bez zmian. [Raport](validation/POWDER-KEG-0.4.23.md).
+
+Fixed a premature explosion-body bounds query in adaptation diagnostics, found during natural gameplay. Old-version reproduction and fixed-version checks are documented; damage and blast size are unchanged.
+
 ## 0.4.22 — kontrola konfiguracji przed importem
 
 Przed podmianą danych sprawdzany jest XML konfiguracji: korzeń, zamknięcia znaczników, encje i limit rozmiaru. Komunikat PL/EN i zachowanie istniejących danych po odrzuceniu. Jedenaście błędnych przypadków odrzuconych na Huawei, Redmi z Androidem 16 i emulatorze Androida 5; dwie nieudane iteracje parsera zachowane w raportach. Czysta kompilacja obu ARM, próba jej parsera oraz skok i wyjścia na telefonach. [Wyniki](validation/CONFIG-IMPORT-0.4.22.md). Osobny długi pomiar 0.4.21 na Redmi dał 59,998 FPS w jednej ciężkiej scenie przez 20 minut; [ograniczenia i przycięcia](validation/SUSTAINED-REDMI-0.4.21.md).

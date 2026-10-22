@@ -6,9 +6,13 @@ level selection. A JSON input file is consumed between paused steps; write it to
 input.tmp first, then rename atomically to input.json. Logs and screenshots stay
 in the ignored reports directory. Exiting restores the player's original files.
 Only real game checkpoints persist progress; a screenshot is not a saved game.
+--resume copies an earlier game-written save exactly, preserving its resources.
 """
 import argparse
+import hashlib
+import xml.etree.ElementTree as ET
 import json
+import re
 import time
 from campaign_session import CampaignSession
 from gamepad_quit_smoke import adb, REMOTE
@@ -39,15 +43,57 @@ def validate(request):
         raise ValueError('Wait must be 0..3 seconds')
 
 
+def load_saved_progress(session, level):
+    """Use ordinary menu navigation, not the debug new-level shortcut."""
+    prefixes = ['LA_ROCA', 'BATTLEMENTS', 'FOOTPATH', 'DARK_WOODS', 'TOWNSHIP',
+                'PUERTO_LOBOS', 'DOCKS', 'SHIPYARDS', 'PIRATES_COVE', 'CLIFFS',
+                'CAVERNS', 'UNDERSEA_CAVES', 'TIGER_ISLAND', 'TEMPLE']
+    root = ET.fromstring(session.progress_bytes)
+    saved_level = next(node for node in root.findall('Level') if int(node.findtext('LevelNumber')) == level)
+    checkpoint = max(int(node.findtext('CheckpointNumber')) for node in saved_level.findall('Checkpoint'))
+    prefix = prefixes[level-1]
+
+    def select(item):
+        for _ in range(40):
+            selections = re.findall(r'menu selection: page=\d+ item=(\S+)', session.logs())
+            if selections and selections[-1] == item:
+                return
+            session.command('menukey down')
+            time.sleep(.15)
+        raise RuntimeError('Saved menu item not reached: ' + item)
+
+    for button in ['enter', 'down', 'enter']:
+        session.command('menukey ' + button)
+        time.sleep(.15)
+    select(prefix + '_BUTTON')
+    session.command('menukey enter')
+    time.sleep(.15)
+    select(prefix + (f'_LOAD_CHECKPOINT_{checkpoint}_BUTTON' if checkpoint else '_START_BUTTON'))
+    start = len(session.logs())
+    session.command('menukey enter')
+    session.wait('Level loaded !', after=start)
+    session.wait('Pazur simulation clock reset', after=start)
+    time.sleep(.3)
+    return checkpoint
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--report', required=True)
+    parser.add_argument('--resume', help='Unmodified game-written checkpoint XML from an earlier owned run')
     args = parser.parse_args()
-    with CampaignSession(args.report, level=1) as session:
-        print(json.dumps({'ready': True, 'apk_sha256': installed_apk_sha256()}), flush=True)
+    level = max(int(node.findtext('LevelNumber')) for node in ET.parse(args.resume).getroot().findall('Level')) if args.resume else 1
+    if not 1 <= level <= 14:
+        raise ValueError('Resume level outside the campaign')
+    with CampaignSession(args.report, level=level, progress_save=args.resume, start_menu=bool(args.resume)) as session:
+        checkpoint = load_saved_progress(session, level) if args.resume else 0
         session.command('combatstatus')
-        session.capture('initial')
         session.command('menukey escape')
+        # Hashing/capture must not grant enemies extra idle attack time.
+        print(json.dumps({'ready': True, 'apk_sha256': installed_apk_sha256(),
+                          'starting_level': level, 'starting_checkpoint': checkpoint,
+                          'resume_source_sha256': hashlib.sha256(session.progress_bytes).hexdigest() if session.progress_bytes is not None else None}), flush=True)
+        session.capture('initial')
         counter = 0
         try:
             while True:
