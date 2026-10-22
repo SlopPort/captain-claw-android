@@ -11,6 +11,8 @@ Scope checked by OpenAI Codex (LLM), 2026-10-22. Detailed behavioral comparison 
 
 No original Monolith C/C++ source has been established as available to this project. Do not present a source diff against OpenClaw as a diff against the original game. If purported original sources are found later, establish provenance and terms before adopting them or changing attribution.
 
+A further targeted search on 2026-10-22 again found the OpenClaw README explicitly describing a codebase written from scratch, plus unrelated Unity/SFML/Unreal remakes. Those do not establish access to Monolith's original implementation. Local extracted data comes from the user's supplied installation, including its CrazyHook/Polish context; do not assume every file is an unmodified retail reference.
+
 ## Evidence to collect
 
 Compare the same version, map location, difficulty, action and relative geometry. Record jump tap/hold trajectories, ladder attach/leave/top behavior, platform edges, vertical-offset attacks, damage/recovery/invulnerability, enemy reach and boss sequences. Keep original-game observations separate from OpenClaw source behavior and this adaptation's changes. Timing comparisons need controlled frame rate; a video or a design paragraph alone is not exact timing proof.

@@ -16,6 +16,8 @@ Static audit tools now read canonical XML from the actual APK's support bundle i
 
 ## Local package
 
-`dist/kapitan-pazur-0.4.13-dev.apk`, versionCode 25, SHA-256 `994a2f1b94c256aebd642e23f761103619d6737b9d45f86bd495d130d0532eaa`. ARM64 and ARMv7 built. Earlier iteration `5ccf38b86262bcc53369792021d446377a876c0ef942d7bb9ca03410d67b3ed7` is preserved as `reports/kapitan-pazur-0.4.13-vertical-diagnostic.apk`; the initial 16/32/64-height and held-escape batch used that iteration. It differs in Java chooser/test code; do not silently attribute its installed APK hash to the later package.
+`dist/kapitan-pazur-0.4.13-dev.apk`, versionCode 25, SHA-256 `f0df9125bb970fc735a39c306ae52366a8240d8ff20736af78790820e5e432e2`. ARM64 and ARMv7 built; ARM64 ELF 16 KB alignment, ZIP alignment and APK signature checks passed. Actual 16 KB runtime remains untested. Huawei PL/EN checks passed after the final launcher-only import guard. Initial language iteration `994a2f1b94c256aebd642e23f761103619d6737b9d45f86bd495d130d0532eaa` is preserved as `reports/kapitan-pazur-0.4.13-before-import-guard.apk`.
+
+Earlier iteration `5ccf38b86262bcc53369792021d446377a876c0ef942d7bb9ca03410d67b3ed7` is preserved as `reports/kapitan-pazur-0.4.13-vertical-diagnostic.apk`; the initial 16/32/64-height and held-escape batch used that iteration. It differs in Java chooser/test code; do not silently attribute its installed APK hash to the later package. Soldier trials and the new [dense-scene measurement](FPS-0.4.13.md) used the final `f0df...` APK.
 
 The final package still needs broader Android/runtime, full-campaign traversal and sustained dense-scene performance checks. Earlier compatibility results remain associated with their tested builds. Original Monolith source has not been established as available; see [source provenance and comparison boundaries](ORIGINAL-COMPARISON.md). Commercial game data is excluded from APK/source distribution.
