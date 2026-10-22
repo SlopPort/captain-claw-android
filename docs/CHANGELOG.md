@@ -1,5 +1,9 @@
 # Historia adaptacji
 
+## 0.4.19 — dotykowe ustawienia dźwięku
+
+Suwaki głośności obsługują przeciąganie i anulowanie dotyku, zapisują ustawienia atomowo i zachowują wybrany kanał po przesunięciu palca między wierszami. Wyciszenie nie włącza ponownie nieobsługiwanych osobnych kontrolek głosów i otoczenia. Próby PL/EN na Huawei Android 10 i emulatorze Androida 5, po 109 etykiet w każdym języku. [Zakres i sumy APK](validation/MENU-AUDIO-0.4.19.md).
+
 ## 0.4.18 — atomowy zapis postępu
 
 Zapis punktu kontrolnego i ukończenia poziomu nie obcina starego pliku przed ukończeniem nowego. Wspólny pomocnik sprawdza zapis, synchronizację i podmianę; błąd pokazuje komunikat PL/EN. Serializacja importu zapisu między wątkami. Przeszły rzeczywisty punkt kontrolny/restart/wczytanie, przejście podsumowania oraz starty wszystkich 14 map. Mały eksperyment FPS odrzucono; nie jest reklamowany jako optymalizacja. [Dokładne APK, wyniki i ograniczenia](validation/ATOMIC-PROGRESS-0.4.18.md).

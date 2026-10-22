@@ -14,6 +14,8 @@ Zakres zlecenia od 2026-10-22: realizujemy pozostałe punkty, ale testy padów z
 - Kontrolowane dowody przejść technicznych wszystkich 14 map i walk z bossami. Nie jest to naturalne przejście kampanii. [Szczegóły](validation/CAMPAIGN-1.0.md).
 - Dodatkowe pomiary trafień powyżej/poniżej przeciwnika, przyjęcia ataku, animacji i ucieczki. Część prób używa izolowanego terenu i wyłączonej ofensywnej AI; ich ograniczenia są jawne. [Wyniki](validation/VERTICAL-COMBAT.md).
 
+Przeprowadzono [180 prób dla 45 typów przeciwników](validation/VERTICAL-45-0.4.18.md), przy kroku 48 px i wyłączonych stanach ofensywnej AI. Nie zamyka to audytu aktywnej walki ani naturalnych schodów. Redmi będzie dostępny później; jego końcowa zgodność pozostaje niepotwierdzona.
+
 ### Co trzeba zrobić, w kolejności
 
 | Priorytet | Zadanie | Warunek zamknięcia |
@@ -42,6 +44,8 @@ Scope from 2026-10-22: proceed with the remaining work, but defer controller tes
 - Import of the player's own REZ/ZIP, save tools, touch stick/buttons, variable jump height, configurable controller actions and persisted PL/EN selection for our screens and added captions.
 - Controlled evidence for technical transitions across all 14 maps and boss encounters. This is not a natural campaign playthrough. [Evidence](validation/CAMPAIGN-1.0.md).
 - Additional measurements of attacks with the hero above/below enemies, accepted inputs, animations and escape. Some trials use isolated geometry or disabled offensive AI; their limits are explicit. [Results](validation/VERTICAL-COMBAT.md).
+
+[180 fixtures across 45 enemy prototypes](validation/VERTICAL-45-0.4.18.md) completed with a 48 px step and offensive AI states disabled. Active combat and natural stairs remain open. Redmi is available later; final compatibility on that phone is unconfirmed.
 
 ### Work required, in order
 

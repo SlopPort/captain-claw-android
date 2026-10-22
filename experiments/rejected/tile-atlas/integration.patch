@@ -1,0 +1,104 @@
+diff --git a/upstream/OpenClaw/OpenClaw/Engine/Scene/TilePlaneSceneNode.cpp b/upstream/OpenClaw/OpenClaw/Engine/Scene/TilePlaneSceneNode.cpp
+--- a/upstream/OpenClaw/OpenClaw/Engine/Scene/TilePlaneSceneNode.cpp
++++ b/upstream/OpenClaw/OpenClaw/Engine/Scene/TilePlaneSceneNode.cpp
+@@ -28,6 +28,10 @@
+ 
+     shared_ptr<CameraNode> camera = pScene->GetCamera();
+     SDL_Renderer* renderer = pScene->GetRenderer();
++#ifdef __ANDROID__
++    if(!m_Atlas)m_Atlas.reset(new PazurTiles::Atlas(pProperties->name));
++    m_Atlas->Prepare(renderer,*pImageList);
++#endif
+ 
+     // Multiple times user variables
+     int32 tilePixelWidth = pProperties->tilePixelWidth;
+@@ -97,6 +101,9 @@
+                     tilePixelWidth,
+                     tilePixelHeight };
+ 
++#ifdef __ANDROID__
++                if(PazurTiles::Enabled() && m_Atlas->Draw(image->GetTexture(),tileRect))continue;
++#endif
+                 SDL_RenderCopy(renderer, image->GetTexture(), NULL, &tileRect);
+             }
+         }
+diff --git a/upstream/OpenClaw/OpenClaw/Engine/Scene/TilePlaneSceneNode.h b/upstream/OpenClaw/OpenClaw/Engine/Scene/TilePlaneSceneNode.h
+--- a/upstream/OpenClaw/OpenClaw/Engine/Scene/TilePlaneSceneNode.h
++++ b/upstream/OpenClaw/OpenClaw/Engine/Scene/TilePlaneSceneNode.h
+@@ -3,6 +3,10 @@
+ 
+ #include "../SharedDefines.h"
+ #include "../Scene/SceneNodes.h"
++
++#ifdef __ANDROID__
++#include "TileAtlas.h"
++#endif
+ 
+ class SDL2TilePlaneSceneNode : public SceneNode
+ {
+@@ -18,6 +22,9 @@
+     virtual void VRender(Scene* pScene);
+ 
+ protected:
++#ifdef __ANDROID__
++    std::unique_ptr<PazurTiles::Atlas> m_Atlas;
++#endif
+ };
+ 
+ #endif
+diff --git a/upstream/OpenClaw/OpenClaw/Engine/GameApp/BaseGameApp.cpp b/upstream/OpenClaw/OpenClaw/Engine/GameApp/BaseGameApp.cpp
+--- a/upstream/OpenClaw/OpenClaw/Engine/GameApp/BaseGameApp.cpp
++++ b/upstream/OpenClaw/OpenClaw/Engine/GameApp/BaseGameApp.cpp
+@@ -1,6 +1,7 @@
+ #include "../Resource/ResourceCache.h"
+ #ifdef __ANDROID__
+ #include "AtomicXml.h"
++#include "TileAtlas.h"
+ #endif
+ #include "../Audio/Audio.h"
+ #include "../Events/EventMgr.h"
+@@ -382,6 +383,7 @@
+ void BaseGameApp::OnEvent(SDL_Event& event)
+ {
+ #ifdef __ANDROID__
++    if(event.type==SDL_RENDER_TARGETS_RESET || event.type==SDL_RENDER_DEVICE_RESET)PazurTiles::Reset();
+     if (event.type==SDL_APP_WILLENTERBACKGROUND && m_pAudio) SaveGameOptions();
+     if (PazurGamepad::Handle(event)) return;
+     if (PazurTouch::Handle(event)) return;
+diff --git a/native/CombatProbe.cpp b/native/CombatProbe.cpp
+--- a/native/CombatProbe.cpp
++++ b/native/CombatProbe.cpp
+@@ -1,6 +1,7 @@
+ #include "CombatProbe.h"
+ #include "CombatPrototypes.h"
+ #include "ComponentProfiler.h"
++#include "TileAtlas.h"
+ #include "GamepadControls.h"
+ #include "AudioProbe.h"
+ #include "Engine/GameApp/BaseGameApp.h"
+@@ -100,6 +101,11 @@
+     // Virtual input must remain releasable in menus where no hero exists.
+     if (PazurGamepad::DebugCommand(args)) return true;
+     if(args[0]=="componentprofile") {PazurProfile::Start();return true;}
++    if(args[0]=="tileatlas" && args.size()==2) {
++        if(args[1]=="0"||args[1]=="1")PazurTiles::SetEnabled(args[1]=="1");
++        else if(args[1]=="validate")PazurTiles::ValidateAll();
++        return true;
++    }
+     if(args[0]=="menukey" && args.size()==2) {
+         // App-local SDL keyboard input for checkpoint menu tests. No Android
+         // system key injection and no controller attachment or bindings.
+diff --git a/app/build.gradle b/app/build.gradle
+--- a/app/build.gradle
++++ b/app/build.gradle
+@@ -13,8 +13,8 @@
+         applicationId 'pl.pazur.port'
+         minSdk 21
+         targetSdk 35
+-        versionCode 31
+-        versionName '0.4.19-dev'
++        versionCode 32
++        versionName '0.4.20-dev'
+         testInstrumentationRunner(project.findProperty('testRunner') ?: 'pl.pazur.port.JumpTouchTest')
+         ndk { abiFilters((project.findProperty('abis') ?: 'arm64-v8a').split(',')) }
+         externalNativeBuild { cmake { arguments '-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON', '-DANDROID_STL=c++_shared', '-DPAZUR_NATIVE_IPO='+(project.findProperty('nativeLto') ?: 'ON'); targets 'openclaw' } }

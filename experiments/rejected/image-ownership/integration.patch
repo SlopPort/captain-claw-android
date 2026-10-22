@@ -1,0 +1,70 @@
+diff --git a/upstream/OpenClaw/OpenClaw/Engine/Actor/Components/RenderComponent.cpp b/upstream/OpenClaw/OpenClaw/Engine/Actor/Components/RenderComponent.cpp
+--- a/upstream/OpenClaw/OpenClaw/Engine/Actor/Components/RenderComponent.cpp
++++ b/upstream/OpenClaw/OpenClaw/Engine/Actor/Components/RenderComponent.cpp
+@@ -1,4 +1,7 @@
+ #include "RenderComponent.h"
++#ifdef __ANDROID__
++#include "RenderBoundsProbe.h"
++#endif
+ #include "../../GameApp/BaseGameApp.h"
+ #include "../../GameApp/BaseGameLogic.h"
+ #include "../../Graphics2D/Image.h"
+@@ -303,7 +306,22 @@
+         return positionRect;
+     }
+ 
++#ifdef __ANDROID__
++    // The member owns this image for the whole SDL-thread call. GetPosition
++    // and Image dimension/offset accessors do not dispatch or mutate ownership.
++    // Retain the inherited path in the same APK for an off/on/off measurement.
++    shared_ptr<Image> pinnedImage;
++    Image* currentImage = nullptr;
++    if (PazurRenderBounds::Borrow()) {
++        if (m_IsCachedImageExpired) UpdateCurrentImage();
++        currentImage = m_CachedImage.get();
++    } else {
++        pinnedImage = GetCurrentImage().lock();
++        currentImage = pinnedImage.get();
++    }
++#else
+     shared_ptr<Image> currentImage = GetCurrentImage().lock();
++#endif
+     if (!currentImage)
+     {
+         return positionRect;
+diff --git a/native/CombatProbe.cpp b/native/CombatProbe.cpp
+--- a/native/CombatProbe.cpp
++++ b/native/CombatProbe.cpp
+@@ -1,6 +1,7 @@
+ #include "CombatProbe.h"
+ #include "CombatPrototypes.h"
+ #include "ComponentProfiler.h"
++#include "RenderBoundsProbe.h"
+ #include "GamepadControls.h"
+ #include "AudioProbe.h"
+ #include "Engine/GameApp/BaseGameApp.h"
+@@ -100,6 +101,10 @@
+     // Virtual input must remain releasable in menus where no hero exists.
+     if (PazurGamepad::DebugCommand(args)) return true;
+     if(args[0]=="componentprofile") {PazurProfile::Start();return true;}
++    if(args[0]=="renderbounds" && args.size()==2 && (args[1]=="0"||args[1]=="1")) {
++        PazurRenderBounds::Borrow()=args[1]=="1";
++        SDL_Log("Pazur render bounds borrow: %d",int(PazurRenderBounds::Borrow()));return true;
++    }
+     if(args[0]=="audiotrace" && args.size()==2) {PazurAudioProbe::Enable(args[1]=="1");return true;}
+     if(args[0]=="audiomeasure" && args.size()==2) {PazurAudioProbe::Begin(args[1]);return true;}
+     if(args[0]=="audioreport") {PazurAudioProbe::Report();return true;}
+diff --git a/app/build.gradle b/app/build.gradle
+--- a/app/build.gradle
++++ b/app/build.gradle
+@@ -13,8 +13,8 @@
+         applicationId 'pl.pazur.port'
+         minSdk 21
+         targetSdk 35
+-        versionCode 29
+-        versionName '0.4.17-dev'
++        versionCode 30
++        versionName '0.4.18-dev'
+         testInstrumentationRunner(project.findProperty('testRunner') ?: 'pl.pazur.port.JumpTouchTest')
+         ndk { abiFilters((project.findProperty('abis') ?: 'arm64-v8a').split(',')) }
+         externalNativeBuild { cmake { arguments '-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON', '-DANDROID_STL=c++_shared', '-DPAZUR_NATIVE_IPO='+(project.findProperty('nativeLto') ?: 'ON'); targets 'openclaw' } }
