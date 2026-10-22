@@ -9,6 +9,7 @@ import re
 import subprocess
 from campaign_session import CampaignSession
 from android_log_evidence import crash_evidence
+from android_package import installed_apk_sha256
 from gamepad_quit_smoke import adb, REMOTE
 
 
@@ -19,6 +20,7 @@ def main():
     parser.add_argument('--direct-activity',action='store_true',help='Start GameActivity without LauncherActivity in the instrumentation process')
     parser.add_argument('--expect-logical-size',type=int,nargs=2,default=[853,480],metavar=('W','H'))
     args=parser.parse_args()
+    apk_sha256=installed_apk_sha256()
     images={'jump':['jump-multitouch.png','jump-layout.png','jump-focus.png','jump-pause.png'],
             'score':['score-window-before.png','score-window-after.png'],
             'game-over':['game-over-before.png','game-over-after.png']}[args.scenario]
@@ -44,6 +46,7 @@ def main():
         viewports=re.findall(r'Pazur viewport: physical=(\d+)x(\d+) logical=(\d+)x(\d+)',log)
         assert viewports and list(map(int,viewports[-1][2:]))==args.expect_logical_size,viewports
         evidence=dict(scenario=args.scenario,passed=False,viewport_events=viewports,input='focused game-window MotionEvents',
+                      apk_sha256=apk_sha256,
                       direct_activity=args.direct_activity,
                       natural_playthrough=False,global_input=False,display_settings_changed=False)
         if args.scenario=='jump':

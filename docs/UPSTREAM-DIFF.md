@@ -1,5 +1,11 @@
 # Co wykonano ponad OpenClaw
 
+[English](UPSTREAM-DIFF.en.md)
+
+Aktualizacja 0.4.18: menu i pomoc mają własne napisy PL/EN renderowane czcionką telefonu; import danych odzyskuje się po przerwaniu, każda ścieżka startu przygotowuje dane, a zapisy punktów kontrolnych i końca poziomu są publikowane atomowo. Dodano rzeczywiste próby emulatora 16 KB i czystego budowania źródeł. [Menu](validation/MENU-LANGUAGE-0.4.16.md), [start](validation/STARTUP-0.4.17.md), [zapis i dowody](validation/ATOMIC-PROGRESS-0.4.18.md).
+
+Bieżący patch względem przypiętego OpenClaw zmienia 53 pliki (1402 dodane, 135 usuniętych linii); adaptacja zawiera też 26 plików natywnych i 21 XML z uzupełnieniami. [Inwentaryzacja 0.4.18](upstream-diff-0.4.18.json). Te liczby nie oznaczają, że wszystkie funkcje są nowe lub że całą kampanię sprawdzono bez ułatwień. Wcześniejsza inwentaryzacja 0.4.3 poniżej pozostaje historycznym punktem odniesienia.
+
 Aktualizacja 0.4.8: import pełnego REZ, walidowane kopie zapisów i opcjonalne wibracje mają inspirację w Claw Web (Arthur Boss i współautorzy), z odrębną implementacją integracji Androida. Dodano też ThinLTO, ograniczenie pustych aktualizacji komponentów, węższe ładowanie zasobów, reset zegara po ładowaniu oraz diagnostykę kosztów klatki. Autorstwo, wyniki i niepotwierdzone obszary opisuje [raport 0.4.8](validation/PORT-0.4.8.md). Implementację i narzędzia adaptacji wykonywał Codex (LLM), pod kierunkiem użytkownika.
 
 Punkt odniesienia: [pjasicek/OpenClaw](https://github.com/pjasicek/OpenClaw), commit `5ee5740ca98377c76b13b50c84f610b0066a4717`. Nie jest to gra napisana od zera. Istniejąca implementacja zapewnia silnik SDL/C++, libwap, fizykę Box2D, odczyt zasobów, bohatera, większość zwykłej AI, menu i znaczną część rozgrywki.

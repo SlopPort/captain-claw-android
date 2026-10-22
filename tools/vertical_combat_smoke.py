@@ -1,8 +1,9 @@
 """Measure real vertical melee contacts without declaring all misses to be bugs.
 
 OpenAI Codex. Each action starts a fresh process/isolated solid-step fixture.
-Enemy offensive AI and normal damage remain active; no invincibility/health
-edits. Fixture setup supplies pistol ammo, but no shots are fired here.
+Offensive AI is active unless --passive; normal damage remains active. Setup
+initializes hero HP to 100 and pistol ammo to 99, without protection. No health
+edits occur during the observed action and no shots are fired here.
 """
 import argparse
 import hashlib
@@ -105,6 +106,8 @@ def main():
                              jump_observed=bool(re.search(r'jumping=1',evidence)),
                              player_death_observed=bool(re.search(r'combat: actor=Claw health=\d+->0\b',evidence)),
                              protected=False,natural_playthrough=False,
+                             fixture_initializes_hero_hp_to_100=True,fixture_sets_pistol_ammo_to_99=True,
+                             health_edited_during_action=False,
                              interpretation='Observed outcome only; overlap/fairness needs review')
                     (session.report/'results.json').write_text(json.dumps(row,indent=2),encoding='utf-8')
                     rows.append(row);print(json.dumps(row),flush=True)

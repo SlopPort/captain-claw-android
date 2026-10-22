@@ -8,6 +8,7 @@ import json
 import re
 import time
 from campaign_session import CampaignSession
+from android_package import installed_apk_sha256
 from gamepad_quit_smoke import adb,PORT
 
 
@@ -18,6 +19,7 @@ def main():
     parser.add_argument('--expect-logical-size',type=int,nargs=2,metavar=('W','H'))
     args=parser.parse_args()
     rows=[]
+    apk_sha256=installed_apk_sha256()
     for level in range(1,15):
         with CampaignSession(args.report+'-level'+str(level),level=level) as session:
             session.command('campaignmap');time.sleep(max(3,args.seconds))
@@ -31,8 +33,10 @@ def main():
             (session.report/'memory.txt').write_text(memory,encoding='utf-8')
             session.capture('start')
             row=dict(level=level,passed=True,natural_playthrough=False,
+                     apk_sha256=apk_sha256,
                      viewport_events=viewports,
                      fixtures=['isolated map start'],observed_seconds=max(3,args.seconds))
+            assert installed_apk_sha256()==apk_sha256,'Package changed during map sweep'
             (session.report/'results.json').write_text(json.dumps(row,indent=2),encoding='utf-8')
             rows.append(row);print(json.dumps(row),flush=True)
     path=PORT/'reports'/(args.report+'-summary.json')

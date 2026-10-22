@@ -1,0 +1,277 @@
+{
+  "checkpoint": "0.4.18-dev",
+  "upstream_commit": "5ee5740ca98377c76b13b50c84f610b0066a4717",
+  "patch_files": 53,
+  "patch_lines_added": 1402,
+  "patch_lines_removed": 135,
+  "port_native_files": 26,
+  "override_xml_files": 21,
+  "files": [
+    {
+      "file": "Box2D/Box2D/Collision/b2BroadPhase.cpp",
+      "added": 1,
+      "removed": 0
+    },
+    {
+      "file": "Box2D/Box2D/Collision/b2BroadPhase.h",
+      "added": 25,
+      "removed": 0
+    },
+    {
+      "file": "Box2D/Box2D/Common/b2Timer.cpp",
+      "added": 17,
+      "removed": 0
+    },
+    {
+      "file": "Box2D/Box2D/Common/b2Timer.h",
+      "added": 3,
+      "removed": 0
+    },
+    {
+      "file": "Box2D/Box2D/Dynamics/b2ContactManager.cpp",
+      "added": 7,
+      "removed": 0
+    },
+    {
+      "file": "Box2D/Box2D/Dynamics/b2ContactManager.h",
+      "added": 3,
+      "removed": 0
+    },
+    {
+      "file": "Box2D/Box2D/Dynamics/b2World.h",
+      "added": 4,
+      "removed": 0
+    },
+    {
+      "file": "OpenClaw/ClawGameLogic.cpp",
+      "added": 13,
+      "removed": 0
+    },
+    {
+      "file": "OpenClaw/Engine/Actor/Actor.cpp",
+      "added": 55,
+      "removed": 10
+    },
+    {
+      "file": "OpenClaw/Engine/Actor/Actor.h",
+      "added": 14,
+      "removed": 6
+    },
+    {
+      "file": "OpenClaw/Engine/Actor/ActorFactory.cpp",
+      "added": 13,
+      "removed": 0
+    },
+    {
+      "file": "OpenClaw/Engine/Actor/ActorTemplates.cpp",
+      "added": 9,
+      "removed": 1
+    },
+    {
+      "file": "OpenClaw/Engine/Actor/Components/AIComponents/CrumblingPegAIComponent.cpp",
+      "added": 5,
+      "removed": 1
+    },
+    {
+      "file": "OpenClaw/Engine/Actor/Components/AIComponents/ProjectileAIComponent.cpp",
+      "added": 58,
+      "removed": 2
+    },
+    {
+      "file": "OpenClaw/Engine/Actor/Components/AIComponents/ProjectileAIComponent.h",
+      "added": 2,
+      "removed": 0
+    },
+    {
+      "file": "OpenClaw/Engine/Actor/Components/AIComponents/TogglePegAIComponent.cpp",
+      "added": 7,
+      "removed": 1
+    },
+    {
+      "file": "OpenClaw/Engine/Actor/Components/AreaDamageComponent.cpp",
+      "added": 10,
+      "removed": 0
+    },
+    {
+      "file": "OpenClaw/Engine/Actor/Components/ControllableComponent.cpp",
+      "added": 39,
+      "removed": 3
+    },
+    {
+      "file": "OpenClaw/Engine/Actor/Components/ControllerComponents/HealthComponent.cpp",
+      "added": 16,
+      "removed": 4
+    },
+    {
+      "file": "OpenClaw/Engine/Actor/Components/EnemyAI/EnemyAIComponent.cpp",
+      "added": 6,
+      "removed": 2
+    },
+    {
+      "file": "OpenClaw/Engine/Actor/Components/EnemyAI/EnemyAIStateComponent.cpp",
+      "added": 30,
+      "removed": 8
+    },
+    {
+      "file": "OpenClaw/Engine/Actor/Components/EnemyAI/EnemyAIStateComponent.h",
+      "added": 4,
+      "removed": 0
+    },
+    {
+      "file": "OpenClaw/Engine/Actor/Components/EnemyAI/Marrow/MarrowEncounter.cpp",
+      "added": 162,
+      "removed": 27
+    },
+    {
+      "file": "OpenClaw/Engine/Actor/Components/EnemyAI/Marrow/MarrowEncounter.h",
+      "added": 21,
+      "removed": 2
+    },
+    {
+      "file": "OpenClaw/Engine/Actor/Components/FloorSpikeComponent.cpp",
+      "added": 7,
+      "removed": 1
+    },
+    {
+      "file": "OpenClaw/Engine/Actor/Components/LocalAmbientSoundComponent.cpp",
+      "added": 6,
+      "removed": 1
+    },
+    {
+      "file": "OpenClaw/Engine/Actor/Components/LocalAmbientSoundComponent.h",
+      "added": 1,
+      "removed": 0
+    },
+    {
+      "file": "OpenClaw/Engine/Actor/Components/PhysicsComponent.cpp",
+      "added": 41,
+      "removed": 19
+    },
+    {
+      "file": "OpenClaw/Engine/Actor/Components/PhysicsComponent.h",
+      "added": 1,
+      "removed": 0
+    },
+    {
+      "file": "OpenClaw/Engine/Actor/Components/ProjectileSpawnerComponent.cpp",
+      "added": 13,
+      "removed": 1
+    },
+    {
+      "file": "OpenClaw/Engine/Actor/Components/TriggerComponents/BossStagerTriggerComponent.cpp",
+      "added": 24,
+      "removed": 4
+    },
+    {
+      "file": "OpenClaw/Engine/Actor/Components/TriggerComponents/BossStagerTriggerComponent.h",
+      "added": 2,
+      "removed": 0
+    },
+    {
+      "file": "OpenClaw/Engine/Audio/Audio.cpp",
+      "added": 69,
+      "removed": 0
+    },
+    {
+      "file": "OpenClaw/Engine/Audio/Audio.h",
+      "added": 6,
+      "removed": 1
+    },
+    {
+      "file": "OpenClaw/Engine/GameApp/BaseGameApp.cpp",
+      "added": 223,
+      "removed": 10
+    },
+    {
+      "file": "OpenClaw/Engine/GameApp/BaseGameApp.h",
+      "added": 2,
+      "removed": 0
+    },
+    {
+      "file": "OpenClaw/Engine/GameApp/BaseGameLogic.cpp",
+      "added": 70,
+      "removed": 11
+    },
+    {
+      "file": "OpenClaw/Engine/GameApp/CommandHandler.cpp",
+      "added": 9,
+      "removed": 0
+    },
+    {
+      "file": "OpenClaw/Engine/Graphics2D/Image.cpp",
+      "added": 5,
+      "removed": 2
+    },
+    {
+      "file": "OpenClaw/Engine/Interfaces.cpp",
+      "added": 40,
+      "removed": 0
+    },
+    {
+      "file": "OpenClaw/Engine/Interfaces.h",
+      "added": 20,
+      "removed": 0
+    },
+    {
+      "file": "OpenClaw/Engine/Physics/ClawPhysics.cpp",
+      "added": 41,
+      "removed": 2
+    },
+    {
+      "file": "OpenClaw/Engine/Physics/ClawPhysics.h",
+      "added": 2,
+      "removed": 0
+    },
+    {
+      "file": "OpenClaw/Engine/Physics/PhysicsContactListener.cpp",
+      "added": 36,
+      "removed": 1
+    },
+    {
+      "file": "OpenClaw/Engine/Resource/Loaders/WavLoader.cpp",
+      "added": 1,
+      "removed": 0
+    },
+    {
+      "file": "OpenClaw/Engine/UserInterface/HumanView.cpp",
+      "added": 29,
+      "removed": 4
+    },
+    {
+      "file": "OpenClaw/Engine/UserInterface/ScoreScreen/EndLevelScoreScreen.cpp",
+      "added": 24,
+      "removed": 1
+    },
+    {
+      "file": "OpenClaw/Engine/UserInterface/Touch/TouchEvents.h",
+      "added": 11,
+      "removed": 0
+    },
+    {
+      "file": "OpenClaw/Engine/UserInterface/UserInterface.cpp",
+      "added": 115,
+      "removed": 3
+    },
+    {
+      "file": "OpenClaw/Engine/UserInterface/UserInterface.h",
+      "added": 2,
+      "removed": 0
+    },
+    {
+      "file": "OpenClaw/Engine/Util/Converters.cpp",
+      "added": 19,
+      "removed": 1
+    },
+    {
+      "file": "OpenClaw/Engine/Util/Converters.h",
+      "added": 57,
+      "removed": 5
+    },
+    {
+      "file": "OpenClaw/Engine/Util/Util.cpp",
+      "added": 2,
+      "removed": 1
+    }
+  ],
+  "meaning": "Source scope, not completeness, originality or original-Monolith-source parity"
+}

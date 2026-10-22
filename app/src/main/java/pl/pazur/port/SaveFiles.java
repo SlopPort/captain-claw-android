@@ -55,12 +55,12 @@ final class SaveFiles {
         if(!first)throw new IOException("Level 1 is required");
         out.append("</GameSaves>");return out.toString().getBytes("UTF-8");
     }
-    static void writeAtomic(File root,String name,byte[] bytes) throws IOException {
+    static synchronized void writeAtomic(File root,String name,byte[] bytes) throws IOException {
         File temporary=new File(root,name+".tmp");
         try(FileOutputStream out=new FileOutputStream(temporary)) {out.write(bytes);out.getFD().sync();}
         if(!temporary.renameTo(new File(root,name)))throw new IOException("Cannot save "+name);
     }
-    static void applyPending(File root) throws Exception {
+    static synchronized void applyPending(File root) throws Exception {
         File pending=new File(root,"SAVES.pending.xml");if(!pending.isFile())return;
         byte[] imported;try(InputStream in=new FileInputStream(pending)){imported=validate(in);}
         File saves=new File(root,"SAVES.XML");
@@ -73,7 +73,7 @@ final class SaveFiles {
         writeAtomic(root,"SAVES.XML",imported);
         if(!pending.delete())throw new IOException("Save applied, but pending file could not be removed");
     }
-    static void ensureInitial(android.content.Context context,File root) throws Exception {
+    static synchronized void ensureInitial(android.content.Context context,File root) throws Exception {
         if(new File(root,"SAVES.XML").exists())return; // Never reset existing progress, even if damaged.
         byte[] initial;
         try(InputStream input=context.getAssets().open("default-saves.xml")){initial=validate(input);}

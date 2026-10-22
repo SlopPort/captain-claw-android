@@ -170,6 +170,36 @@ index 7534756..c69aa1e 100644
  
  	/// Register a contact event listener. The listener is owned by you and must
  	/// remain in scope.
+diff --git a/OpenClaw/ClawGameLogic.cpp b/OpenClaw/ClawGameLogic.cpp
+index 2f7a5f4..29ae335 100644
+--- a/OpenClaw/ClawGameLogic.cpp
++++ b/OpenClaw/ClawGameLogic.cpp
+@@ -1,4 +1,8 @@
+ #include "ClawGameLogic.h"
++#ifdef __ANDROID__
++#include "AtomicXml.h"
++#include "UiLanguage.h"
++#endif
+ #include "ClawHumanView.h"
+ #include "ClawGameApp.h"
+ #include "Engine/Events/EventMgr.h"
+@@ -409,7 +413,16 @@ void ClawGameLogic::CheckpointReachedDelegate(IEventDataPtr pEventData)
+             TiXmlDocument saveGamesDoc;
+             saveGamesDoc.LinkEndChild(m_pGameSaveMgr->ToXml());
+             std::string savesFilePath = g_pApp->GetGameConfig()->userDirectory + g_pApp->GetGameConfig()->savesFile;
++#ifdef __ANDROID__
++            if(!PazurXml::Save(saveGamesDoc,savesFilePath)) {
++                LOG_ERROR("Cannot atomically save progress");
++                SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,"Kapitan Pazur",
++                    PazurUi::Text("Nie zapisano postepu. Zwolnij miejsce w pamieci telefonu. Poprzedni zapis zostal zachowany.",
++                        "Progress could not be saved. Free some device storage. The previous save was preserved."),g_pApp->GetWindow());
++            } else SDL_Log("Pazur progress atomically saved");
++#else
+             saveGamesDoc.SaveFile(savesFilePath.c_str());
++#endif
+         }
+     }
+ }
 diff --git a/OpenClaw/Engine/Actor/Actor.cpp b/OpenClaw/Engine/Actor/Actor.cpp
 index 0da69f0..7d2354e 100644
 --- a/OpenClaw/Engine/Actor/Actor.cpp
@@ -1812,10 +1842,18 @@ index d12e28d..186fb90 100644
 \ No newline at end of file
 +#endif
 diff --git a/OpenClaw/Engine/GameApp/BaseGameApp.cpp b/OpenClaw/Engine/GameApp/BaseGameApp.cpp
-index 64533c3..5fad4d2 100644
+index 64533c3..b4de358 100644
 --- a/OpenClaw/Engine/GameApp/BaseGameApp.cpp
 +++ b/OpenClaw/Engine/GameApp/BaseGameApp.cpp
-@@ -21,6 +21,10 @@
+@@ -1,4 +1,7 @@
+ #include "../Resource/ResourceCache.h"
++#ifdef __ANDROID__
++#include "AtomicXml.h"
++#endif
+ #include "../Audio/Audio.h"
+ #include "../Events/EventMgr.h"
+ #include "../Events/EventMgrImpl.h"
+@@ -21,6 +24,10 @@
  #include "../Resource/Loaders/PngLoader.h"
  
  #include "BaseGameApp.h"
@@ -1826,7 +1864,7 @@ index 64533c3..5fad4d2 100644
  
  #include <cctype>
  
-@@ -78,11 +82,15 @@ bool BaseGameApp::Initialize(int argc, char** argv)
+@@ -78,11 +85,15 @@ bool BaseGameApp::Initialize(int argc, char** argv)
          return false;
      }
  
@@ -1845,7 +1883,7 @@ index 64533c3..5fad4d2 100644
  
      if (!VPerformStartupTests())
      {
-@@ -98,6 +106,14 @@ bool BaseGameApp::Initialize(int argc, char** argv)
+@@ -98,6 +109,14 @@ bool BaseGameApp::Initialize(int argc, char** argv)
  void BaseGameApp::Terminate()
  {
      LOG("Terminating...");
@@ -1860,7 +1898,7 @@ index 64533c3..5fad4d2 100644
  
      RemoveAllDelegates();
  
-@@ -118,7 +134,9 @@ void BaseGameApp::Terminate()
+@@ -118,7 +137,9 @@ void BaseGameApp::Terminate()
      }
      m_ActorXmlPrototypeMap.clear();
  
@@ -1870,7 +1908,7 @@ index 64533c3..5fad4d2 100644
  }
  
  #define STARTUP_TEST(condition, error) \
-@@ -212,12 +230,43 @@ void BaseGameApp::StepLoop() {
+@@ -212,12 +233,43 @@ void BaseGameApp::StepLoop() {
          }
          consecutiveLagSpikes = 0;
  
@@ -1914,7 +1952,7 @@ index 64533c3..5fad4d2 100644
          // Handle all touch events
          if (m_pTouchManager) {
              m_pTouchManager->Update();
-@@ -231,8 +280,17 @@ void BaseGameApp::StepLoop() {
+@@ -231,8 +283,17 @@ void BaseGameApp::StepLoop() {
              // Update game
              {
                  //PROFILE_CPU("ONLY GAME UPDATE");
@@ -1934,7 +1972,7 @@ index 64533c3..5fad4d2 100644
              }
  
              // Render game
-@@ -245,6 +303,42 @@ void BaseGameApp::StepLoop() {
+@@ -245,6 +306,42 @@ void BaseGameApp::StepLoop() {
              //m_pGame->VRenderDiagnostics();
          }
  
@@ -1977,7 +2015,7 @@ index 64533c3..5fad4d2 100644
          // Artificially decrease fps. Configurable from console
          Util::Sleep(m_DebugOptions.cpuDelayMs);
      }
-@@ -284,6 +378,11 @@ int32 BaseGameApp::Run()
+@@ -284,6 +381,11 @@ int32 BaseGameApp::Run()
  
  void BaseGameApp::OnEvent(SDL_Event& event)
  {
@@ -1989,7 +2027,7 @@ index 64533c3..5fad4d2 100644
      switch (event.type)
      {
          case SDL_QUIT:
-@@ -317,6 +416,12 @@ void BaseGameApp::OnEvent(SDL_Event& event)
+@@ -317,6 +419,12 @@ void BaseGameApp::OnEvent(SDL_Event& event)
              break;
          }
  
@@ -2002,7 +2040,7 @@ index 64533c3..5fad4d2 100644
          case SDL_APP_DIDENTERBACKGROUND:
          {
              LOG("Entered background");
-@@ -325,6 +430,8 @@ void BaseGameApp::OnEvent(SDL_Event& event)
+@@ -325,6 +433,8 @@ void BaseGameApp::OnEvent(SDL_Event& event)
  
          case SDL_APP_DIDENTERFOREGROUND:
          {
@@ -2011,7 +2049,7 @@ index 64533c3..5fad4d2 100644
              LOG("Entered foreground");
              break;
          }
-@@ -374,6 +481,28 @@ void BaseGameApp::OnEvent(SDL_Event& event)
+@@ -374,6 +484,28 @@ void BaseGameApp::OnEvent(SDL_Event& event)
  void BaseGameApp::OnDisplayChange(int newWidth, int newHeight)
  {
      LOG("Display changed. New Width-Height: " + ToStr(newWidth) + "-" + ToStr(newHeight));
@@ -2040,7 +2078,7 @@ index 64533c3..5fad4d2 100644
  }
  
  void BaseGameApp::VOnRestore()
-@@ -555,6 +684,11 @@ bool BaseGameApp::LoadGameOptions(const char* inConfigFile)
+@@ -555,6 +687,11 @@ bool BaseGameApp::LoadGameOptions(const char* inConfigFile)
      {
          ParseValueFromXmlElem(&m_GameOptions.assetsFolder,
              assetsElem->FirstChildElement("AssetsFolder"));
@@ -2052,7 +2090,7 @@ index 64533c3..5fad4d2 100644
          DO_AND_CHECK(ParseValueFromXmlElem(&m_GameOptions.rezArchive,
              assetsElem->FirstChildElement("RezArchive")));
          DO_AND_CHECK(ParseValueFromXmlElem(&m_GameOptions.customArchive,
-@@ -713,6 +847,8 @@ bool BaseGameApp::LoadGameOptions(const char* inConfigFile)
+@@ -713,6 +850,8 @@ bool BaseGameApp::LoadGameOptions(const char* inConfigFile)
      //-------------------------------------------------------------------------
      if (TiXmlElement* pDebugOptionsRootElem = configRoot->FirstChildElement("DebugOptions"))
      {
@@ -2061,7 +2099,7 @@ index 64533c3..5fad4d2 100644
          ParseValueFromXmlElem(&m_DebugOptions.bSkipBossFightIntro,
              pDebugOptionsRootElem->FirstChildElement("SkipBossFightIntro"));
          ParseValueFromXmlElem(&m_DebugOptions.bSkipMenu,
-@@ -721,6 +857,10 @@ bool BaseGameApp::LoadGameOptions(const char* inConfigFile)
+@@ -721,6 +860,10 @@ bool BaseGameApp::LoadGameOptions(const char* inConfigFile)
              pDebugOptionsRootElem->FirstChildElement("CpuDelay"));
          ParseValueFromXmlElem(&m_DebugOptions.lastImplementedLevel,
              pDebugOptionsRootElem->FirstChildElement("LastImplementedLevel"));
@@ -2072,7 +2110,7 @@ index 64533c3..5fad4d2 100644
          ParseValueFromXmlElem(&m_DebugOptions.skipMenuToLevel,
              pDebugOptionsRootElem->FirstChildElement("SkipMenuToLevel"));
      }
-@@ -730,8 +870,38 @@ bool BaseGameApp::LoadGameOptions(const char* inConfigFile)
+@@ -730,8 +873,37 @@ bool BaseGameApp::LoadGameOptions(const char* inConfigFile)
  
  void BaseGameApp::SaveGameOptions(const char* outConfigFile)
  {
@@ -2101,8 +2139,7 @@ index 64533c3..5fad4d2 100644
 +    set("MusicOn",m_pAudio->IsMusicActive()?"true":"false");
 +    set("SoundVolume",ToStr(m_pAudio->GetSoundVolume()));
 +    set("MusicVolume",ToStr(m_pAudio->GetMusicVolume()));
-+    const std::string temporary = std::string(outConfigFile)+".tmp";
-+    if (!config.SaveFile(temporary.c_str()) || std::rename(temporary.c_str(),outConfigFile)!=0) {
++    if (!PazurXml::Save(config,outConfigFile)) {
 +        LOG_ERROR("Cannot atomically save audio options");
 +        return;
 +    }
@@ -2113,7 +2150,7 @@ index 64533c3..5fad4d2 100644
  }
  
  //=====================================================================================================================
-@@ -780,6 +950,10 @@ bool BaseGameApp::InitializeDisplay(GameOptions& gameOptions)
+@@ -780,6 +952,10 @@ bool BaseGameApp::InitializeDisplay(GameOptions& gameOptions)
          return false;
      }
  
@@ -2124,7 +2161,7 @@ index 64533c3..5fad4d2 100644
      m_pWindow = SDL_CreateWindow(VGetGameTitle(), SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
          gameOptions.windowWidth, gameOptions.windowHeight, SDL_WINDOW_SHOWN);
      if (m_pWindow == NULL)
-@@ -799,6 +973,15 @@ bool BaseGameApp::InitializeDisplay(GameOptions& gameOptions)
+@@ -799,6 +975,15 @@ bool BaseGameApp::InitializeDisplay(GameOptions& gameOptions)
          SDL_GetWindowSize(m_pWindow, &m_GameOptions.windowWidth, &m_GameOptions.windowHeight);
      }
  
@@ -2140,7 +2177,7 @@ index 64533c3..5fad4d2 100644
      m_WindowSize.Set(gameOptions.windowWidth, gameOptions.windowHeight);
  
      uint32 rendererFlags = SDL_RENDERER_ACCELERATED;
-@@ -815,6 +998,9 @@ bool BaseGameApp::InitializeDisplay(GameOptions& gameOptions)
+@@ -815,6 +1000,9 @@ bool BaseGameApp::InitializeDisplay(GameOptions& gameOptions)
      }
  
      SDL_RenderSetScale(m_pRenderer, (float)gameOptions.scale, (float)gameOptions.scale);
@@ -2150,7 +2187,7 @@ index 64533c3..5fad4d2 100644
  
      LOG("Display successfully initialized.");
  
-@@ -878,6 +1064,17 @@ bool BaseGameApp::InitializeResources(GameOptions& gameOptions)
+@@ -878,6 +1066,17 @@ bool BaseGameApp::InitializeResources(GameOptions& gameOptions)
      m_pResourceCache->RegisterLoader(PcxResourceLoader::Create());
  
      std::string customArchivePath = gameOptions.assetsFolder + gameOptions.customArchive;
@@ -2168,7 +2205,7 @@ index 64533c3..5fad4d2 100644
  
      IResourceFile* pCustomArchive = new ResourceZipArchive(customArchivePath);
      std::shared_ptr<ResourceCache> pCustomCache{ new ResourceCache(50, pCustomArchive, CUSTOM_RESOURCE) };
-@@ -918,7 +1115,7 @@ bool BaseGameApp::InitializeFont(GameOptions& gameOptions)
+@@ -918,7 +1117,7 @@ bool BaseGameApp::InitializeFont(GameOptions& gameOptions)
      m_pConsoleFont = TTF_OpenFont(gameOptions.consoleFontName.c_str(), gameOptions.consoleFontSize);
      if (m_pConsoleFont == NULL)
      {
@@ -2177,7 +2214,7 @@ index 64533c3..5fad4d2 100644
          return false;
      }
  
-@@ -1234,7 +1431,11 @@ Point BaseGameApp::GetScale()
+@@ -1234,7 +1433,11 @@ Point BaseGameApp::GetScale()
      uint32 windowFlags = GetWindowFlags();
      Point scale(1.0, 1.0);
  
@@ -2189,7 +2226,7 @@ index 64533c3..5fad4d2 100644
      
      scale.Set((double)scaleX, (double)scaleY);
  
-@@ -1243,7 +1444,11 @@ Point BaseGameApp::GetScale()
+@@ -1243,7 +1446,11 @@ Point BaseGameApp::GetScale()
  
  void BaseGameApp::SetScale(Point scale)
  {
@@ -2201,7 +2238,7 @@ index 64533c3..5fad4d2 100644
  }
  
  uint32 BaseGameApp::GetWindowFlags()
-@@ -1412,8 +1617,14 @@ void BaseGameApp::RemoveAllDelegates()
+@@ -1412,8 +1619,14 @@ void BaseGameApp::RemoveAllDelegates()
  
  void BaseGameApp::QuitGameDelegate(IEventDataPtr pEventData)
  {
@@ -2238,10 +2275,19 @@ index 731f317..c9c67df 100644
      int skipMenuToLevel;
      bool bSkipBossFightIntro;
 diff --git a/OpenClaw/Engine/GameApp/BaseGameLogic.cpp b/OpenClaw/Engine/GameApp/BaseGameLogic.cpp
-index 5d8dc7d..94ed8b1 100644
+index 5d8dc7d..2ff8a25 100644
 --- a/OpenClaw/Engine/GameApp/BaseGameLogic.cpp
 +++ b/OpenClaw/Engine/GameApp/BaseGameLogic.cpp
-@@ -22,7 +22,10 @@
+@@ -1,4 +1,8 @@
+ #include "../Actor/ActorFactory.h"
++#ifdef __ANDROID__
++#include "AtomicXml.h"
++#include "UiLanguage.h"
++#endif
+ #include "../UserInterface/HumanView.h"
+ #include "../Events/Events.h"
+ #include "../Resource/Loaders/XmlLoader.h"
+@@ -22,7 +26,10 @@
  #include "../Util/ClawLevelUtil.h"
  
  #include "GameSaves.h"
@@ -2253,7 +2299,7 @@ index 5d8dc7d..94ed8b1 100644
  #include "GameSaves.h"
  
  #include "../Physics/ClawPhysics.h"
-@@ -196,7 +199,9 @@ bool BaseGameLogic::VLoadGame(const char* xmlLevelResource)
+@@ -196,7 +203,9 @@ bool BaseGameLogic::VLoadGame(const char* xmlLevelResource)
  
      // Preload level resources
      std::string levelPath = "/LEVEL" + ToStr(m_pCurrentLevel->GetLevelNumber()) + "/*";
@@ -2263,7 +2309,7 @@ index 5d8dc7d..94ed8b1 100644
  
      // ============== LOADING SCREEN RENDERING ==============
  
-@@ -493,8 +498,8 @@ bool BaseGameLogic::VLoadScoreScreen(const char* xmlScoreScreenResource)
+@@ -493,8 +502,8 @@ bool BaseGameLogic::VLoadScoreScreen(const char* xmlScoreScreenResource)
      int finishedLevelNumber = m_pCurrentLevel->GetLevelNumber();
      int nextLevelNumber = m_pCurrentLevel->GetLevelNumber() + 1;
  
@@ -2274,7 +2320,24 @@ index 5d8dc7d..94ed8b1 100644
      {
          m_pGameSaveMgr->AddCheckpointSave(nextLevelNumber, nextLevelCheckpoint);
  
-@@ -733,7 +738,17 @@ void BaseGameLogic::VModifyActor(const uint32 actorId, TiXmlElement* overrides)
+@@ -504,7 +513,16 @@ bool BaseGameLogic::VLoadScoreScreen(const char* xmlScoreScreenResource)
+             TiXmlDocument saveGamesDoc;
+             saveGamesDoc.LinkEndChild(m_pGameSaveMgr->ToXml());
+             std::string savesFilePath = g_pApp->GetGameConfig()->userDirectory + g_pApp->GetGameConfig()->savesFile;
++#ifdef __ANDROID__
++            if(!PazurXml::Save(saveGamesDoc,savesFilePath)) {
++                LOG_ERROR("Cannot atomically save progress");
++                SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,"Kapitan Pazur",
++                    PazurUi::Text("Nie zapisano postepu. Zwolnij miejsce w pamieci telefonu. Poprzedni zapis zostal zachowany.",
++                        "Progress could not be saved. Free some device storage. The previous save was preserved."),g_pApp->GetWindow());
++            } else SDL_Log("Pazur progress atomically saved");
++#else
+             saveGamesDoc.SaveFile(savesFilePath.c_str());
++#endif
+         }
+     }
+ 
+@@ -733,7 +751,17 @@ void BaseGameLogic::VModifyActor(const uint32 actorId, TiXmlElement* overrides)
  }
  
  void BaseGameLogic::VOnUpdate(uint32 msDiff)
@@ -2293,7 +2356,7 @@ index 5d8dc7d..94ed8b1 100644
      m_Lifetime += msDiff;
  
      // TODO: This is code duplication, should think of better way
-@@ -751,9 +766,6 @@ void BaseGameLogic::VOnUpdate(uint32 msDiff)
+@@ -751,9 +779,6 @@ void BaseGameLogic::VOnUpdate(uint32 msDiff)
      {
          case GameState_Initializing:
          {
@@ -2303,7 +2366,7 @@ index 5d8dc7d..94ed8b1 100644
              if (g_pApp->GetDebugOptions()->bSkipMenu)
              {
                  VChangeState(GameState_LoadingLevel);
-@@ -762,7 +774,6 @@ void BaseGameLogic::VOnUpdate(uint32 msDiff)
+@@ -762,7 +787,6 @@ void BaseGameLogic::VOnUpdate(uint32 msDiff)
              {
                  VChangeState(GameState_Menu);
              }
@@ -2311,7 +2374,7 @@ index 5d8dc7d..94ed8b1 100644
              break;
          }
  
-@@ -807,8 +818,15 @@ void BaseGameLogic::VOnUpdate(uint32 msDiff)
+@@ -807,8 +831,15 @@ void BaseGameLogic::VOnUpdate(uint32 msDiff)
                  // TODO: Add config to choose between fixed physics timestep and variable
                  if (true)
                  {
@@ -2328,7 +2391,7 @@ index 5d8dc7d..94ed8b1 100644
                  }
                  else
                  {
-@@ -839,12 +857,19 @@ void BaseGameLogic::VOnUpdate(uint32 msDiff)
+@@ -839,12 +870,19 @@ void BaseGameLogic::VOnUpdate(uint32 msDiff)
          }
      }
  
@@ -2348,7 +2411,7 @@ index 5d8dc7d..94ed8b1 100644
      // Limit update to max 100 times / second
      static int msAccumulation = 0;
      msAccumulation += msDiff;
-@@ -855,8 +880,29 @@ void BaseGameLogic::VOnUpdate(uint32 msDiff)
+@@ -855,8 +893,29 @@ void BaseGameLogic::VOnUpdate(uint32 msDiff)
          {
              actorIter.second->Update(msAccumulation);
          }

@@ -100,6 +100,13 @@ bool PazurCombatProbe::Handle(const std::vector<std::string>& args, const ActorM
     // Virtual input must remain releasable in menus where no hero exists.
     if (PazurGamepad::DebugCommand(args)) return true;
     if(args[0]=="componentprofile") {PazurProfile::Start();return true;}
+    if(args[0]=="menukey" && args.size()==2) {
+        // App-local SDL keyboard input for checkpoint menu tests. No Android
+        // system key injection and no controller attachment or bindings.
+        const std::map<std::string,SDL_Keycode> keys{{"enter",SDLK_RETURN},{"down",SDLK_DOWN},{"up",SDLK_UP},{"escape",SDLK_ESCAPE}};
+        auto found=keys.find(args[1]);if(found==keys.end())return false;
+        keyEvent(found->second,true);keyEvent(found->second,false);return true;
+    }
     if(args[0]=="audiotrace" && args.size()==2) {PazurAudioProbe::Enable(args[1]=="1");return true;}
     if(args[0]=="audiomeasure" && args.size()==2) {PazurAudioProbe::Begin(args[1]);return true;}
     if(args[0]=="audioreport") {PazurAudioProbe::Report();return true;}
@@ -600,8 +607,8 @@ void PazurCombatProbe::Poll() {
     const auto ticket=line.substr(0,separator);
     auto command=line.substr(separator+1);
     if (!command.empty() && command.back()=='\r') command.pop_back();
-    // Combat fixtures require live physics. Virtual button releases must work while paused.
-    const bool allowed=playing || command.compare(0,11,"padvirtual ")==0;
+    // Combat fixtures require live physics; menu input/release does not.
+    const bool allowed=playing || command.compare(0,11,"padvirtual ")==0 || command.compare(0,8,"menukey ")==0;
     if (allowed) CommandHandler::HandleCommand(command.c_str(),g_pApp->GetHumanView()->GetConsole().get());
     std::ofstream response("combat-response.txt");
     response<<ticket<<(allowed ? "|done\n" : "|rejected: game not running\n");

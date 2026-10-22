@@ -2,9 +2,9 @@
 
 [English README](README.en.md)
 
-Natywna adaptacja [OpenClaw](https://github.com/pjasicek/OpenClaw) na Androida, z danymi dostarczanymi przez użytkownika. Silnik C++/SDL dla ARM64 i ARMv7, minimum API 21. Aktualna wersja rozwojowa: **0.4.16-dev**. Pełne wydanie 1.0 pozostaje w przygotowaniu.
+Natywna adaptacja [OpenClaw](https://github.com/pjasicek/OpenClaw) na Androida, z danymi dostarczanymi przez użytkownika. Silnik C++/SDL dla ARM64 i ARMv7, minimum API 21. Aktualna wersja rozwojowa: **0.4.18-dev**. Pełne wydanie 1.0 pozostaje w przygotowaniu.
 
-**[Droga do 1.0 — po polsku i angielsku](docs/ROADMAP-1.0.md)** rozdziela wykonane prace, warunki wydania i potrzebne testy. Najnowsza sprawdzona poprawka pozwala odzyskać dane po przerwaniu importu. [Wyniki 0.4.15](docs/validation/PORT-0.4.15.md), [20 minut ciężkiej sceny](docs/validation/SUSTAINED-0.4.15.md).
+**[Droga do 1.0 — po polsku i angielsku](docs/ROADMAP-1.0.md)** rozdziela wykonane prace, warunki wydania i potrzebne testy. Ostatnie poprawki zabezpieczają zapisy punktów kontrolnych i ukończenia poziomu oraz bezpośrednie wznowienie gry przez Androida. [Wyniki 0.4.18 i czyste budowanie](docs/validation/ATOMIC-PROGRESS-0.4.18.md), [start 0.4.17](docs/validation/STARTUP-0.4.17.md), [20 minut ciężkiej sceny](docs/validation/SUSTAINED-0.4.15.md).
 
 **Język:** przed importem danych lub w **PAD → Język / Language** wybierz Polski albo English. Ustawienia, menu i nasza pomoc obsługują oba języki; napisy w grze zmienią się po jej ponownym uruchomieniu. Głosy, tła i oryginalne grafiki podsumowań zależą od danych użytkownika. [Menu PL/EN i testy 0.4.16](docs/validation/MENU-LANGUAGE-0.4.16.md).
 

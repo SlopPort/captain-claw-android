@@ -1,5 +1,13 @@
 # Historia adaptacji
 
+## 0.4.18 — atomowy zapis postępu
+
+Zapis punktu kontrolnego i ukończenia poziomu nie obcina starego pliku przed ukończeniem nowego. Wspólny pomocnik sprawdza zapis, synchronizację i podmianę; błąd pokazuje komunikat PL/EN. Serializacja importu zapisu między wątkami. Przeszły rzeczywisty punkt kontrolny/restart/wczytanie, przejście podsumowania oraz starty wszystkich 14 map. Mały eksperyment FPS odrzucono; nie jest reklamowany jako optymalizacja. [Dokładne APK, wyniki i ograniczenia](validation/ATOMIC-PROGRESS-0.4.18.md).
+
+## 0.4.17 — przygotowanie każdego startu
+
+Również bezpośrednio wznowiony ekran gry przygotowuje wsparcie silnika, język, odzyskiwanie importu i postęp poza wątkiem interfejsu. Atomowy pierwszy zapis i zachowanie kopii poprzedniego postępu przy powtórzeniu przerwanego importu. Czysta kompilacja obu architektur i próba jej APK na Huawei. [Wyniki](validation/STARTUP-0.4.17.md).
+
 ## 0.4.16 — menu PL/EN i zgodność 16 KB
 
 Własne napisy menu, pomoc i autorstwo PL/EN, bez dołączania komercyjnych angielskich grafik. Wyłączenie odziedziczonych przycisków bez działającej funkcji, czytelne pola dotyku i przenoszenie ustawień ponad menu. Czcionki współdzielone podczas jednego wczytywania. Huawei: nawigacja PL/EN, skok, podsumowanie i powrót z końca gry. Osobny emulator Androida 15 ze stronami 16 KB: menu PL/EN, natywna biblioteka, skok i przejście poziomu. To nie pełna kampania ani potwierdzenie 60 FPS. [Dokładne APK i ograniczenia](validation/MENU-LANGUAGE-0.4.16.md).

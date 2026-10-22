@@ -17,6 +17,8 @@ Wrapper weryfikuje SHA-256 dystrybucji Gradle. `preBuild` przygotowuje bank muzy
 
 ## Sprawdzenie pakietu
 
+`python tools/clean_source_build.py --revision HEAD --report clean-source-new` tworzy nowy katalog raportu, eksportuje wskazany commit i buduje oba ARM od nowa z przypiętymi zależnościami. Wykorzystuje lokalne repozytoria zależności, zainstalowane SDK/JDK i cache Gradle; nie jest próbą pobierania wszystkiego na nowym komputerze. Nie kopiuje niezatwierdzonych zmian ani starych obiektów natywnych. Nazwa raportu musi być nowa. Przykład faktycznej próby: [0.4.17](validation/ATOMIC-PROGRESS-0.4.18.md).
+
 `python tools/verify_apk.py app/build/outputs/apk/debug/app-debug.apk` sprawdza obie architektury ARM i wyrównanie segmentów ELF dla stron 16 KB. Dodatkowo użyj `zipalign -c -P 16 4` i `apksigner verify` z Build Tools.
 
 ## Telefon
