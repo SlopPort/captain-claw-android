@@ -15,7 +15,7 @@ The added code is a new implementation by Codex. It is not copied or decompiled 
 - A player-owned dynamite projectile must detonate near the crack after all tentacles are down. The ordinary projectile fuse and explosion still run. Other projectile damage cannot directly hurt Aquatis.
 - The selected stalactite falls visually before applying a 20 HP hit through HealthComponent. Surviving hits restore the tentacles. The fifth hit uses the inherited boss defeat and gem path.
 - Dynamite pickup replacements are limited to one live pickup, using a weak reference. Arena discovery happens when world loading finishes so collecting the original supply before staging cannot prevent the fight.
-- Death/reset cancels the pending rock and restores original rock positions. This path still needs its dedicated runtime regression.
+- Death/reset cancels the pending rock and restores original rock positions, boss health and tentacles. The dedicated ordinary-input regression passed.
 
 ## Evidence
 
@@ -29,8 +29,10 @@ Huawei P9 Lite, Android 10 / LineageOS, 2 GB RAM:
 
 ## APK upgrades
 
+`aquatis-player-fight-reset1` passed the complete controlled fight using ordinary sword attacks and charged dynamite throws, actual ammo consumption and collection of the real supply/replacements. After the first rock hit, a real water death reduced lives from three to two and restored boss health to 100, all three tentacles to 50 and the five rocks to their original heights. Five further rock hits defeated the boss; collecting the real gem and advancing the score screen loaded level 13. No projectiles were spawned and no health or ammunition values were edited. Setup teleports and protection during combat remain explicit fixtures, so this is not a natural traversal of level 12.
+
 The APK now supplies engine XML separately in `.engine-support/ASSETS.ZIP`. The launcher verifies the bundle hash and installs updates atomically before SDL starts. Imported `CLAW.REZ`, the original imported `ASSETS.ZIP`, configuration and saves are not replaced. `aquatis-arena-rules2` used this path with the older imported archive still present, confirming `Using APK engine support` in the runtime log.
 
 Android lint passed without errors at minSdk 21; remaining warnings were reviewed separately. Physical runtime evidence here is Android 10, not every Android version.
 
-Po polsku: mechanika techniczna walki i przejście do poziomu 13 są sprawdzone. Zwykły rzut gracza i reset po śmierci nadal wymagają dopracowania oraz testów. Nie oznaczamy tej pracy jako gotowej wersji 1.0.
+Po polsku: kontrolowana pełna walka zwykłymi atakami, zużywanie i uzupełnianie dynamitu, reset po prawdziwej śmierci oraz przejście do poziomu 13 przeszły test. Próba korzysta z teleportów i ochrony podczas walki; nie jest naturalnym przejściem mapy. Nie oznaczamy tej pracy jako gotowej wersji 1.0.

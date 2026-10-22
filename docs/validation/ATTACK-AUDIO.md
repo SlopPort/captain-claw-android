@@ -23,6 +23,7 @@ The opt-in `AudioProbe` counts nonzero samples and peak amplitude from SDL's exi
 
 - `attack-audio-mixer1`: idle was silent; Claw sword swish and gunshot produced nonzero samples. The enemy fixture accidentally selected a rat instead of the officer, so the whole run failed its expected-file assertion and is preserved as such.
 - `attack-audio-mixer2`: officer and both chameleon effects were accepted and produced mixed output. The standing player attack randomly chose uppercut instead of swipe, so the specific sword assertion failed despite a valid melee sound. The revised test crouches to select duckswipe deterministically.
+- `attack-audio-mixer3`: all checks passed. Idle output was zero; duckswipe, pistol, officer and both chameleons produced nonzero mixed samples with their expected effect requests. The probe preserves the existing music-audit callback.
 - `boss-campaign-level4-audio` and `boss-campaign-level6-audio`: real boss melee requests included the newly connected WHIP1/UPPERCUT effect; both fights and next-level saves passed with explicit teleport/player-protection fixtures.
 
 These measurements validate the game's generated audio, not the phone speaker, Bluetooth audio routing, system volume or a human listening test. No claim of full audio parity with the Windows original is made.

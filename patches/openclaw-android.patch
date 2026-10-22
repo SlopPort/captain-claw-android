@@ -922,10 +922,19 @@ index 5520bba..90d6445 100644
      m_pEnemyAIComponent->EnterBestState(true);
  }
 diff --git a/OpenClaw/Engine/Actor/Components/EnemyAI/EnemyAIStateComponent.h b/OpenClaw/Engine/Actor/Components/EnemyAI/EnemyAIStateComponent.h
-index f120148..9651e21 100644
+index f120148..8278995 100644
 --- a/OpenClaw/Engine/Actor/Components/EnemyAI/EnemyAIStateComponent.h
 +++ b/OpenClaw/Engine/Actor/Components/EnemyAI/EnemyAIStateComponent.h
-@@ -298,6 +298,8 @@ public:
+@@ -225,6 +225,8 @@ public:
+ 
+     int GetLeftPatrolBorder() { return m_LeftPatrolBorder; }
+     int GetRightPatrolBorder() { return m_RightPatrolBorder; }
++    // Encounters that carry an actor to another bluff must discard old bounds.
++    void RecalculatePatrolBorders() { m_LeftPatrolBorder = m_RightPatrolBorder = 0; CalculatePatrolBorders(); }
+ 
+ private:
+     void CalculatePatrolBorders();
+@@ -298,6 +300,8 @@ public:
  private:
      // XML Data
      double m_RollSpeed;
@@ -934,6 +943,374 @@ index f120148..9651e21 100644
      std::string m_ForwardRollAnimation;
      std::string m_BackwardRollAnimation;
      ActorFixtureDef m_RollSensorFixtureDef;
+diff --git a/OpenClaw/Engine/Actor/Components/EnemyAI/Marrow/MarrowEncounter.cpp b/OpenClaw/Engine/Actor/Components/EnemyAI/Marrow/MarrowEncounter.cpp
+index 6e48419..2130716 100644
+--- a/OpenClaw/Engine/Actor/Components/EnemyAI/Marrow/MarrowEncounter.cpp
++++ b/OpenClaw/Engine/Actor/Components/EnemyAI/Marrow/MarrowEncounter.cpp
+@@ -16,6 +16,25 @@
+ #include "../../../../Events/EventMgr.h"
+ #include "../../../../Events/Events.h"
+ 
++
++#include <algorithm>
++#include <cmath>
++
++// Encounter completion by OpenAI Codex. Original actors, assets and generic
++// melee/ranged AI remain OpenClaw's. Transforms occur only in unlocked updates.
++namespace {
++void MarrowMove(Actor* actor,const Point& point) {
++    auto physics=g_pApp->GetGameLogic()->VGetGamePhysics();
++    physics->VSetLinearSpeed(actor->GetGUID(),Point(0,0));
++    physics->VSetPosition(actor->GetGUID(),point);
++    actor->GetPositionComponent()->SetPosition(point.x,point.y);
++    IEventMgr::Get()->VTriggerEvent(IEventDataPtr(new EventData_Move_Actor(actor->GetGUID(),point)));
++}
++Point MarrowLerp(const Point& from,const Point& to,double t) {
++    return Point(from.x+(to.x-from.x)*t,from.y+(to.y-from.y)*t);
++}
++}
++
+ const char* MarrowAIStateComponent::g_Name = "MarrowAIStateComponent";
+ const char* MarrowParrotAIStateComponent::g_Name = "MarrowParrotAIStateComponent";
+ const char* MarrowFloorComponent::g_Name = "MarrowFloorComponent";
+@@ -63,6 +82,12 @@ void MarrowAIStateComponent::VOnWorldFinishedLoading()
+ 
+     m_MarrowFloorActorList = g_pApp->GetGameLogic()->FindActorByName("Level10_MarrowFloor");
+     assert(m_MarrowFloorActorList.size() == 2);
++    m_CarryCenter=0;
++    for(auto floor:m_MarrowFloorActorList)m_CarryCenter+=floor->GetPositionComponent()->GetX()/2;
++    m_RightLanding=m_DefaultPosition;
++    m_LeftLanding=Point(2*m_CarryCenter-m_DefaultPosition.x,m_DefaultPosition.y);
++
++    for(auto floor:m_MarrowFloorActorList)floor->GetRawComponent<MarrowFloorComponent>(true)->Deactivate();
+ }
+ 
+ void MarrowAIStateComponent::VOnStateEnter(BaseEnemyAIStateComponent* pPreviousState)
+@@ -77,15 +102,41 @@ void MarrowAIStateComponent::VOnStateLeave(BaseEnemyAIStateComponent* pNextState
+ 
+ void MarrowAIStateComponent::VUpdate(uint32 msDiff)
+ {
+-    if (!m_IsActive)
+-    {
+-        return;
++    if(!m_bBossFightStarted)return;
++    if(m_OpenBridgePending) {
++        m_OpenBridgePending=false;m_Phase=SwordPhase;m_ReqDamageToTransition=0;
++        for(auto floor:m_MarrowFloorActorList)floor->GetRawComponent<MarrowFloorComponent>(true)->Activate();
++        m_pParrot->SitOnShoulder(GetShoulderPosition());
++        SDL_Log("Pazur Marrow bridge opened");
++    }
++    if(m_CarryPending) {
++        m_CarryPending=false;m_Phase=CarryPhase;m_CarryTime=0;
++        m_CarryFrom=m_pOwner->GetPositionComponent()->GetPosition();
++        m_CarryTo=m_CarryFrom.x>m_CarryCenter?m_LeftLanding:m_RightLanding;
++        g_pApp->GetGameLogic()->VGetGamePhysics()->VDeactivate(m_pOwner->GetGUID());
++        m_pEnemyAIComponent->EnterBestState(true);
++        m_pAnimationComponent->SetAnimation("lifted");
++        SDL_Log("Pazur Marrow carry started: target=%.0f",m_CarryTo.x);
++    }
++    if(m_Phase==CarryPhase) {
++        m_CarryTime+=msDiff;
++        if(m_CarryTime>=750)for(auto floor:m_MarrowFloorActorList)floor->GetRawComponent<MarrowFloorComponent>(true)->Deactivate();
++        const double t=(std::min)(1.0,m_CarryTime/2400.0);
++        Point point=MarrowLerp(m_CarryFrom,m_CarryTo,t);point.y-=150*std::sin(t*3.141592653589793);
++        MarrowMove(m_pOwner.get(),point);m_pParrot->SitOnShoulder(GetShoulderPosition());
++        if(t>=1) {
++            m_Phase=ParrotPhase;
++            g_pApp->GetGameLogic()->VGetGamePhysics()->VActivate(m_pOwner->GetGUID());
++            m_pOwner->GetRawComponent<PatrolEnemyAIStateComponent>(true)->RecalculatePatrolBorders();
++            m_pEnemyAIComponent->EnterBestState(true);m_pParrot->Reset(true);
++            SDL_Log("Pazur Marrow parrot phase resumed");
++        }
+     }
+ }
+ 
+ bool MarrowAIStateComponent::VCanEnter()
+ {
+-    return m_bBossFightStarted == false;
++    return !m_bBossFightStarted || m_Phase==CarryPhase;
+ }
+ 
+ void MarrowAIStateComponent::VOnAnimationFrameChanged(Animation* pAnimation, AnimationFrame* pLastFrame, AnimationFrame* pNewFrame)
+@@ -106,26 +157,35 @@ void MarrowAIStateComponent::VOnAnimationLooped(Animation* pAnimation)
+ 
+ void MarrowAIStateComponent::VOnHealthChanged(int32 oldHealth, int32 newHealth, DamageType damageType, Point impactPoint, int sourceActorId)
+ {
+-    BaseBossAIStateComponennt::VOnHealthChanged(oldHealth, newHealth, damageType, impactPoint, sourceActorId);
++    BaseBossAIStateComponennt::VOnHealthChanged(oldHealth,newHealth,damageType,impactPoint,sourceActorId);
++    if(m_bBossFightStarted && m_Phase==SwordPhase && newHealth>0 && newHealth<oldHealth) {
++        if(++m_ReqDamageToTransition>=5)m_CarryPending=true;
++    }
+ }
+ 
+ void MarrowAIStateComponent::OnCanActivateFloor()
+ {
+-
++    if(m_bBossFightStarted && m_Phase==ParrotPhase)m_OpenBridgePending=true;
+ }
+ 
+ void MarrowAIStateComponent::VOnBossFightStarted()
+ {
+-    BaseBossAIStateComponennt::VOnBossFightStarted();
+-
+-    // To refresh contact list after Claw's death
++    m_Phase=ParrotPhase;m_OpenBridgePending=m_CarryPending=false;m_CarryTime=0;m_ReqDamageToTransition=0;
++    for(auto floor:m_MarrowFloorActorList)floor->GetRawComponent<MarrowFloorComponent>(true)->Deactivate();
+     g_pApp->GetGameLogic()->VGetGamePhysics()->VActivate(m_pOwner->GetGUID());
+-
+-    m_pOwner->GetRawComponent<EnemyAIComponent>(true)->EnterBestState(true);
++    m_pEnemyAIComponent->EnterBestState(true);m_pParrot->Reset(true);
++    SDL_Log("Pazur Marrow fight started");
+ }
+ 
+ void MarrowAIStateComponent::VOnBossFightEnded(bool isBossDead)
+ {
++    m_OpenBridgePending=m_CarryPending=false;m_CarryTime=0;m_Phase=ParrotPhase;
++    for(auto floor:m_MarrowFloorActorList) {
++        auto bridge=floor->GetRawComponent<MarrowFloorComponent>(true);
++        if(isBossDead)bridge->Activate();else bridge->Deactivate();
++    }
++    m_pParrot->Reset(!isBossDead);
++
+     BaseBossAIStateComponennt::VOnBossFightEnded(isBossDead);
+ 
+     if (isBossDead)
+@@ -179,16 +239,38 @@ bool MarrowParrotAIStateComponent::VDelegateInit(TiXmlElement* pData)
+ void MarrowParrotAIStateComponent::VPostInit()
+ {
+     BaseEnemyAIStateComponent::VPostInit();
+-
+-    m_pAnimationComponent = m_pOwner->GetRawComponent<AnimationComponent>(true);
+-    m_pAnimationComponent->SetAnimation(m_IdleAnim);
+-
+-    LOG("I am here !");
++    m_pAnimationComponent=m_pOwner->GetRawComponent<AnimationComponent>(true);
++    m_pAnimationComponent->AddObserver(this);m_pAnimationComponent->SetAnimation(m_IdleAnim);
++    m_pOwner->GetRawComponent<HealthComponent>(true)->AddObserver(this);
+ }
+ 
+ void MarrowParrotAIStateComponent::VUpdate(uint32 msDiff)
+ {
+-
++    if(!m_pMarrow)return;
++    m_HitCooldown=msDiff>=m_HitCooldown?0:m_HitCooldown-msDiff;
++    if(m_StunTime) {m_StunTime=msDiff>=m_StunTime?0:m_StunTime-msDiff;return;}
++    if(!m_pMarrow->IsParrotPhase()) {
++        if(m_State==MarrowParrotState_SittingOnShoulder)MarrowMove(m_pOwner.get(),m_pMarrow->GetShoulderPosition());
++        return;
++    }
++    if(m_State==MarrowParrotState_SittingOnShoulder || m_State==MarrowParrotState_SittingOnPerch) {
++        MarrowMove(m_pOwner.get(),m_pMarrow->GetShoulderPosition());
++        m_WaitTime=msDiff>=m_WaitTime?0:m_WaitTime-msDiff;
++        if(!m_WaitTime)DoAttack();return;
++    }
++    m_FlightTime+=msDiff;
++    const double duration=m_State==MarrowParrotState_Charging?1000.0:900.0;
++    const double t=(std::min)(1.0,m_FlightTime/duration);
++    if(m_State==MarrowParrotState_FlyingBack)m_FlightTarget=m_pMarrow->GetShoulderPosition();
++    MarrowMove(m_pOwner.get(),MarrowLerp(m_FlightStart,m_FlightTarget,t));
++    m_pAnimationComponent->SetAnimation(m_State==MarrowParrotState_Charging && t>.65?"strike2":"fly");
++    m_pOwner->GetRawComponent<ActorRenderComponent>(true)->SetMirrored(m_FlightTarget.x>m_FlightStart.x);
++    if(t>=1) {
++        if(m_State==MarrowParrotState_Charging) {
++            m_State=MarrowParrotState_FlyingBack;m_FlightTime=0;
++            m_FlightStart=m_pOwner->GetPositionComponent()->GetPosition();m_FlightTarget=m_pMarrow->GetShoulderPosition();
++        } else SitOnShoulder(m_pMarrow->GetShoulderPosition());
++    }
+ }
+ 
+ void MarrowParrotAIStateComponent::VOnWorldFinishedLoading()
+@@ -231,17 +313,22 @@ void MarrowParrotAIStateComponent::VOnAnimationChanged(Animation* pOldAnimation,
+ 
+ void MarrowParrotAIStateComponent::SitOnPerch()
+ {
+-
++    m_State=MarrowParrotState_SittingOnPerch;m_WaitTime=700;m_pAnimationComponent->SetAnimation(m_IdleAnim);
+ }
+ 
+ void MarrowParrotAIStateComponent::SitOnShoulder(const Point& shoulderLocation)
+ {
+-
++    m_State=MarrowParrotState_SittingOnShoulder;m_WaitTime=700;
++    MarrowMove(m_pOwner.get(),shoulderLocation);m_pAnimationComponent->SetAnimation(m_IdleAnim);
+ }
+ 
+ void MarrowParrotAIStateComponent::DoAttack()
+ {
+-
++    auto claw=g_pApp->GetGameLogic()->GetClawActor();if(!claw || !m_pMarrow->IsParrotPhase())return;
++    m_State=MarrowParrotState_Charging;m_FlightTime=0;
++    m_FlightStart=m_pOwner->GetPositionComponent()->GetPosition();
++    m_FlightTarget=claw->GetPositionComponent()->GetPosition();
++    m_pAnimationComponent->SetAnimation("fly");
+ }
+ 
+ bool MarrowParrotAIStateComponent::VCanEnter()
+@@ -251,12 +338,20 @@ bool MarrowParrotAIStateComponent::VCanEnter()
+ 
+ void MarrowParrotAIStateComponent::ActivateMarrowFloors()
+ {
+-
++    m_pMarrow->OnCanActivateFloor();
+ }
+ 
+ void MarrowParrotAIStateComponent::OnGotHit(DamageType damageType)
+ {
+-
++    if(!m_pMarrow || !m_pMarrow->IsParrotPhase() || m_HitCooldown ||
++       (damageType!=DamageType_MeleeAttack && damageType!=DamageType_Bullet &&
++        damageType!=DamageType_Magic && damageType!=DamageType_Explosion))return;
++    m_HitCooldown=700;m_StunTime=250;m_FlightTime=0;
++    m_FlightStart=m_pOwner->GetPositionComponent()->GetPosition();m_FlightTarget=m_pMarrow->GetShoulderPosition();
++    m_State=MarrowParrotState_FlyingBack;m_pAnimationComponent->SetAnimation("hit");
++    Util::PlaySimpleSound("/LEVEL10/SOUNDS/PARROT/PARROTHIT.WAV");
++    SDL_Log("Pazur Marrow parrot hit: count=%d",++m_Hits);
++    if(m_Hits>=3)ActivateMarrowFloors();
+ }
+ 
+ //=====================================================================================================================
+@@ -265,7 +360,7 @@ void MarrowParrotAIStateComponent::OnGotHit(DamageType damageType)
+ 
+ MarrowFloorComponent::MarrowFloorComponent()
+ {
+-
++    m_bActive=false;m_Speed=260;m_ActivateDirection=Direction_None;
+ }
+ 
+ MarrowFloorComponent::~MarrowFloorComponent()
+@@ -280,25 +375,65 @@ bool MarrowFloorComponent::VInit(TiXmlElement* pData)
+ 
+ void MarrowFloorComponent::VPostInit()
+ {
+-
++    m_Home=m_pOwner->GetPositionComponent()->GetPosition();
+ }
+ 
+ void MarrowFloorComponent::VUpdate(uint32 msDiff)
+ {
+-
++    auto physics=g_pApp->GetGameLogic()->VGetGamePhysics();
++    auto render=m_pOwner->GetRawComponent<ActorRenderComponent>(true);
++    if(!m_Initialized) {
++        const double width=render->VGetPositionRect().w;
++        m_Retracted=m_Home+Point(m_ActivateDirection==Direction_Left?-width:width,0);
++        m_CurrentX=m_Retracted.x;MarrowMove(m_pOwner.get(),m_Retracted);
++        physics->VDeactivate(m_pOwner->GetGUID());render->SetVisible(false);
++        m_BodyOn=false;m_Initialized=true;
++    }
++    const double target=m_bActive?m_Home.x:m_Retracted.x;
++    if(std::abs(target-m_CurrentX)<.001)return;
++    if(!m_BodyOn) {physics->VActivate(m_pOwner->GetGUID());render->SetVisible(true);m_BodyOn=true;}
++    const double distance=target-m_CurrentX,step=m_Speed*msDiff/1000.0;
++    m_CurrentX+=(std::max)(-step,(std::min)(step,distance));
++    MarrowMove(m_pOwner.get(),Point(m_CurrentX,m_Home.y));
++    if(!m_bActive && std::abs(m_CurrentX-target)<.001) {
++        physics->VDeactivate(m_pOwner->GetGUID());render->SetVisible(false);m_BodyOn=false;
++    }
+ }
+ 
+ void MarrowFloorComponent::VOnWorldFinishedLoading()
+ {
+-
++    double center=0;
++    auto floors=g_pApp->GetGameLogic()->FindActorByName("Level10_MarrowFloor");
++    for(auto floor:floors)center+=floor->GetPositionComponent()->GetX()/floors.size();
++    m_ActivateDirection=m_Home.x<center?Direction_Left:Direction_Right;
+ }
+ 
+ void MarrowFloorComponent::Activate()
+ {
+-
++    m_bActive=true;
+ }
+ 
+ void MarrowFloorComponent::Deactivate()
+ {
++    m_bActive=false;
++}
++
++bool MarrowAIStateComponent::IsParrotPhase() const {
++    return m_bBossFightStarted && m_Phase==ParrotPhase && !m_OpenBridgePending;
++}
++Point MarrowAIStateComponent::GetShoulderPosition() const {
++    return m_pOwner->GetPositionComponent()->GetPosition()+Point(-14,-114);
++}
++bool MarrowAIStateComponent::VCanResistDamage(DamageType type,Point) {
++    // The bridge controls access. Real collision/hit height determines whether
++    // a sword reaches him; do not invent a separate airborne-only damage rule.
++    return !m_bBossFightStarted || m_Phase!=SwordPhase || m_CarryPending || type!=DamageType_MeleeAttack;
++}
+ 
++void MarrowParrotAIStateComponent::Reset(bool enabled) {
++    m_Hits=0;m_HitCooldown=m_StunTime=m_FlightTime=0;m_WaitTime=700;
++    auto physics=g_pApp->GetGameLogic()->VGetGamePhysics();
++    m_pOwner->GetRawComponent<ActorRenderComponent>(true)->SetVisible(enabled);
++    if(enabled) {physics->VActivate(m_pOwner->GetGUID());SitOnShoulder(m_pMarrow->GetShoulderPosition());}
++    else {physics->VDeactivate(m_pOwner->GetGUID());m_State=MarrowParrotState_SittingOnPerch;}
+ }
+diff --git a/OpenClaw/Engine/Actor/Components/EnemyAI/Marrow/MarrowEncounter.h b/OpenClaw/Engine/Actor/Components/EnemyAI/Marrow/MarrowEncounter.h
+index 5ca1b5e..e09e162 100644
+--- a/OpenClaw/Engine/Actor/Components/EnemyAI/Marrow/MarrowEncounter.h
++++ b/OpenClaw/Engine/Actor/Components/EnemyAI/Marrow/MarrowEncounter.h
+@@ -50,6 +50,9 @@ public:
+ 
+     // Marrow will be the bossfight director
+     void OnCanActivateFloor();
++    bool IsParrotPhase() const;
++    Point GetShoulderPosition() const;
++    virtual bool VCanResistDamage(DamageType type, Point impact) override;
+ 
+ protected:
+     virtual void VOnBossFightStarted() override;
+@@ -57,7 +60,13 @@ protected:
+ 
+ private:
+ 
+-    int m_ReqDamageToTransition;
++    enum Phase { ParrotPhase, SwordPhase, CarryPhase };
++    Phase m_Phase = ParrotPhase;
++    bool m_OpenBridgePending = false, m_CarryPending = false;
++    uint32 m_CarryTime = 0;
++    Point m_CarryFrom, m_CarryTo, m_LeftLanding, m_RightLanding;
++    double m_CarryCenter = 0;
++    int m_ReqDamageToTransition = 0;
+ 
+     
+ 
+@@ -114,6 +123,9 @@ public:
+     void SitOnPerch();
+     void SitOnShoulder(const Point& shoulderLocation);
+     void DoAttack();
++    void Reset(bool enabled);
++    virtual bool VCanResistDamage(DamageType, Point) override { return true; }
++    virtual void VOnResistDamage(DamageType type, Point) override { OnGotHit(type); }
+ 
+ private:
+     // XML Data
+@@ -130,7 +142,11 @@ private:
+     void ActivateMarrowFloors();
+     void OnGotHit(DamageType damageType);
+ 
+-    MarrowAIStateComponent* m_pMarrow;
++    Point m_FlightStart, m_FlightTarget;
++    uint32 m_FlightTime = 0, m_WaitTime = 700, m_HitCooldown = 0, m_StunTime = 0;
++    int m_Hits = 0;
++    MarrowParrotState m_State = MarrowParrotState_SittingOnShoulder;
++    MarrowAIStateComponent* m_pMarrow = nullptr;
+     AnimationComponent* m_pAnimationComponent;
+ };
+ 
+@@ -161,6 +177,9 @@ private:
+ 
+     // Internal
+     bool m_bActive;
++    bool m_Initialized = false, m_BodyOn = true;
++    Point m_Home, m_Retracted;
++    double m_CurrentX = 0;
+ };
+ 
+ #endif
+\ No newline at end of file
 diff --git a/OpenClaw/Engine/Actor/Components/FloorSpikeComponent.cpp b/OpenClaw/Engine/Actor/Components/FloorSpikeComponent.cpp
 index cb989c1..02d284f 100644
 --- a/OpenClaw/Engine/Actor/Components/FloorSpikeComponent.cpp

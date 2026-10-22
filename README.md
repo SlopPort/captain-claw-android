@@ -2,7 +2,9 @@
 
 [English README](README.en.md)
 
-Natywna adaptacja [OpenClaw](https://github.com/pjasicek/OpenClaw) na Androida, z zasobami dostarczanymi przez użytkownika. Silnik C++/SDL dla ARM64 i ARMv7, minimum API 21. Aktualna wersja: 0.4.11-dev. Skrócono początkowe przycięcie fizyki i naprawiono animację spadania po skoku przy górze drabiny. [Pomiary i testy 0.4.11](docs/validation/FPS-0.4.11.md). [Bieżący audyt zgłoszeń](docs/validation/BUG-AUDIT-2026-10-21.md) · [Optymalizacja FPS i pomiary](docs/validation/FPS-0.4.9.md) · [Funkcje i granice testów](docs/validation/PORT-0.4.8.md).
+Natywna adaptacja [OpenClaw](https://github.com/pjasicek/OpenClaw) na Androida, z danymi dostarczanymi przez użytkownika. Silnik C++/SDL dla ARM64 i ARMv7, minimum API 21. Aktualna wersja rozwojowa: **0.4.12-dev**. Pełne wydanie 1.0 pozostaje w przygotowaniu.
+
+Bieżące prace obejmują walki z Aquatisem i Marrowem, przechodzenie między mapami, dźwięki ataków i poprawki menu. [Wyniki i pozostałe warunki wydania](docs/validation/CAMPAIGN-1.0.md). Wcześniejsze [pomiary fizyki i drabin](docs/validation/FPS-0.4.11.md), [audyt zgłoszeń](docs/validation/BUG-AUDIT-2026-10-21.md) i [optymalizacja rysowania](docs/validation/FPS-0.4.9.md) opisują dokładny zakres sprawdzonych zmian.
 
 Od 0.4.8 można wskazać sam pełny **CLAW.REZ** zamiast przygotowanego ZIP. Pod **PAD → Kopie zapisów i wibracje** są eksport/import postępu i opcjonalne wibracje. Funkcje inspirowane Claw Web (Arthur Boss i współtwórcy), z przypisaniem pochodzenia w [NOTICE](NOTICE.md). Instalacja z 168-bajtową atrapą REZ i luźnym folderem Assets nadal wymaga ZIP.
 
@@ -43,7 +45,7 @@ Zainstaluj APK i wybierz przygotowany `build/game-data.zip` w aplikacji. Dane i 
 
 ## Sterowanie dotykowe
 
-**Pad:** dotknij przycisku **PAD** w rogu gry, aby przypisać fizyczne przyciski do czynności. [Instrukcja PL/EN](docs/CONTROLLER.md). Domyślne nazwy Androida mogą różnić się od nadruków na padzie.
+**Pad:** dotknij przycisku **PAD** na dole, pośrodku ekranu, aby przypisać fizyczne przyciski do czynności. [Instrukcja PL/EN](docs/CONTROLLER.md). Domyślne nazwy Androida mogą różnić się od nadruków na padzie.
 
 Gałka po lewej służy do ruchu, wspinania i kucania. Skok jest na dole po prawej; atak obok niego, strzał wyżej. Szybki tap daje użyteczny niski skok, dłuższe trzymanie zwiększa wysokość. BRON zmienia broń; PAUZA lub systemowy Wstecz otwiera menu.
 
@@ -51,7 +53,9 @@ Gałka po lewej służy do ruchu, wspinania i kucania. Skok jest na dole po praw
 
 Sprawdzono 45 wariantów zwykłych przeciwników, 1415 początkowych obiektów na 14 mapach, 16 typów atakujących pociskami z obu stron i 13 przypadków hitboxów. To kontrolowane scenariusze, nie pełne naturalne przejście gry. Balans i zakończenie nie mają pełnego porównania z wydaniem Windows.
 
-Próby sprzętowe wykonano na Redmi Note 8 z Androidem 16. API 21 i dwie architektury są ustawieniami kompilacji; nie potwierdzają działania na każdym starszym Androidzie. Poziom 13 nadal ma spadek do około 54 FPS na tym telefonie, mimo około 60 FPS na poziomie 1 po rozgrzaniu. Obsługa padów jest kolejną, osobno weryfikowaną zmianą.
+Najnowsze próby kampanii wykonujemy na Huawei P9 Lite z Androidem 10 i 2 GB RAM; starsze wydania testowano również na Redmi Note 8 z Androidem 16. Po optymalizacjach wiele scen osiąga około 60 FPS, ale gęsta scena poziomu 9 mierzyła około 57–59 FPS. Nie ma jeszcze dowodu stałych 60 FPS przez całą kampanię. Minimum API 21 i dwie architektury są ustawieniami kompilacji, a nie potwierdzeniem działania na wszystkich telefonach. [Zakres sprawdzonej zgodności](docs/validation/ANDROID-COMPATIBILITY.md).
+
+Trwają końcowe prace nad kampanią. Pełne kontrolowane walki z Aquatisem i Marrowem oraz przejścia do następnych map przeszły testy; używają jawnych teleportów i ochrony bohatera. Nie oznacza to naturalnego przejścia wszystkich poziomów ani gotowej wersji 1.0. [Warunki wydania i wyniki](docs/validation/CAMPAIGN-1.0.md), [dźwięki ataków](docs/validation/ATTACK-AUDIO.md).
 
 - [Dotyk i skok](docs/validation/JUMP-TOUCH.md)
 - [Audyt walki](docs/validation/COMBAT-AUDIT.md)

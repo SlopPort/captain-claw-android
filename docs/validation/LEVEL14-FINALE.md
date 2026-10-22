@@ -1,5 +1,7 @@
 > Surowe dowody i konfiguracje przywołane niżej są lokalnie w ignorowanym `reports/`; nie są dołączone do repozytorium.
 
+Aktualizacja 22.10.2026, 0.4.12-dev: `omar-campaign-current1` wykrył regresję naszego nowego pakietu pomocniczego — brak dwóch PNG autorów powodował awarię przy inicjalizacji menu po finale. Dodano własne plansze tekstowe, bez portretów i grafik gry, oraz kontrolę kompletności PNG podczas pakowania. `omar-campaign-credits-fixed` przeszedł obie fazy Omara, inscenizację, wyniki, powrót do menu i kontrolę braku poziomu 15 w zapisie. Próba używa teleportów, żywiołów, nieskończonej amunicji i ochrony; nie zmienia HP bossa. To nie jest naturalne przejście mapy.
+
 # Finał i przeciwnicy, 0.4.0 — 20.10.2026
 
 Dodano Omara i BossStager do zwykłego ładowania poziomu 14. Limit wyboru

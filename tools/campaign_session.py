@@ -13,11 +13,12 @@ from gamepad_quit_smoke import adb, REMOTE, PORT
 
 
 class CampaignSession:
-    def __init__(self, report, level=1, apk_support=False):
+    def __init__(self, report, level=1, apk_support=False, start_menu=False):
         self.report=PORT/'reports'/report
         self.level=level;self.pid='';self.ticket=0
         self.stream=None;self.output=None;self.backed_up=False
         self.apk_support=apk_support;self.support_backed_up=False
+        self.start_menu=start_menu
 
     def logs(self):
         path=self.report/'native.log'
@@ -72,7 +73,7 @@ class CampaignSession:
                     (self.report/'support.test.zip').write_bytes(apk.read('assets/import-support/ASSETS.ZIP'))
                 adb('push',str(self.report/'support.test.zip'),REMOTE+'ASSETS.ZIP')
             config=ET.parse(self.report/'config.original.xml')
-            for path,value in [('DebugOptions/SkipMenu','true'),('DebugOptions/SkipMenuToLevel',str(self.level)),
+            for path,value in [('DebugOptions/SkipMenu','false' if self.start_menu else 'true'),('DebugOptions/SkipMenuToLevel',str(self.level)),
                                ('GlobalOptions/LoadAllLevelSaves','false')]:config.find(path).text=value
             flag=config.find('DebugOptions/PreviewIncompleteLevel14')
             if flag is None:flag=ET.SubElement(config.find('DebugOptions'),'PreviewIncompleteLevel14')
@@ -100,7 +101,10 @@ class CampaignSession:
             self.output=(self.report/'native.log').open('wb')
             self.stream=subprocess.Popen(['adb','logcat','--pid='+self.pid,'-s','SDL/APP','libc','AndroidRuntime'],
                 stdout=self.output,stderr=subprocess.DEVNULL)
-            self.wait('Level loaded !');self.wait('Pazur simulation clock reset');time.sleep(.3)
+            if self.start_menu:self.wait('Changing to: 3')
+            else:
+                self.wait('Level loaded !');self.wait('Pazur simulation clock reset')
+            time.sleep(.3)
             return self
         except BaseException:
             self.__exit__(None,None,None);raise

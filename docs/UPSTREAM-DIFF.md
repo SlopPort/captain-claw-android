@@ -16,6 +16,9 @@ Punkt odniesienia: [pjasicek/OpenClaw](https://github.com/pjasicek/OpenClaw), co
 | Szeroki ekran | Więcej świata przy stałej wysokości 480, bez deformowania grafiki; kotwiczenie HUD, obsługa współrzędnych menu i podsumowania | patch oraz `native/TouchControls.cpp` |
 | Poziom 14 | Prototypy/metadane oraz brakujące elementy finału: platformy, kolce, wyrzutnie, gejzery, LavaHand, LavaMouth, kameleony i strażnicy | `asset-overrides/`, `native/LavaGeyserComponent.cpp`, patch |
 | Omar i zakończenie | Własna dwufazowa walka, dialogi, reset podejścia, kapitulacja i inscenizacja zakończenia z istniejących grafik gry | `native/OmarEncounterComponent.cpp` |
+| Aquatis i Marrow | Nowa arena macek, dynamitu i stalaktytów; uzupełnienie pustych metod papugi, mostów i przenoszenia Marrowa. Nowe parametry wymagają porównania z oryginałem | `native/AquatisArena.cpp`, patch, `docs/validation/AQUATIS-ARENA.md`, `docs/validation/MARROW-ENCOUNTER.md` |
+| Aktualizacja i menu | Atomowa aktualizacja własnego pakietu XML; obsługa dotyku na wynikach, pomijanie brakującego opcjonalnego WAV, własne plansze autorów i kontrola kompletności PNG | `app/.../EngineSupport.java`, `tools/prepare_import_support.py`, `tools/credits_png.py`, patch |
+| Dźwięki ataków | Pięć brakujących przypisań do istniejących nagrań oraz pomiar rzeczywistego sygnału miksera bez nagrywania dźwięku | `asset-overrides/`, `native/AudioProbe.cpp`, `docs/validation/ATTACK-AUDIO.md` |
 | Zwykli przeciwnicy | Przywrócenie 54 kameleonów poziomu 13, kierunek patrolowania, zdrowie/śmierć, jednokrotne obrażenia od pocisku, wyłączenie obrażeń czujnika stóp i poprawne aktywne granice kucania | `asset-overrides/`, patch |
 | Narzędzia i dowody | Przypięte źródła, bootstrap, pakowanie własnych danych, kontrola ABI/ELF, inwentaryzacja 45 wariantów/1415 rozmieszczeń i testy na telefonie | `sources.lock.json`, `tools/`, `tests/`, `app/src/androidTest/` |
 

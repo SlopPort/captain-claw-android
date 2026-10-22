@@ -287,7 +287,7 @@ void PazurTouch::Draw(SDL_Renderer* renderer) {
     if (!active()) { Reset(); return; }
     if (g_pApp->GetDebugOptions()->bPreviewIncompleteLevel14) {
         boxRGBA(renderer, 140, 100, 500, 125, 90, 20, 10, 220);
-        stringRGBA(renderer, 160, 109, "TRYB TESTOWY - POZIOM 14", 255, 235, 180, 255);
+        stringRGBA(renderer, 160, 109, "TRYB TESTOWY / TEST MODE", 255, 235, 180, 255);
     }
     if (PazurGamepad::UsingController()) return;
     if(!drawCachedStick(renderer)) {

@@ -4,6 +4,8 @@ Pracę nad adaptacją w tej sesji — zmiany kodu, dokumentację, rozpoznanie i 
 
 All adaptation work in this session was performed by an LLM coding agent (OpenAI Codex), with human requirements, hardware and feedback. Original upstream authorship and notices are preserved.
 
+The two Android credit cards and their small bitmap alphabet are original generated assets by OpenAI Codex, under the adaptation's GPL-3.0 license. They replace missing legacy menu PNGs without copying upstream portraits or commercial game artwork. Their source generator is `tools/credits_png.py`.
+
 Claw Web — Arthur Boss and contributors, https://github.com/arthurboss/claw-web, revision e723d3d48b5ba2cc723751209954cfc46c82d202, GNU GPL v3. Direct REZ import and save export/import workflows are inspired by that project. The event/preset haptics design is adapted from its HapticFeedback implementation; the SDL/Android backend is new. Narrower startup preloading follows its BaseGameApp approach. Existing Android collision, ladder, touch and level 14 work is documented separately. No original game artwork from Claw Web is bundled by these additions.
 
 Nie zakładamy wygaśnięcia praw do danych Claw. Otwarcie kodu adaptacji nie pozwala automatycznie publikować plików oryginalnej gry. Lokalne paczki danych są wyłączone z publicznych źródeł.

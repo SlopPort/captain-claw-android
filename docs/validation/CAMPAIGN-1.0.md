@@ -1,11 +1,12 @@
 # Campaign validation toward 1.0 / Kampania przed 1.0
 
-Work and testing by OpenAI Codex (LLM), 2026-10-21. Human reports and hardware are acknowledged without personal identifying information. This is a work log, not a declaration that version 1.0 is ready.
+Work and testing by OpenAI Codex (LLM), 2026-10-21/22. Human reports and hardware are acknowledged without personal identifying information. This is a work log, not a declaration that version 1.0 is ready.
 
 ## Reproduced blockers / Odtworzone blokady
 
 - Collecting the real level-one end pickup reached the score screen, then a missing regional voice file (`/states/booty/sounds/claw/1110004.wav`) caused an assertion in HumanView. Optional missing WAV playback now logs and returns instead of aborting the game. This does not add copyrighted recordings to the project.
 - The score screen handled keyboard confirmation only. Android left mouse presses, including SDL-translated screen taps, now call the existing score-state progression. Desktop controls are unchanged.
+- `omar-campaign-current1` defeated Omar and completed the finale/score, then returning to the menu exposed missing credit PNGs in our new XML support bundle. Menu initialization loads every page, so this was a packaging regression, not merely an unavailable optional credit screen. Generated original credit cards now supply both paths; packaging checks all support-PNG references and uses stable metadata. `omar-campaign-credits-fixed` passed on 0.4.12-dev: both combat phases, finale, score, return to menu and no level-15 save. Fixtures include teleports, elemental powerups, infinite ammo and protection; no boss-health edits.
 
 ## Controlled transition tests / Kontrolowane przejścia
 
@@ -25,15 +26,17 @@ The inherited converter skipped `AquatisCrack`, `AquatisDynamite` and `Tentacle`
 
 `reports/aquatis-arena-rules2` passed all five rock strikes, tentacle respawns, boss defeat and level 13 loading. The test uses actual pistol projectile collisions and real dynamite fuses, with teleports, player protection and spawned projectiles explicitly recorded. Direct bullets, a crack explosion with uncleared tentacles and explosions outside the crack did not damage the boss. Boss HP is never edited by the fixture.
 
-The normal charged player throw subsequently passed in `aquatis-player-throw5-bounds`, after implementing the missing dynamite receptacle and using its actual imported image bounds. A full ordinary-input fight, real ammo resupply and death/reset test remain separate gates. Original-game timing, hitbox and balance parity remain unverified. See [Aquatis arena notes](AQUATIS-ARENA.md).
+The normal charged player throw subsequently passed in `aquatis-player-throw5-bounds`, after implementing the missing dynamite receptacle and using its actual imported image bounds. `aquatis-player-fight-reset1` then passed the full controlled ordinary-input fight, actual ammo consumption/resupply and recovery after a real water death. It uses teleports and combat protection, but no spawned projectiles or health/ammo edits. Original-game timing, hitbox and balance parity remain unverified. See [Aquatis arena notes](AQUATIS-ARENA.md).
 
 Controlled real sword attacks, existing gem collection, score confirmation and next-level saves passed for LaRaux (2 → 3), Katherine (4 → 5), Wolvington (6 → 7) and Red Tail (13 → 14). Evidence: `boss-campaign-level2-pilot`, `boss-campaign-level4-audio`, `boss-campaign-level6-audio`, `boss-campaign-level13-audio`. These use teleports and player protection, not boss HP edits. They do not certify full arena behavior or natural map traversal. Attack-audio findings and tests are recorded in [the audio audit](ATTACK-AUDIO.md).
 
-Further source review found empty Marrow parrot/floor behavior. A boss being killable by generic sword AI alone does not establish a complete encounter. This remains another release gate.
+Further source review found empty Marrow parrot/floor behavior. The new implementation adds three parrot hits, extending/retracting bridges, five successful sword hits per phase and carrying between sides. `marrow-contact-fight8-transition` passed the full controlled encounter, real gem, score and level 11 load. Death/reset and original timing/balance parity remain release gates. See [Marrow encounter notes](MARROW-ENCOUNTER.md).
+
+`gabriel-button-fight6-atomic-input` passed the inherited real button/raised-cannon mechanic, four 25 HP hits, boss defeat, real gem, score and level 9. The fixture uses teleports/protection and ordinary sword events. Its development failures and the inherited missing vertical projectile visual are documented in [Gabriel encounter notes](GABRIEL-ENCOUNTER.md).
 
 ## Remaining release gates / Warunki wydania
 
-- Record technical transitions for all normal exits and boss-generated exits; verify final completion returns correctly without creating level 15.
+- Technical exits for all fourteen levels now have controlled evidence across the reports above, including the finale/menu/no-level-15 regression. Preserve those results while completing the remaining natural-playthrough and reset gates.
 - Verify every boss with actual damage and encounter mechanics; record any assistance or fixtures explicitly.
 - Complete natural traversal of all fourteen levels, including ladders, edges, disappearing platforms, checkpoint recovery, death and resource carry-over.
 - Recheck physical controller bindings and Android window touch, including score and final screens.

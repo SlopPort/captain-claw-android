@@ -13,8 +13,8 @@ android {
         applicationId 'pl.pazur.port'
         minSdk 21
         targetSdk 35
-        versionCode 23
-        versionName '0.4.11-dev'
+        versionCode 24
+        versionName '0.4.12-dev'
         testInstrumentationRunner(project.findProperty('testRunner') ?: 'pl.pazur.port.JumpTouchTest')
         ndk { abiFilters((project.findProperty('abis') ?: 'arm64-v8a').split(',')) }
         externalNativeBuild { cmake { arguments '-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON', '-DANDROID_STL=c++_shared', '-DPAZUR_NATIVE_IPO='+(project.findProperty('nativeLto') ?: 'ON'); targets 'openclaw' } }

@@ -33,6 +33,9 @@ WeakActorPtr fixtureClaw, target;
 bool floorCreated = false;
 const Point arena(200000, 1045);
 std::map<SDL_Keycode, Uint32> heldKeys;
+// Test-only scheduling avoids USB round-trip latency between two ordinary
+// button presses. It never calls attack/damage logic directly.
+Uint32 scheduledSwordAt=0;
 struct JumpTrace {
     bool armed=false, airborne=false, received=false;
     std::string label;
@@ -112,6 +115,23 @@ bool PazurCombatProbe::Handle(const std::vector<std::string>& args, const ActorM
     auto claw = logic->GetClawActor();
     if (!claw) return false;
     auto physics = logic->VGetGamePhysics();
+    if(args[0]=="campaignposition" && (args.size()==3 || args.size()==4)) {
+        // Explicit setup fixture: ordinary console teleport retains terminal
+        // fall velocity, making subsequent button-contact tests USB dependent.
+        const Point position(std::stod(args[1]),std::stod(args[2]));
+        auto body=claw->GetRawComponent<PhysicsComponent>(true);
+        body->SetFallHeight(0);body->SetHeightInAir(0);
+        physics->VSetLinearSpeed(claw->GetGUID(),Point(0,0));
+        physics->VSetPosition(claw->GetGUID(),position);
+        claw->GetPositionComponent()->SetPosition(position);
+        IEventMgr::Get()->VTriggerEvent(IEventDataPtr(new EventData_Move_Actor(claw->GetGUID(),position)));
+        if(args.size()==4 && args[3]=="sword") {
+            // Same ordinary input event as combatkey, without a USB round trip
+            // that would let the falling player pass a hanging target first.
+            keyEvent(SDLK_LCTRL,true);heldKeys[SDLK_LCTRL]=SDL_GetTicks()+100;
+        }
+        return true;
+    }
     if(args[0]=="campaignshot" && args.size()==4) {
         // Explicit projectile fixture: actual physics, collision and fuse apply.
         // No direct damage callback or boss health modification is permitted.
@@ -133,10 +153,10 @@ bool PazurCombatProbe::Handle(const std::vector<std::string>& args, const ActorM
             bool boss=false;
             for(const std::string suffix:{"_LaRaux","_Katherine","_Wolvington","_Gabriel","_Marrow","_Aquatis","_RedTail","_Omar"})
                 if(name.size()>=suffix.size() && name.compare(name.size()-suffix.size(),suffix.size(),suffix)==0)boss=true;
-            if(ending || checkpoint || boss || name.find("Level12_Aquatis")==0) {
+            if(ending || checkpoint || boss || name.find("Level12_Aquatis")==0 || name.find("Level10_Marrow")==0 || name.find("Level8_Gabriel")==0) {
                 auto hp=actor->GetRawComponent<HealthComponent>(false);
                 SDL_Log("Pazur campaign object: level=%d kind=%s id=%u name=%s x=%.1f y=%.1f hp=%d",
-                    level,ending?"exit":checkpoint?"checkpoint":"boss",actor->GetGUID(),name.c_str(),
+                    level,ending?"exit":checkpoint?"checkpoint":boss?"boss":"arena",actor->GetGUID(),name.c_str(),
                     position->GetX(),position->GetY(),hp?hp->GetHealth():-1);
             }
             if(ending) {
@@ -283,6 +303,18 @@ bool PazurCombatProbe::Handle(const std::vector<std::string>& args, const ActorM
         SDL_Log("Pazur map enemy count: %d",count);
         return true;
     }
+    if (args[0] == "combatjumpattack" && (args.size() == 3 || args.size() == 4)) {
+        ResetKeys();
+        const auto now=SDL_GetTicks();
+        keyEvent(SDLK_SPACE,true);
+        heldKeys[SDLK_SPACE]=now+(std::max)(20,(std::min)(1000,std::stoi(args[1])));
+        scheduledSwordAt=now+(std::max)(20,(std::min)(1000,std::stoi(args[2])));
+        if(args.size()==4 && (args[3]=="left" || args[3]=="right")) {
+            const auto direction=args[3]=="left"?SDLK_LEFT:SDLK_RIGHT;
+            keyEvent(direction,true);heldKeys[direction]=now+250;
+        }
+        return true;
+    }
     if (args[0] == "combatkey" && args.size() == 3) {
         if (args[1] == "release") { ResetKeys(); return true; }
         const std::map<std::string,SDL_Keycode> keys{{"left",SDLK_LEFT},{"right",SDLK_RIGHT},
@@ -411,6 +443,7 @@ bool PazurCombatProbe::Handle(const std::vector<std::string>& args, const ActorM
 }
 
 void PazurCombatProbe::ResetKeys() {
+    scheduledSwordAt=0;
     for (const auto& key : heldKeys) keyEvent(key.first,false);
     heldKeys.clear();
 }
@@ -437,6 +470,14 @@ void PazurCombatProbe::Poll() {
         !g_pApp->GetGameLogic()) return;
     const bool playing=g_pApp->GetGameLogic()->IsRunning() &&
         g_pApp->GetGameLogic()->GetGameState()==GameState_IngameRunning;
+    if(scheduledSwordAt) {
+        if(!playing)scheduledSwordAt=0;
+        else if((Sint32)(now-scheduledSwordAt)>=0) {
+            scheduledSwordAt=0;
+            keyEvent(SDLK_LCTRL,true);
+            heldKeys[SDLK_LCTRL]=now+100;
+        }
+    }
     if(ladderTrace.end) {
         if(!playing || (Sint32)(now-ladderTrace.end)>=0) {
             SDL_Log("Pazur ladder trace end: label=%s",ladderTrace.label.c_str());
