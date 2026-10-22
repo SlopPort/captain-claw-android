@@ -32,9 +32,13 @@ int main(int argc, char** argv)
     }
     for (unsigned n = 0; n < world->tileDescriptionsCount; ++n) {
         const auto& tile = world->tileDescriptions[n];
+        // libwap leaves outside/rectangle fields undefined for SINGLE tiles.
+        // They are absent from the file and must not be read as collision data.
+        const bool split = tile.type == WAP_TILE_TYPE_DOUBLE;
         std::printf("TILE %u %u %u %u %u %u %d %d %d %d\n", n, tile.type,
-            tile.width, tile.height, tile.insideAttrib, tile.outsideAttrib,
-            tile.rect.left, tile.rect.top, tile.rect.right, tile.rect.bottom);
+            tile.width, tile.height, tile.insideAttrib, split ? tile.outsideAttrib : 0,
+            split ? tile.rect.left : 0, split ? tile.rect.top : 0,
+            split ? tile.rect.right : 0, split ? tile.rect.bottom : 0);
     }
     WAP_WwdDestroy(world);
     return 0;
