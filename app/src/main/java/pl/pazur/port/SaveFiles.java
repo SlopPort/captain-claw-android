@@ -65,9 +65,18 @@ final class SaveFiles {
         byte[] imported;try(InputStream in=new FileInputStream(pending)){imported=validate(in);}
         File saves=new File(root,"SAVES.XML");
         if(saves.isFile())try(InputStream in=new FileInputStream(saves)) {
-            writeAtomic(root,"SAVES.before-import.xml",readBounded(in));
+            byte[] existing=readBounded(in);
+            // A process may die after publication but before deleting pending.
+            // Retrying that same transaction must retain the pre-import backup.
+            if(!Arrays.equals(existing,imported))writeAtomic(root,"SAVES.before-import.xml",existing);
         }
         writeAtomic(root,"SAVES.XML",imported);
         if(!pending.delete())throw new IOException("Save applied, but pending file could not be removed");
+    }
+    static void ensureInitial(android.content.Context context,File root) throws Exception {
+        if(new File(root,"SAVES.XML").exists())return; // Never reset existing progress, even if damaged.
+        byte[] initial;
+        try(InputStream input=context.getAssets().open("default-saves.xml")){initial=validate(input);}
+        writeAtomic(root,"SAVES.XML",initial);
     }
 }

@@ -48,19 +48,6 @@ public class GameActivity extends SDLActivity {
         return super.dispatchKeyEvent(event);
     }
     @Override public void onCreate(Bundle state) {
-        File saves = new File(getExternalFilesDir(null), "SAVES.XML");
-        try {SaveFiles.applyPending(getExternalFilesDir(null));}
-        catch(Exception error) {android.util.Log.e("Pazur","Save import could not finish",error);}
-        if (!saves.exists()) {
-            try (InputStream input = getAssets().open("default-saves.xml");
-                 OutputStream output = new FileOutputStream(saves)) {
-                byte[] bytes = new byte[4096];
-                int count;
-                while ((count = input.read(bytes)) != -1) output.write(bytes, 0, count);
-            } catch (IOException error) {
-                android.util.Log.e("Pazur", "Cannot create initial save", error);
-            }
-        }
         super.onCreate(state);
         android.widget.Button pad = new android.widget.Button(this);
         settingsButton=pad;
@@ -89,6 +76,13 @@ public class GameActivity extends SDLActivity {
         else vibrator.vibrate(duration);
     }
     @Override protected String[] getArguments() {
+        try {GameFiles.prepare(this);}
+        catch(Exception error) {
+            android.util.Log.e("Pazur","Native startup preparation failed",error);
+            runOnUiThread(()->startActivity(new android.content.Intent(this,LauncherActivity.class)
+                .putExtra("startup_error",error.toString())));
+            return new String[] { "--startup-aborted" };
+        }
         return new String[] { getExternalFilesDir(null).getAbsolutePath() };
     }
 }

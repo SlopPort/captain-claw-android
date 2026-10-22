@@ -55,6 +55,14 @@ public class LauncherActivity extends LocalizedActivity {
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
+        if(getIntent().hasExtra("startup_error")) {
+            // Do not auto-launch into the same failing native initialization.
+            new AlertDialog.Builder(this).setMessage(getString(R.string.prepare_error)+getIntent().getStringExtra("startup_error"))
+                .setPositiveButton(R.string.retry,(dialog,which)->{getIntent().removeExtra("startup_error");recreate();})
+                .setNeutralButton(R.string.save_tools,(dialog,which)->{startActivity(new Intent(this,FileToolsActivity.class));finish();})
+                .setNegativeButton(R.string.close,(dialog,which)->finish()).show();
+            return;
+        }
         if (getIntent().getBooleanExtra("pin_shortcut", false)) {
             // Let the launcher ask the user where to place it; never edit its database.
             if (android.os.Build.VERSION.SDK_INT >= 26) {

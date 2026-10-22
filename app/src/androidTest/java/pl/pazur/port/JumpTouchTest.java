@@ -18,6 +18,7 @@ public class JumpTouchTest extends Instrumentation {
     private boolean baseline;
     private boolean gameOver;
     private boolean score;
+    private boolean directActivity;
     private long down;
     private int width, height, ticket;
     private float logicalWidth;
@@ -28,6 +29,7 @@ public class JumpTouchTest extends Instrumentation {
         baseline="baseline".equals(args.getString("layout"));
         gameOver="game-over".equals(args.getString("scenario"));
         score="score".equals(args.getString("scenario"));
+        directActivity="true".equals(args.getString("direct_activity"));
         start();
     }
     private void focus() {
@@ -99,7 +101,7 @@ public class JumpTouchTest extends Instrumentation {
         Bundle result=new Bundle();
         try {
             ActivityMonitor monitor=addMonitor("pl.pazur.port.GameActivity",null,false);
-            Intent launch=new Intent().setClassName(getTargetContext(),"pl.pazur.port.LauncherActivity")
+            Intent launch=new Intent().setClassName(getTargetContext(),directActivity?"pl.pazur.port.GameActivity":"pl.pazur.port.LauncherActivity")
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             getTargetContext().startActivity(launch);
             game=waitForMonitorWithTimeout(monitor,30000);

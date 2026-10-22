@@ -32,6 +32,9 @@ final class AppLanguage {
     }
     static void writeNative(Context context) throws IOException {
         File root=context.getExternalFilesDir(null);
+        writeNative(context,root);
+    }
+    static void writeNative(Context context,File root) throws IOException {
         if(root==null)throw new IOException(context.getString(R.string.storage_unavailable));
         AtomicFile file=new AtomicFile(new File(root,"ui-language.txt"));
         FileOutputStream output=null;

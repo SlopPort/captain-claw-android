@@ -16,6 +16,7 @@ def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--report',required=True)
     parser.add_argument('--scenario',choices=('jump','score','game-over'),default='jump')
+    parser.add_argument('--direct-activity',action='store_true',help='Start GameActivity without LauncherActivity in the instrumentation process')
     parser.add_argument('--expect-logical-size',type=int,nargs=2,default=[853,480],metavar=('W','H'))
     args=parser.parse_args()
     images={'jump':['jump-multitouch.png','jump-layout.png','jump-focus.png','jump-pause.png'],
@@ -28,6 +29,7 @@ def main():
             reader=subprocess.Popen(['adb','logcat','-T','1','-s','SDL/APP','libc','AndroidRuntime'],stdout=output,stderr=subprocess.DEVNULL)
             try:
                 result=adb('shell','am','instrument','-w','-r','-e','layout','final','-e','scenario',args.scenario,
+                           '-e','direct_activity','true' if args.direct_activity else 'false',
                            'pl.pazur.port.test/pl.pazur.port.JumpTouchTest')
             finally:reader.terminate();reader.wait(timeout=5)
         (session.report/'instrumentation.txt').write_text(result,encoding='utf-8')
@@ -42,6 +44,7 @@ def main():
         viewports=re.findall(r'Pazur viewport: physical=(\d+)x(\d+) logical=(\d+)x(\d+)',log)
         assert viewports and list(map(int,viewports[-1][2:]))==args.expect_logical_size,viewports
         evidence=dict(scenario=args.scenario,passed=False,viewport_events=viewports,input='focused game-window MotionEvents',
+                      direct_activity=args.direct_activity,
                       natural_playthrough=False,global_input=False,display_settings_changed=False)
         if args.scenario=='jump':
             rows=[dict(label=n,queue_ms=int(q),takeoff_ms=int(t),rise=float(h),hold_ms=int(d),jumps=int(j))

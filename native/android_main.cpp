@@ -1,10 +1,14 @@
 #include <SDL.h>
 #include <unistd.h>
+#include <cstring>
 #include "ClawGameApp.h"
 #include "Engine/GameApp/MainLoop.h"
 
 ClawGameApp testApp;
 extern "C" int SDL_main(int argc, char** argv) {
+    // Java has already presented a localized recovery screen. Return without
+    // initializing SDL/game data when its off-UI-thread preparation failed.
+    if(argc==2 && std::strcmp(argv[1],"--startup-aborted")==0)return 0;
     if (argc < 2 || chdir(argv[1]) != 0) {
         SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Kapitan Pazur", "Nie znaleziono katalogu danych gry.", nullptr);
         return 1;
