@@ -371,20 +371,23 @@ index d219dde..e41bf46 100644
  
      _componentFactory.Register<PositionComponent>(ActorComponent::GetIdFromName(PositionComponent::g_Name));
 diff --git a/OpenClaw/Engine/Actor/ActorTemplates.cpp b/OpenClaw/Engine/Actor/ActorTemplates.cpp
-index aff4a25..c13c093 100644
+index aff4a25..bbef0cf 100644
 --- a/OpenClaw/Engine/Actor/ActorTemplates.cpp
 +++ b/OpenClaw/Engine/Actor/ActorTemplates.cpp
-@@ -2547,7 +2547,15 @@ namespace ActorTemplates
+@@ -2547,7 +2547,18 @@ namespace ActorTemplates
  
      StrongActorPtr CreateAreaDamage(const Point& position, const Point& size, int32 damage, CollisionFlag collisionFlag, const std::string& shape, DamageType damageType, Direction hitDirection, int sourceActorId, const Point& positionOffset, const std::string& imageSet, zIndexes zCoord)
      {
 -        return CreateAndReturnActor(CreateXmlData_AreaDamageActor(position, size, damage, collisionFlag, shape, damageType, hitDirection, sourceActorId, positionOffset, imageSet, zCoord));
 +        auto actor=CreateAndReturnActor(CreateXmlData_AreaDamageActor(position, size, damage, collisionFlag, shape, damageType, hitDirection, sourceActorId, positionOffset, imageSet, zCoord));
 +#ifdef __ANDROID__
-+        // Observe actual created attack bounds without changing reach or damage.
++        // A projectile can create an explosion inside Box2D BeginContact.
++        // Body creation is deferred while that world is locked, so querying
++        // its AABB here would assert before the body exists. Log only the
++        // requested geometry; AreaDamageComponent logs actual contact AABBs.
 +        if(actor && g_pApp->GetDebugOptions()->bPreviewIncompleteLevel14) {
-+            const auto box=g_pApp->GetGameLogic()->VGetGamePhysics()->VGetAABB(actor->GetGUID(),false);
-+            SDL_Log("Pazur area created: source=%d damage=%d box=%d,%d,%d,%d",sourceActorId,damage,box.x,box.y,box.w,box.h);
++            SDL_Log("Pazur area requested: source=%d damage=%d position=%.1f,%.1f size=%.1f,%.1f offset=%.1f,%.1f",
++                sourceActorId,damage,position.x,position.y,size.x,size.y,positionOffset.x,positionOffset.y);
 +        }
 +#endif
 +        return actor;

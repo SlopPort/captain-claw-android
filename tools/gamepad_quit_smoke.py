@@ -14,7 +14,7 @@ REMOTE='/sdcard/Android/data/pl.pazur.port/files/'
 
 
 def adb(*args, check=True):
-    return subprocess.run(['adb',*args],capture_output=True,text=True,check=check).stdout
+    return subprocess.run(['adb',*args],capture_output=True,text=True,check=check,stdin=subprocess.DEVNULL).stdout
 
 
 def main():
