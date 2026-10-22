@@ -16,6 +16,7 @@ public class LauncherActivity extends LocalizedActivity {
     private static final String[] REQUIRED = {"CLAW.REZ", "ASSETS.ZIP", "config.xml", "clacon.ttf", "console02.tga"};
     private TextView status;
     private Button importButton;
+    private Button languageButton;
     private boolean launching;
 
     private boolean ready() {
@@ -94,8 +95,8 @@ public class LauncherActivity extends LocalizedActivity {
             startActivityForResult(pick, 1);
         });
         layout.addView(importButton);
-        Button language=new Button(this);language.setText(R.string.language);
-        language.setOnClickListener(v->AppLanguage.choose(this));layout.addView(language);
+        languageButton=new Button(this);languageButton.setText(R.string.language);
+        languageButton.setOnClickListener(v->AppLanguage.choose(this));layout.addView(languageButton);
         setContentView(layout);
     }
 
@@ -103,6 +104,9 @@ public class LauncherActivity extends LocalizedActivity {
         super.onActivityResult(request, result, data);
         if (request != 1 || result != RESULT_OK || data == null) return;
         importButton.setEnabled(false);
+        // Recreating the launcher during an active import would leave its
+        // worker attached to the old screen and allow a second import worker.
+        languageButton.setEnabled(false);
         status.setText(R.string.import_busy);
         new Thread(() -> {
             try {
@@ -148,6 +152,7 @@ public class LauncherActivity extends LocalizedActivity {
                 runOnUiThread(() -> {
                     status.setText(R.string.import_failed);
                     importButton.setEnabled(true);
+                    languageButton.setEnabled(true);
                     new AlertDialog.Builder(this).setMessage(error.getMessage()).setPositiveButton("OK", null).show();
                 });
             }

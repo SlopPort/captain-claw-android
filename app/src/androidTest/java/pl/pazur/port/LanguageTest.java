@@ -40,6 +40,7 @@ public class LanguageTest extends Instrumentation {
         File root=context.getExternalFilesDir(null),nativeFile=new File(root,"ui-language.txt");
         byte[] previous=null,bindings=null,saves=null;boolean backedUp=false;Activity current=null;
         try {
+            if(previewNative)getUiAutomation(); // Connect before opening SDL, not during the captured frame.
             previous=bytes(nativeFile);bindings=bytes(new File(root,"controller-bindings.txt"));
             saves=bytes(new File(root,"SAVES.XML"));backedUp=true;
             for(String code:new String[]{"en","pl"}) {
@@ -66,13 +67,31 @@ public class LanguageTest extends Instrumentation {
             final Activity chooser=current;
             final android.app.AlertDialog[] dialog={null};
             runOnMainSync(()->dialog[0]=AppLanguage.choose(chooser));waitForIdleSync();
-            ActivityMonitor recreated=addMonitor("pl.pazur.port.ControllerSettingsActivity",null,false);
-            runOnMainSync(()->dialog[0].getListView().performItemClick(null,1,1));
-            current=waitForMonitorWithTimeout(recreated,10000);
-            if(current==null || !AppLanguage.code(current).equals("en"))throw new Exception("Language selection/recreation failed");
+            final Activity[] replacement={null};
+            java.util.concurrent.CountDownLatch resumed=new java.util.concurrent.CountDownLatch(1);
+            android.app.Application application=(android.app.Application)context.getApplicationContext();
+            // ActivityMonitor is unreliable for recreate() on API 21. Observe
+            // the application's real lifecycle and require a different instance.
+            android.app.Application.ActivityLifecycleCallbacks lifecycle=new android.app.Application.ActivityLifecycleCallbacks() {
+                public void onActivityResumed(Activity a){if(a instanceof ControllerSettingsActivity && a!=chooser){replacement[0]=a;resumed.countDown();}}
+                public void onActivityCreated(Activity a,Bundle b){}
+                public void onActivityStarted(Activity a){}
+                public void onActivityPaused(Activity a){}
+                public void onActivityStopped(Activity a){}
+                public void onActivitySaveInstanceState(Activity a,Bundle b){}
+                public void onActivityDestroyed(Activity a){}
+            };
+            application.registerActivityLifecycleCallbacks(lifecycle);
+            try {
+                runOnMainSync(()->dialog[0].getListView().performItemClick(null,1,1));
+                if(!resumed.await(10,java.util.concurrent.TimeUnit.SECONDS))throw new Exception("Recreated settings did not resume");
+            } finally {application.unregisterActivityLifecycleCallbacks(lifecycle);}
+            current=replacement[0];
+            if(!AppLanguage.code(current).equals("en"))throw new Exception("Language choice not persisted");
+            waitForIdleSync();
             final Activity selected=current;final boolean[] translated={false};
             runOnMainSync(()->translated[0]=contains(selected.getWindow().getDecorView(),"Sword attack"));
-            if(!translated[0])throw new Exception("Selection did not refresh visible text");
+            if(!translated[0])throw new Exception("Selection did not refresh visible text: "+selected.getString(R.string.action_attack));
             runOnMainSync(selected::finish);current=null;waitForIdleSync();
             if(previewNative) {
                 // Caller must isolate config/saves. Capture before restoring the
@@ -85,6 +104,10 @@ public class LanguageTest extends Instrumentation {
                 Activity game=waitForMonitorWithTimeout(monitor,30000);
                 if(game==null)throw new IOException("Game did not open");
                 android.os.SystemClock.sleep(7000);
+                waitForIdleSync();
+                final boolean[] overlay={false};
+                runOnMainSync(()->overlay[0]=game.hasWindowFocus()&&contains(game.getWindow().getDecorView(),"PAD"));
+                if(!overlay[0])throw new IOException("Game window/Android overlay not ready for preview");
                 android.graphics.Bitmap image=getUiAutomation().takeScreenshot();
                 if(image==null)throw new IOException("Screenshot unavailable");
                 try(OutputStream out=new FileOutputStream(preview)){image.compress(android.graphics.Bitmap.CompressFormat.PNG,100,out);}

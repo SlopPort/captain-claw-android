@@ -9,7 +9,7 @@ import json
 import re
 import time
 from campaign_session import CampaignSession
-from gamepad_quit_smoke import adb
+from gamepad_quit_smoke import adb, PORT
 
 
 def main():
@@ -18,8 +18,12 @@ def main():
     parser.add_argument('--abi',choices=('armeabi-v7a','arm64-v8a','x86_64'),required=True)
     parser.add_argument('--jump-hold',type=int,default=100,
                         help='Ordinary held jump duration; record longer holds explicitly on slow emulators')
+    parser.add_argument('--expected-version',help='Default: versionName of this source checkout')
     args=parser.parse_args()
     package=adb('shell','dumpsys','package','pl.pazur.port')
+    expected=args.expected_version or re.search(r"versionName '([^']+)'",(PORT/'app/build.gradle').read_text())[1]
+    installed=re.search(r'\bversionName=(\S+)',package)
+    assert installed and installed[1]==expected,'Installed version differs from expected '+expected
     assert 'primaryCpuAbi='+args.abi in package,'Installed ABI differs from requested test'
     for menu in (True,False):
         name=args.report+('-menu' if menu else '-level')
@@ -44,7 +48,7 @@ def main():
                     session.command('padvirtual tap 320 240');time.sleep(.35)
                     if 'Level name: Claw - Level 2' in session.logs():break
                 session.wait('Level name: Claw - Level 2')
-            result=dict(passed=True,abi=args.abi,process_library_verified=True,
+            result=dict(passed=True,version=installed[1],abi=args.abi,process_library_verified=True,
                         main_menu=menu,level1_jump_and_exit=not menu,natural_playthrough=False,
                         requested_jump_hold_ms=args.jump_hold)
             (session.report/'results.json').write_text(json.dumps(result,indent=2),encoding='utf-8')

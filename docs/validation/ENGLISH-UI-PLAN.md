@@ -14,6 +14,10 @@ Native touch labels and the added Omar encounter/finale captions use a small ASC
 
 Final ARM build `language-selection-0.4.13` passed the same checks plus actual selection of English in the language dialog, Activity recreation and refreshed visible sword-action text. Its isolated native screenshot was also captured. APK SHA-256: `994a2f1b94c256aebd642e23f761103619d6737b9d45f86bd495d130d0532eaa`. The earlier `language-native-preview-0.4.13` screenshot was visually inspected before this last Java-only chooser adjustment. This does not validate the original menu-art language.
 
+`language-preview-ready-0.4.13` connects screenshot automation before starting SDL and requires a focused game window with the Android PAD overlay before capture. Its image was visually inspected with all English controls present. The earlier `language-selection` capture omitted the overlay; that capture alone was not a valid overlay-layout pass. No production rendering change was needed. API-21 selection evidence and its test-harness fixes are recorded in [compatibility](ANDROID-COMPATIBILITY.md).
+
+The launcher disables language switching while its import worker is active, preventing Activity recreation from leaving a running import attached to the old screen and allowing another import. This is a source-reviewed concurrency guard; a full mid-import file-picker interaction test remains open. `language-import-guard-0.4.13` passed the same PL/EN screen/selection/native-preview instrumentation on Huawei after the guard. APK SHA-256: `f0df9125bb970fc735a39c306ae52366a8240d8ff20736af78790820e5e432e2`.
+
 The original bitmap menu art, original help pages and recorded voices still follow the user's game data. Some low-level validation/operating-system error details remain English. The existing legacy touchscreen-help images are neutral placeholders; translating our controls does not make those complete help pages. No claim of a complete game translation is made.
 
 Required scope:
