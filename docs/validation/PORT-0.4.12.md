@@ -24,6 +24,8 @@ The performance script originally hashed the workstation build output, which had
 
 `features-0.4.12.txt` passed real Android instrumentation: save validation roundtrip, pending import and backup, invalid import preserving progress, invalid REZ rejection, and exact XML/generated-help/credits support content. The test operates in an isolated staging directory and does not replace user progress.
 
+`marrow-death-reset-0.4.12` passed actual life loss in the arena pit, boss health/position reset, full rematch and next-level transition. See [the encounter evidence](MARROW-ENCOUNTER.md). User files were restored afterward.
+
 Local ARM APK: `dist/kapitan-pazur-0.4.12-dev.apk`, SHA-256 `992446a223d42eff8c363c3f1b0f0be1c0bf7a7dc5e9c14814447121eff3b333`. ELF alignment, both ARM ABIs, ZIP alignment with 16 KB checks and APK signature verification passed. The source archive created at commit `27694c6` has SHA-256 `a956e3eeb9fb12b1b27964ae0890786e993bc319809f9e9ccbeebfe47450a55d`; later compatibility evidence is committed separately. Proprietary data remains outside source/APK distribution.
 
 Po polsku: to sprawdzony etap rozwojowy z nowymi walkami i poprawkami, nie certyfikat ukończenia całej kampanii ani zgodności ze wszystkimi Androidami. Naturalne przejście, część resetów bossów, dalsze próby urządzeń i spadki przy długich klatkach pozostają otwarte.

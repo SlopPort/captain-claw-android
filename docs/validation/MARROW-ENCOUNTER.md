@@ -22,4 +22,6 @@ The diagnostic `combatjumpattack` schedules ordinary jump, direction and sword k
 
 `marrow-contact-fight8-transition` passed: three real parrot/bridge/sword phases, two carries, boss defeat, real gem collection, score confirmation and level 11 loading. Original config/saves were restored. Fixtures remain isolated level start, teleports and player protection; no health edits. Dedicated death/reset, negative phase-gate and original-game timing comparisons remain open.
 
-Po polsku: pełna kontrolowana walka, klejnot i przejście do poziomu 11 przeszły test. Reset po śmierci i zgodność szczegółów z oryginałem nadal wymagają potwierdzenia. To nie jest jeszcze gotowa wersja 1.0.
+`marrow-death-reset-0.4.12` subsequently passed the death/reset gate: after the first carry and boss health 100, protection was disabled and Claw placed in the existing arena pit. A real death reduced lives from three to two, restarted the encounter and restored Marrow to 150 HP on the initial side. Three new parrot hits reopened the bridge, and a complete three-phase rematch, boss gem and level 11 transition passed. No health edits or synthetic death/reset events were used. Protection was restored for the rematch; this remains a controlled test, not natural traversal. Negative phase gates and original timing/balance parity remain open.
+
+Po polsku: pełna kontrolowana walka, klejnot i przejście do poziomu 11 przeszły test, także po prawdziwej utracie życia i resecie bossa. Zgodność szczegółów z oryginałem nadal wymaga porównania. To nie jest jeszcze gotowa wersja 1.0.
