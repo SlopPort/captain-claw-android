@@ -55,6 +55,29 @@ class CampaignSession:
         adb('shell','screencap','-p',REMOTE+'campaign-test.png')
         adb('pull',REMOTE+'campaign-test.png',str(self.report/(label+'.png')))
 
+    def restart(self, marker='Changing to: 3'):
+        """Restart this same fixture without replacing its test save/config.
+
+        Keep original backups owned by the context manager. Logs append across
+        processes so checkpoint/lifecycle trials cannot lose earlier evidence.
+        """
+        if self.stream:
+            self.stream.terminate();self.stream.wait(timeout=5);self.stream=None
+        self.output.flush();start=len(self.logs())
+        adb('shell','am','force-stop','pl.pazur.port')
+        for name in ('combat-command.txt','combat-response.txt','combat-command.tmp'):
+            adb('shell','rm','-f',REMOTE+name)
+        adb('shell','am','start','-n','pl.pazur.port/.LauncherActivity')
+        deadline=time.monotonic()+30;self.pid=''
+        while time.monotonic()<deadline:
+            pids=adb('shell','pidof','pl.pazur.port',check=False).split()
+            if pids:self.pid=pids[0];break
+            time.sleep(.2)
+        if not self.pid:raise RuntimeError('No game process after restart')
+        self.stream=subprocess.Popen(['adb','logcat','--pid='+self.pid,'-s','SDL/APP','libc','AndroidRuntime'],
+            stdout=self.output,stderr=subprocess.DEVNULL)
+        self.wait(marker,after=start)
+
     def __enter__(self):
         self.report.mkdir(parents=True,exist_ok=True)
         if (self.report/'config.original.xml').exists():raise RuntimeError('Use a new report name; preserve prior evidence')

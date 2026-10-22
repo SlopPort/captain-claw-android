@@ -22,6 +22,7 @@ struct Pad {
     bool left=false,right=false,up=false,down=false,trigger=false;
 };
 std::map<SDL_JoystickID,Pad> pads;
+std::map<SDL_GameControllerButton,Uint32> debugButtonRelease;
 SDL_JoystickID activePad=-1;
 std::set<SDL_Keycode> pressed;
 std::map<SDL_Keycode,Uint32> repeatAt;
@@ -226,7 +227,19 @@ bool PazurGamepad::Handle(const SDL_Event& event) {
     reconcile(axis?event.caxis.timestamp:event.cbutton.timestamp);
     return true;
 }
-void PazurGamepad::Update() {reloadBindings();reconcile();}
+void PazurGamepad::Update() {
+    // Diagnostic virtual-pad pulses release on the game thread, so a slow USB
+    // round trip cannot turn a single menu step into held-direction repeat.
+    bool changed=false;
+    for(auto it=debugButtonRelease.begin();it!=debugButtonRelease.end();) {
+        if(!virtualPad || (Sint32)(SDL_GetTicks()-it->second)>=0) {
+            if(virtualPad) {SDL_JoystickSetVirtualButton(virtualPad,int(it->first),0);changed=true;}
+            it=debugButtonRelease.erase(it);
+        } else ++it;
+    }
+    if(changed)SDL_JoystickUpdate();
+    reloadBindings();reconcile();
+}
 void PazurGamepad::Shutdown() {
     // SDLActivity can launch native main again in the same Android process.
     // No controller handles or held states may survive that boundary.
@@ -265,6 +278,7 @@ bool PazurGamepad::DebugCommand(const std::vector<std::string>& args) {
         SDL_Log("Pazur virtual pad: attached=%d",virtualPad!=nullptr);return true;
     }
     if (args.size()==2 && args[1]=="detach") {
+        debugButtonRelease.clear();
         if (virtualPad) {
             const auto id=SDL_JoystickInstanceID(virtualPad);
             for (int i=0;i<SDL_NumJoysticks();++i) if (SDL_JoystickGetDeviceInstanceID(i)==id) {SDL_JoystickDetachVirtual(i);break;}
@@ -274,7 +288,13 @@ bool PazurGamepad::DebugCommand(const std::vector<std::string>& args) {
     }
     if (virtualPad && args.size()==4) {
         const int value=std::stoi(args[3]);
-        if (args[1]=="raw") {
+        if(args[1]=="pulse") {
+            const auto button=SDL_GameControllerGetButtonFromString(args[2].c_str());
+            if(button>=0) {
+                SDL_JoystickSetVirtualButton(virtualPad,int(button),1);
+                debugButtonRelease[button]=SDL_GetTicks()+(std::max)(20,(std::min)(200,value));
+            }
+        } else if (args[1]=="raw") {
             SDL_Event event{};event.type=SDL_USEREVENT;event.user.code=rawEventCode;
             event.user.timestamp=SDL_GetTicks();
             event.user.data2=reinterpret_cast<void*>(intptr_t(std::stoi(args[2])|(value?0x10000:0)));
