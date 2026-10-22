@@ -24,6 +24,7 @@ def main():
     parser.add_argument('--observe',action='store_true',help='Observe live enemies without moving or attacking')
     parser.add_argument('--cyclic-pegs',action='store_true',help='Controlled ordinary-jump trials on actual level-one cyclic platforms')
     parser.add_argument('--pair-filter',choices=('on','off'),help='Compare early Box2D pair rejection in the same APK; restores fallback marker')
+    parser.add_argument('--expect-logical-size',type=int,nargs=2,metavar=('W','H'),help='Reject comparisons made with another settled viewport')
     args=parser.parse_args()
     report=PORT/'reports'/args.report;report.mkdir(parents=True,exist_ok=True)
     pair_marker='physics-pairs-unfiltered'
@@ -71,8 +72,11 @@ def main():
         adb('shell','am','start','-n','pl.pazur.port/.LauncherActivity');time.sleep(2)
         pid=adb('shell','pidof','pl.pazur.port').strip().split()[0]
         deadline=time.monotonic()+45
-        while 'Level loaded !' not in logs() and time.monotonic()<deadline:time.sleep(.5)
-        assert 'Level loaded !' in logs()
+        while 'Pazur simulation clock reset' not in logs() and time.monotonic()<deadline:time.sleep(.5)
+        assert 'Level loaded !' in logs() and 'Pazur simulation clock reset' in logs(),'Simulation not ready'
+        settled=re.findall(r'Pazur viewport: physical=(\d+)x(\d+) logical=(\d+)x(\d+)',logs())
+        if args.expect_logical_size:
+            assert settled and list(map(int,settled[-1][2:]))==args.expect_logical_size,'Unexpected settled viewport: '+str(settled)
         assert 'Pazur renderer batching: 1' in logs()
         if args.pair_filter:
             assert 'Pazur physics pair filtering: '+('1' if args.pair_filter=='on' else '0') in logs()
@@ -126,6 +130,12 @@ def main():
         adb('pull',installed[len('package:'):],str(report/'installed.apk'))
         result['apk_sha256']=hashlib.file_digest((report/'installed.apk').open('rb'),'sha256').hexdigest()
         result['apk_hash_source']='installed Android package'
+        package=adb('shell','dumpsys','package','pl.pazur.port')
+        abi=re.search(r'primaryCpuAbi=(\S+)',package)
+        result['primary_cpu_abi']=abi[1] if abi else None
+        (report/'memory-after.txt').write_text(adb('shell','dumpsys','meminfo','pl.pazur.port'),encoding='utf-8')
+        temperature=re.search(r'\btemperature:\s*(-?\d+)',adb('shell','dumpsys','battery'))
+        if temperature:result['battery_temperature_c_after']=int(temperature[1])/10
         result['box2d_steps']=[dict(total_ms=float(t),collide_ms=float(c),solve_ms=float(s),toi_ms=float(i),
             other_ms=float(o),bodies=int(b),contacts=int(n)) for t,c,s,i,o,b,n in re.findall(
             r'Pazur Box2D (?:step|slow): total=([\d.]+) collide=([\d.]+) solve=([\d.]+) toi=([\d.]+) other=([\d.]+) ms bodies=(\d+) contacts=(\d+)',log)]
@@ -133,6 +143,13 @@ def main():
         if viewport:
             sw,sh,lw,lh=map(int,viewport.groups())
             result.update(startup_surface=[sw,sh],logical_size=[lw,lh])
+        viewport_events=[dict(surface=[int(w),int(h)],logical=[int(lw),int(lh)]) for w,h,lw,lh in
+                         re.findall(r'Pazur viewport: physical=(\d+)x(\d+) logical=(\d+)x(\d+)',log)]
+        result['viewport_events']=viewport_events
+        if viewport_events:result['settled_viewport']=viewport_events[-1]
+        if args.expect_logical_size:
+            during=re.findall(r'Pazur viewport: physical=\d+x\d+ logical=(\d+)x(\d+)',log[start:])
+            assert viewport_events and all(list(map(int,v))==args.expect_logical_size for v in during),'Viewport changed during comparison'
         (report/'results.json').write_text(json.dumps(result,indent=2),encoding='utf-8')
         if args.cyclic_pegs:
             trials=re.findall(r'Pazur peg result: landed=(\d) rise=([\d.]+)',log)

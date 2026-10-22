@@ -5,6 +5,7 @@ No global Android input, health edits, teleports or network changes are used.
 """
 import argparse
 import json
+import re
 import time
 from campaign_session import CampaignSession
 from gamepad_quit_smoke import adb,PORT
@@ -14,6 +15,7 @@ def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--report',required=True)
     parser.add_argument('--seconds',type=int,default=8)
+    parser.add_argument('--expect-logical-size',type=int,nargs=2,metavar=('W','H'))
     args=parser.parse_args()
     rows=[]
     for level in range(1,15):
@@ -22,10 +24,14 @@ def main():
             assert session.pid in adb('shell','pidof','pl.pazur.port').split(),'Game exited'
             log=session.logs()
             assert 'Fatal signal' not in log and 'FATAL EXCEPTION' not in log,'Game crashed'
+            viewports=re.findall(r'Pazur viewport: physical=(\d+)x(\d+) logical=(\d+)x(\d+)',log)
+            if args.expect_logical_size:
+                assert viewports and list(map(int,viewports[-1][2:]))==args.expect_logical_size,viewports
             memory=adb('shell','dumpsys','meminfo','pl.pazur.port')
             (session.report/'memory.txt').write_text(memory,encoding='utf-8')
             session.capture('start')
             row=dict(level=level,passed=True,natural_playthrough=False,
+                     viewport_events=viewports,
                      fixtures=['isolated map start'],observed_seconds=max(3,args.seconds))
             (session.report/'results.json').write_text(json.dumps(row,indent=2),encoding='utf-8')
             rows.append(row);print(json.dumps(row),flush=True)

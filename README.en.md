@@ -4,7 +4,7 @@
 
 A native Android adaptation of [OpenClaw](https://github.com/pjasicek/OpenClaw), using game data supplied from the user's own copy of Claw. C++/SDL, ARM64 and ARMv7, minimum build API 21. Compatibility with every Android version or device is not established.
 
-Current development version: **0.4.13-dev**. A final 1.0 release remains in preparation. Current work covers Aquatis/Marrow encounters, level transitions, attack sounds and menu fixes; see the [evidence and release gates](docs/validation/CAMPAIGN-1.0.md). Earlier [physics/ladder tests](docs/validation/FPS-0.4.11.md), [gameplay audit](docs/validation/BUG-AUDIT-2026-10-21.md) and [rendering measurements](docs/validation/FPS-0.4.9.md) record the scope of previous changes.
+Current development version: **0.4.14-dev**. A final 1.0 release remains in preparation. The bilingual **[Road to 1.0](docs/ROADMAP-1.0.md)** separates completed work, release gates and required tests. The latest change updates the viewport after Android resizes its window; see [0.4.14 evidence](docs/validation/PORT-0.4.14.md). Earlier [campaign gates](docs/validation/CAMPAIGN-1.0.md), [physics/ladder tests](docs/validation/FPS-0.4.11.md), [gameplay audit](docs/validation/BUG-AUDIT-2026-10-21.md) and [rendering measurements](docs/validation/FPS-0.4.9.md) record the scope of previous changes.
 
 **Language:** before data import, or under **PAD → Language / Język**, choose Polski or English. Android screens and our added captions support both languages; in-game labels change after restarting the game. Original menu artwork and voices depend on your game data. [Translation scope and evidence](docs/validation/ENGLISH-UI-PLAN.md).
 

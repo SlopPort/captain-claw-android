@@ -19,6 +19,7 @@ def main():
     parser.add_argument('--jump-hold',type=int,default=100,
                         help='Ordinary held jump duration; record longer holds explicitly on slow emulators')
     parser.add_argument('--expected-version',help='Default: versionName of this source checkout')
+    parser.add_argument('--skip-jump',action='store_true',help='Explicit exit-only coverage after a separately recorded jump failure; does not validate jumping')
     args=parser.parse_args()
     package=adb('shell','dumpsys','package','pl.pazur.port')
     expected=args.expected_version or re.search(r"versionName '([^']+)'",(PORT/'app/build.gradle').read_text())[1]
@@ -37,20 +38,23 @@ def main():
             assert any(expected in line for line in library_lines),'Unexpected engine library path'
             session.capture('menu' if menu else 'level-start')
             if not menu:
-                time.sleep(3)
-                session.command('combatjumpmeasure abi-jump')
-                session.command('combatkey jump '+str(args.jump_hold))
-                session.wait('Pazur jump trace: label=abi-jump',seconds=6)
-                traces=re.findall(r'Pazur jump trace: label=abi-jump .*rise=([\d.]+).*jumps=(\d+)',session.logs())
-                assert traces and float(traces[-1][0])>40 and int(traces[-1][1])==1,traces
+                if not args.skip_jump:
+                    time.sleep(3)
+                    session.command('combatjumpmeasure abi-jump')
+                    session.command('combatkey jump '+str(args.jump_hold))
+                    session.wait('Pazur jump trace: label=abi-jump',seconds=6)
+                    traces=re.findall(r'Pazur jump trace: label=abi-jump .*rise=([\d.]+).*jumps=(\d+)',session.logs())
+                    assert traces and float(traces[-1][0])>40 and int(traces[-1][1])==1,traces
                 session.command('campaignfinish');session.wait('Score screen initialized OK')
                 for _ in range(12):
                     session.command('padvirtual tap 320 240');time.sleep(.35)
                     if 'Level name: Claw - Level 2' in session.logs():break
                 session.wait('Level name: Claw - Level 2')
             result=dict(passed=True,version=installed[1],abi=args.abi,process_library_verified=True,
-                        main_menu=menu,level1_jump_and_exit=not menu,natural_playthrough=False,
-                        requested_jump_hold_ms=args.jump_hold)
+                        main_menu=menu,level1_jump_and_exit=not menu and not args.skip_jump,
+                        level1_exit_verified=not menu,jump_verified=not menu and not args.skip_jump,natural_playthrough=False,
+                        jump_skipped=menu or args.skip_jump,
+                        requested_jump_hold_ms=None if menu or args.skip_jump else args.jump_hold)
             (session.report/'results.json').write_text(json.dumps(result,indent=2),encoding='utf-8')
             print(json.dumps(result),flush=True)
 

@@ -1812,7 +1812,7 @@ index d12e28d..186fb90 100644
 \ No newline at end of file
 +#endif
 diff --git a/OpenClaw/Engine/GameApp/BaseGameApp.cpp b/OpenClaw/Engine/GameApp/BaseGameApp.cpp
-index 64533c3..2c2f154 100644
+index 64533c3..5fad4d2 100644
 --- a/OpenClaw/Engine/GameApp/BaseGameApp.cpp
 +++ b/OpenClaw/Engine/GameApp/BaseGameApp.cpp
 @@ -21,6 +21,10 @@
@@ -2011,7 +2011,36 @@ index 64533c3..2c2f154 100644
              LOG("Entered foreground");
              break;
          }
-@@ -555,6 +662,11 @@ bool BaseGameApp::LoadGameOptions(const char* inConfigFile)
+@@ -374,6 +481,28 @@ void BaseGameApp::OnEvent(SDL_Event& event)
+ void BaseGameApp::OnDisplayChange(int newWidth, int newHeight)
+ {
+     LOG("Display changed. New Width-Height: " + ToStr(newWidth) + "-" + ToStr(newHeight));
++#ifdef __ANDROID__
++    // Android can resize the surface after immersive bars disappear. Keeping
++    // the first pre-immersive aspect made visible world width vary by launch.
++    // Resize logical camera/render coordinates only: no SDL window recursion,
++    // anisotropic scaling, physics changes or lower rendering resolution.
++    if (newWidth > 0 && newHeight > 0 && m_pRenderer) {
++        const int logicalWidth = (std::max)(640, (int)(480.0 * newWidth / newHeight + 0.5));
++        if ((int)m_WindowSize.x != logicalWidth || (int)m_WindowSize.y != 480) {
++            m_WindowSize.Set(logicalWidth, 480);
++            m_GameOptions.windowWidth = logicalWidth;
++            m_GameOptions.windowHeight = 480;
++            SDL_RenderSetLogicalSize(m_pRenderer, logicalWidth, 480);
++            if (m_pGame) {
++                if (auto view = GetHumanView()) {
++                    if (auto camera = view->GetCamera()) camera->SetSize(logicalWidth, 480);
++                }
++            }
++            PazurTouch::Reset(); // A finger held across a resize must not stick.
++        }
++        SDL_Log("Pazur viewport: physical=%dx%d logical=%dx480", newWidth, newHeight, logicalWidth);
++    }
++#endif
+ }
+ 
+ void BaseGameApp::VOnRestore()
+@@ -555,6 +684,11 @@ bool BaseGameApp::LoadGameOptions(const char* inConfigFile)
      {
          ParseValueFromXmlElem(&m_GameOptions.assetsFolder,
              assetsElem->FirstChildElement("AssetsFolder"));
@@ -2023,7 +2052,7 @@ index 64533c3..2c2f154 100644
          DO_AND_CHECK(ParseValueFromXmlElem(&m_GameOptions.rezArchive,
              assetsElem->FirstChildElement("RezArchive")));
          DO_AND_CHECK(ParseValueFromXmlElem(&m_GameOptions.customArchive,
-@@ -713,6 +825,8 @@ bool BaseGameApp::LoadGameOptions(const char* inConfigFile)
+@@ -713,6 +847,8 @@ bool BaseGameApp::LoadGameOptions(const char* inConfigFile)
      //-------------------------------------------------------------------------
      if (TiXmlElement* pDebugOptionsRootElem = configRoot->FirstChildElement("DebugOptions"))
      {
@@ -2032,7 +2061,7 @@ index 64533c3..2c2f154 100644
          ParseValueFromXmlElem(&m_DebugOptions.bSkipBossFightIntro,
              pDebugOptionsRootElem->FirstChildElement("SkipBossFightIntro"));
          ParseValueFromXmlElem(&m_DebugOptions.bSkipMenu,
-@@ -721,6 +835,10 @@ bool BaseGameApp::LoadGameOptions(const char* inConfigFile)
+@@ -721,6 +857,10 @@ bool BaseGameApp::LoadGameOptions(const char* inConfigFile)
              pDebugOptionsRootElem->FirstChildElement("CpuDelay"));
          ParseValueFromXmlElem(&m_DebugOptions.lastImplementedLevel,
              pDebugOptionsRootElem->FirstChildElement("LastImplementedLevel"));
@@ -2043,7 +2072,7 @@ index 64533c3..2c2f154 100644
          ParseValueFromXmlElem(&m_DebugOptions.skipMenuToLevel,
              pDebugOptionsRootElem->FirstChildElement("SkipMenuToLevel"));
      }
-@@ -730,8 +848,38 @@ bool BaseGameApp::LoadGameOptions(const char* inConfigFile)
+@@ -730,8 +870,38 @@ bool BaseGameApp::LoadGameOptions(const char* inConfigFile)
  
  void BaseGameApp::SaveGameOptions(const char* outConfigFile)
  {
@@ -2084,7 +2113,7 @@ index 64533c3..2c2f154 100644
  }
  
  //=====================================================================================================================
-@@ -780,6 +928,10 @@ bool BaseGameApp::InitializeDisplay(GameOptions& gameOptions)
+@@ -780,6 +950,10 @@ bool BaseGameApp::InitializeDisplay(GameOptions& gameOptions)
          return false;
      }
  
@@ -2095,7 +2124,7 @@ index 64533c3..2c2f154 100644
      m_pWindow = SDL_CreateWindow(VGetGameTitle(), SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
          gameOptions.windowWidth, gameOptions.windowHeight, SDL_WINDOW_SHOWN);
      if (m_pWindow == NULL)
-@@ -799,6 +951,15 @@ bool BaseGameApp::InitializeDisplay(GameOptions& gameOptions)
+@@ -799,6 +973,15 @@ bool BaseGameApp::InitializeDisplay(GameOptions& gameOptions)
          SDL_GetWindowSize(m_pWindow, &m_GameOptions.windowWidth, &m_GameOptions.windowHeight);
      }
  
@@ -2111,7 +2140,7 @@ index 64533c3..2c2f154 100644
      m_WindowSize.Set(gameOptions.windowWidth, gameOptions.windowHeight);
  
      uint32 rendererFlags = SDL_RENDERER_ACCELERATED;
-@@ -815,6 +976,9 @@ bool BaseGameApp::InitializeDisplay(GameOptions& gameOptions)
+@@ -815,6 +998,9 @@ bool BaseGameApp::InitializeDisplay(GameOptions& gameOptions)
      }
  
      SDL_RenderSetScale(m_pRenderer, (float)gameOptions.scale, (float)gameOptions.scale);
@@ -2121,7 +2150,7 @@ index 64533c3..2c2f154 100644
  
      LOG("Display successfully initialized.");
  
-@@ -878,6 +1042,17 @@ bool BaseGameApp::InitializeResources(GameOptions& gameOptions)
+@@ -878,6 +1064,17 @@ bool BaseGameApp::InitializeResources(GameOptions& gameOptions)
      m_pResourceCache->RegisterLoader(PcxResourceLoader::Create());
  
      std::string customArchivePath = gameOptions.assetsFolder + gameOptions.customArchive;
@@ -2139,7 +2168,7 @@ index 64533c3..2c2f154 100644
  
      IResourceFile* pCustomArchive = new ResourceZipArchive(customArchivePath);
      std::shared_ptr<ResourceCache> pCustomCache{ new ResourceCache(50, pCustomArchive, CUSTOM_RESOURCE) };
-@@ -918,7 +1093,7 @@ bool BaseGameApp::InitializeFont(GameOptions& gameOptions)
+@@ -918,7 +1115,7 @@ bool BaseGameApp::InitializeFont(GameOptions& gameOptions)
      m_pConsoleFont = TTF_OpenFont(gameOptions.consoleFontName.c_str(), gameOptions.consoleFontSize);
      if (m_pConsoleFont == NULL)
      {
@@ -2148,7 +2177,7 @@ index 64533c3..2c2f154 100644
          return false;
      }
  
-@@ -1234,7 +1409,11 @@ Point BaseGameApp::GetScale()
+@@ -1234,7 +1431,11 @@ Point BaseGameApp::GetScale()
      uint32 windowFlags = GetWindowFlags();
      Point scale(1.0, 1.0);
  
@@ -2160,7 +2189,7 @@ index 64533c3..2c2f154 100644
      
      scale.Set((double)scaleX, (double)scaleY);
  
-@@ -1243,7 +1422,11 @@ Point BaseGameApp::GetScale()
+@@ -1243,7 +1444,11 @@ Point BaseGameApp::GetScale()
  
  void BaseGameApp::SetScale(Point scale)
  {
@@ -2172,7 +2201,7 @@ index 64533c3..2c2f154 100644
  }
  
  uint32 BaseGameApp::GetWindowFlags()
-@@ -1412,8 +1595,14 @@ void BaseGameApp::RemoveAllDelegates()
+@@ -1412,8 +1617,14 @@ void BaseGameApp::RemoveAllDelegates()
  
  void BaseGameApp::QuitGameDelegate(IEventDataPtr pEventData)
  {
