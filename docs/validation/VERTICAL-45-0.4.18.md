@@ -59,3 +59,5 @@ Legend / legenda: **damage** = target HP decrease or defeat observed; **no damag
 | Level9_CrazyHook | 30 | damage / no damage | damage / damage | 48–48 |
 | Level9_PegLeg | 20 | no damage / no damage | damage / damage | 48–48 |
 | Level9_Seagull | 5 | no damage / no damage | damage / damage | 21–75 |
+
+Follow-up / Dalsze próby: [actual parry decisions on 0.4.20](PARRY-PERF-0.4.20.md). New traces explain their own cases; earlier observations remain unchanged.

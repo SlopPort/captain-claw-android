@@ -756,7 +756,7 @@ index a131374..52dc51f 100644
      SetCurrentPhysicsState();
  }
 diff --git a/OpenClaw/Engine/Actor/Components/ControllerComponents/HealthComponent.cpp b/OpenClaw/Engine/Actor/Components/ControllerComponents/HealthComponent.cpp
-index a0cfe72..e5d0d3a 100644
+index a0cfe72..fcf5cd8 100644
 --- a/OpenClaw/Engine/Actor/Components/ControllerComponents/HealthComponent.cpp
 +++ b/OpenClaw/Engine/Actor/Components/ControllerComponents/HealthComponent.cpp
 @@ -1,4 +1,7 @@
@@ -786,13 +786,17 @@ index a0cfe72..e5d0d3a 100644
      if ((m_bInvulnerable && health < 0) && (damageType != DamageType_DeathTile))
      {
          return;
-@@ -63,12 +68,16 @@ void HealthComponent::AddHealth(int32 health, DamageType damageType, Point impac
+@@ -63,12 +68,20 @@ void HealthComponent::AddHealth(int32 health, DamageType damageType, Point impac
      }
  
      // TODO: Is this against subject-observer pattern ? Seems odd.
 -    if (AskCanResistDamage(damageType, impactPoint))
 +    if (health <= 0 && AskCanResistDamage(damageType, impactPoint))
      {
++#ifdef __ANDROID__
++        if(g_pApp->GetDebugOptions()->bPreviewIncompleteLevel14)
++            SDL_Log("Pazur damage resisted: actor=%s delta=%d type=%d hp=%d",m_pOwner->GetName().c_str(),health,int(damageType),m_CurrentHealth);
++#endif
          NotifyResistDamage(damageType, impactPoint);
          return;
      }
@@ -804,7 +808,7 @@ index a0cfe72..e5d0d3a 100644
      int32 oldHealth = m_CurrentHealth;
      m_CurrentHealth += health;
      if (m_CurrentHealth > m_MaxHealth)
-@@ -100,6 +109,9 @@ void HealthComponent::SetCurrentHealth(int32 health)
+@@ -100,6 +113,9 @@ void HealthComponent::SetCurrentHealth(int32 health)
  
  void HealthComponent::BroadcastHealthChanged(int32 oldHealth, int32 newHealth, DamageType damageType, Point impactPoint, int sourceActorId, bool isInitial)
  {
@@ -814,7 +818,7 @@ index a0cfe72..e5d0d3a 100644
      NotifyHealthChanged(oldHealth, newHealth, damageType, impactPoint, sourceActorId);
      if (newHealth <= 0)
      {
-@@ -153,4 +165,4 @@ bool HealthSubject::AskCanResistDamage(DamageType damageType, Point impactPoint)
+@@ -153,4 +169,4 @@ bool HealthSubject::AskCanResistDamage(DamageType damageType, Point impactPoint)
      }
  
      return false;
@@ -860,7 +864,7 @@ index beef2e6..3c6a06c 100644
 \ No newline at end of file
 +}*/
 diff --git a/OpenClaw/Engine/Actor/Components/EnemyAI/EnemyAIStateComponent.cpp b/OpenClaw/Engine/Actor/Components/EnemyAI/EnemyAIStateComponent.cpp
-index 5520bba..90d6445 100644
+index 5520bba..119a004 100644
 --- a/OpenClaw/Engine/Actor/Components/EnemyAI/EnemyAIStateComponent.cpp
 +++ b/OpenClaw/Engine/Actor/Components/EnemyAI/EnemyAIStateComponent.cpp
 @@ -433,6 +433,9 @@ void PatrolEnemyAIStateComponent::VPostInit()
@@ -890,7 +894,19 @@ index 5520bba..90d6445 100644
      }
  
      double patrolLeftBorder = 0.0;
-@@ -1090,6 +1093,10 @@ void BaseAttackAIStateComponent::VOnAnimationFrameChanged(
+@@ -909,6 +912,11 @@ bool ParryEnemyAIStateComponent::CanParry(DamageType damageType, EnemyAIState cu
+         }
+     }*/
+ 
++#ifdef __ANDROID__
++    // Trace the existing roll exactly once; never reroll or change resistance.
++    if(g_pApp->GetDebugOptions()->bPreviewIncompleteLevel14)
++        SDL_Log("Pazur parry decision: actor=%s type=%d chance=%d roll=%d resisted=%d",m_pOwner->GetName().c_str(),int(damageType),parryChance,parryRand,int(parryChance>=parryRand));
++#endif
+     return (parryChance >= parryRand);
+ }
+ 
+@@ -1090,6 +1098,10 @@ void BaseAttackAIStateComponent::VOnAnimationFrameChanged(
              offset = Point(offset.x * -1.0, offset.y);
          }
  
@@ -901,7 +917,7 @@ index 5520bba..90d6445 100644
          VOnAttackFrame(pAttack, dir, offset);
  
          m_CurrentAttackActionIdx++;
-@@ -1173,7 +1180,7 @@ Point BaseAttackAIStateComponent::FindClosestHostileActorOffset()
+@@ -1173,7 +1185,7 @@ Point BaseAttackAIStateComponent::FindClosestHostileActorOffset()
  
  bool BaseAttackAIStateComponent::VCanEnter()
  {
@@ -910,7 +926,7 @@ index 5520bba..90d6445 100644
      {
          return false;
      }
-@@ -1182,7 +1189,9 @@ bool BaseAttackAIStateComponent::VCanEnter()
+@@ -1182,7 +1194,9 @@ bool BaseAttackAIStateComponent::VCanEnter()
      // Since the first found actor is picked
  
      // TODO: Revisit this if enemy ever has more than one attack action per AttackAIStateComponent
@@ -921,7 +937,7 @@ index 5520bba..90d6445 100644
  
      // Check if enemy is within line of sight
      Point fromPoint = m_pOwner->GetPositionComponent()->GetPosition() + action.agroSensorFixture.offset;
-@@ -1238,6 +1247,9 @@ bool MeleeAttackAIStateComponent::VDelegateInit(TiXmlElement* pData)
+@@ -1238,6 +1252,9 @@ bool MeleeAttackAIStateComponent::VDelegateInit(TiXmlElement* pData)
  
  void MeleeAttackAIStateComponent::VOnAttackFrame(std::shared_ptr<EnemyAttackAction> pAttack, Direction dir, const Point& offset)
  {
@@ -931,7 +947,7 @@ index 5520bba..90d6445 100644
      ActorTemplates::CreateAreaDamage(
          m_pPositionComponent->GetPosition() + offset,
          pAttack->attackAreaSize,
-@@ -1893,6 +1905,8 @@ bool RollEnemyAIStateComponent::VDelegateInit(TiXmlElement* pData)
+@@ -1893,6 +1910,8 @@ bool RollEnemyAIStateComponent::VDelegateInit(TiXmlElement* pData)
      assert(m_pPhysics);
  
      DO_AND_CHECK(ParseValueFromXmlElem(&m_RollSpeed, pData->FirstChildElement("RollSpeed")));
@@ -940,7 +956,7 @@ index 5520bba..90d6445 100644
      DO_AND_CHECK(ParseValueFromXmlElem(&m_ForwardRollAnimation, pData->FirstChildElement("ForwardRollAnimation")));
      DO_AND_CHECK(ParseValueFromXmlElem(&m_BackwardRollAnimation, pData->FirstChildElement("BackwardRollAnimation")));
      m_RollSensorFixtureDef = ActorTemplates::XmlToActorFixtureDef(pData->FirstChildElement("RollSensorFixtureDef"));
-@@ -1920,7 +1934,10 @@ void RollEnemyAIStateComponent::VPostPostInit()
+@@ -1920,7 +1939,10 @@ void RollEnemyAIStateComponent::VPostPostInit()
  
  void RollEnemyAIStateComponent::VUpdate(uint32 msDiff)
  {
@@ -951,7 +967,7 @@ index 5520bba..90d6445 100644
  
      if (m_IsActive)
      {
-@@ -1937,7 +1954,7 @@ void RollEnemyAIStateComponent::VUpdate(uint32 msDiff)
+@@ -1937,7 +1959,7 @@ void RollEnemyAIStateComponent::VUpdate(uint32 msDiff)
  
  bool RollEnemyAIStateComponent::VCanEnter()
  {
@@ -960,7 +976,7 @@ index 5520bba..90d6445 100644
      return bCanEnter;
  }
  
-@@ -1950,7 +1967,11 @@ void RollEnemyAIStateComponent::VOnStateEnter(BaseEnemyAIStateComponent* pPrevio
+@@ -1950,7 +1972,11 @@ void RollEnemyAIStateComponent::VOnStateEnter(BaseEnemyAIStateComponent* pPrevio
     
      Direction rollDirection = DetermineRollDirection();
  
@@ -973,7 +989,7 @@ index 5520bba..90d6445 100644
      if (rollDirection == Direction_Left)
      {
          speed.x *= -1.0;
-@@ -1967,8 +1988,9 @@ void RollEnemyAIStateComponent::VOnStateEnter(BaseEnemyAIStateComponent* pPrevio
+@@ -1967,8 +1993,9 @@ void RollEnemyAIStateComponent::VOnStateEnter(BaseEnemyAIStateComponent* pPrevio
  void RollEnemyAIStateComponent::VOnStateLeave(BaseEnemyAIStateComponent* pNextState)
  {
      m_IsActive = false;
@@ -984,7 +1000,7 @@ index 5520bba..90d6445 100644
      m_pPhysics->VSetLinearSpeed(m_pOwner->GetGUID(), zeroSpeed);
  }
  
-@@ -2012,7 +2034,7 @@ void RollEnemyAIStateComponent::VOnAnimationLooped(Animation* pAnimation)
+@@ -2012,7 +2039,7 @@ void RollEnemyAIStateComponent::VOnAnimationLooped(Animation* pAnimation)
          return;
      }
  
@@ -2256,7 +2272,7 @@ index 64533c3..b4de358 100644
  
  //=====================================================================================================================
 diff --git a/OpenClaw/Engine/GameApp/BaseGameApp.h b/OpenClaw/Engine/GameApp/BaseGameApp.h
-index 731f317..c9c67df 100644
+index 731f317..b864663 100644
 --- a/OpenClaw/Engine/GameApp/BaseGameApp.h
 +++ b/OpenClaw/Engine/GameApp/BaseGameApp.h
 @@ -193,12 +193,14 @@ struct DebugOptions
@@ -2274,6 +2290,17 @@ index 731f317..c9c67df 100644
      int lastImplementedLevel;
      int skipMenuToLevel;
      bool bSkipBossFightIntro;
+@@ -298,6 +300,10 @@ public:
+     const GlobalOptions* GetGlobalOptions() const { return &m_GlobalOptions; }
+     const ControlOptions* GetControlOptions() const { return &m_ControlOptions; }
+     const DebugOptions* GetDebugOptions() const { return &m_DebugOptions; }
++#ifdef __ANDROID__
++    // SDL-thread diagnostic command; never rewrites the user configuration.
++    void DisablePreviewDiagnosticsForBenchmark() { m_DebugOptions.bPreviewIncompleteLevel14=false; }
++#endif
+ 
+     TiXmlElement* GetActorPrototypeElem(ActorPrototype proto);
+ 
 diff --git a/OpenClaw/Engine/GameApp/BaseGameLogic.cpp b/OpenClaw/Engine/GameApp/BaseGameLogic.cpp
 index 5d8dc7d..2ff8a25 100644
 --- a/OpenClaw/Engine/GameApp/BaseGameLogic.cpp

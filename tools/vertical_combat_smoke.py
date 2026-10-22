@@ -99,6 +99,10 @@ def main():
                              offensive_ai_disabled=args.passive,
                              area_contacts=contacts,
                              area_created=created,
+                             parry_decisions=[dict(actor=n,damage_type=int(t),chance=int(c),roll=int(v),resisted=b=='1')
+                                 for n,t,c,v,b in re.findall(r'Pazur parry decision: actor=(\S+) type=(\d+) chance=(\d+) roll=(\d+) resisted=(\d)',evidence)],
+                             resistance_events=[dict(actor=n,delta=int(d),damage_type=int(t),health=int(h))
+                                 for n,d,t,h in re.findall(r'Pazur damage resisted: actor=(\S+) delta=(-?\d+) type=(\d+) hp=(-?\d+)',evidence)],
                              jump_input=dict(hold_ms=1000 if action=='escape' else args.jump_hold_ms,
                                              direction_ms=1000 if action=='escape' else args.jump_direction_ms,
                                              attack_delay_ms=450 if action=='escape' else args.attack_delay_ms) if action in ('jump','escape') else None,

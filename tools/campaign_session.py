@@ -14,12 +14,13 @@ from gamepad_quit_smoke import adb, REMOTE, PORT
 
 
 class CampaignSession:
-    def __init__(self, report, level=1, apk_support=False, start_menu=False):
+    def __init__(self, report, level=1, apk_support=False, start_menu=False, diagnostics=True):
         self.report=PORT/'reports'/report
         self.level=level;self.pid='';self.ticket=0
         self.stream=None;self.output=None;self.backed_up=False
         self.apk_support=apk_support;self.support_backed_up=False
         self.start_menu=start_menu
+        self.diagnostics=diagnostics
         self.device_sdk=None
 
     def process_ids(self):
@@ -50,6 +51,7 @@ class CampaignSession:
         raise RuntimeError('Missing marker: '+marker)
 
     def command(self, value):
+        if not self.diagnostics:raise RuntimeError('Diagnostic commands disabled for this session')
         self.ticket+=1;tag='campaign-'+str(self.ticket)
         with (self.report/'commands.jsonl').open('a',encoding='utf-8') as out:
             out.write(json.dumps(dict(time=time.time(),command=value))+'\n')
@@ -120,7 +122,7 @@ class CampaignSession:
                                ('GlobalOptions/LoadAllLevelSaves','false')]:config.find(path).text=value
             flag=config.find('DebugOptions/PreviewIncompleteLevel14')
             if flag is None:flag=ET.SubElement(config.find('DebugOptions'),'PreviewIncompleteLevel14')
-            flag.text='true' # Enables the diagnostic mailbox, not god mode.
+            flag.text='true' if self.diagnostics else 'false' # Mailbox and preview diagnostics; no god mode.
             config.write(self.report/'config.test.xml',encoding='utf-8',xml_declaration=True)
             original=ET.parse(self.report/'saves.original.xml')
             root=ET.Element(original.getroot().tag)

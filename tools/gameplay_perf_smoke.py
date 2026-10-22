@@ -22,10 +22,12 @@ def main():
     parser.add_argument('--scene',type=int,nargs=2,metavar=('X','Y'),help='Controlled teleport into existing map geometry')
     parser.add_argument('--protect-player',action='store_true',help='Explicitly labelled player protection for observing enemy attacks')
     parser.add_argument('--observe',action='store_true',help='Observe live enemies without moving or attacking')
+    parser.add_argument('--quiet-diagnostics',action='store_true',help='Observe without the preview overlay/verbose traces; disables further mailbox commands')
     parser.add_argument('--cyclic-pegs',action='store_true',help='Controlled ordinary-jump trials on actual level-one cyclic platforms')
     parser.add_argument('--pair-filter',choices=('on','off'),help='Compare early Box2D pair rejection in the same APK; restores fallback marker')
     parser.add_argument('--expect-logical-size',type=int,nargs=2,metavar=('W','H'),help='Reject comparisons made with another settled viewport')
     args=parser.parse_args()
+    if args.quiet_diagnostics and (not args.observe or args.cyclic_pegs):parser.error('Quiet diagnostics requires observation only')
     report=PORT/'reports'/args.report;report.mkdir(parents=True,exist_ok=True)
     pair_marker='physics-pairs-unfiltered'
     if args.pair_filter and subprocess.run(['adb','shell','test','-e',REMOTE+pair_marker],capture_output=True).returncode==0:
@@ -90,7 +92,12 @@ def main():
             assert 'Pazur physics pair filtering: '+('1' if args.pair_filter=='on' else '0') in logs()
         if args.protect_player:command('invincible 1')
         if args.scene:command('teleport '+str(args.scene[0])+' '+str(args.scene[1]));time.sleep(1)
-        command('combatstatus');start=len(logs())
+        command('combatstatus')
+        if args.quiet_diagnostics:
+            command('benchmarkquiet')
+            assert 'Pazur benchmark quiet:' in logs(),'Quiet mode not entered'
+            time.sleep(10) # Let mixed initial batches and pending diagnostic events settle.
+        start=len(logs())
         if args.cyclic_pegs:
             assert args.level==1 and not args.protect_player and not args.scene
             for source,target in [((4651,4034),(4545,3971)),((4545,3971),(4453,3902))]:
@@ -118,7 +125,8 @@ def main():
                 if time.monotonic()>=deadline:break
                 command('combatkey '+key+' '+str(duration));actions.append(key);time.sleep(wait)
                 if len(actions)<=4:command('combatstatus')
-        command('combatkey release 0');command('combatstatus')
+        if not args.quiet_diagnostics:
+            command('combatkey release 0');command('combatstatus')
         log=logs()
         rows=[dict(fps=float(f),p95_ms=int(p),max_ms=int(m)) for f,p,m in re.findall(
             r'Pazur frame sample: fps=([\d.]+) p95=(\d+) ms max=(\d+) ms',log[start:])]
@@ -132,6 +140,8 @@ def main():
             'observed_positions':snapshots,'movement_observed':moved,
             'fixture':'controlled real-map scene' if args.scene else 'real map start',
             'observation_only':args.observe,'scene':args.scene,
+            'verbose_traces_and_preview_overlay':not args.quiet_diagnostics,
+            'final_position_queried':not args.quiet_diagnostics,
             'early_pair_filtering':args.pair_filter,
             'player_invincible_fixture':args.protect_player,'teleported':bool(args.scene),'ammo_modified':False,
             'apk_sha256':None}

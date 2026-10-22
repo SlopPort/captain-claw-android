@@ -100,6 +100,12 @@ bool PazurCombatProbe::Handle(const std::vector<std::string>& args, const ActorM
     // Virtual input must remain releasable in menus where no hero exists.
     if (PazurGamepad::DebugCommand(args)) return true;
     if(args[0]=="componentprofile") {PazurProfile::Start();return true;}
+    if(args[0]=="benchmarkquiet" && args.size()==1) {
+        // Observe real gameplay without the preview badge and verbose actor
+        // traces. This disables the mailbox until the next process starts.
+        SDL_Log("Pazur benchmark quiet: verbose traces and preview overlay disabled");
+        g_pApp->DisablePreviewDiagnosticsForBenchmark();return true;
+    }
     if(args[0]=="menukey" && args.size()==2) {
         // App-local SDL keyboard input for checkpoint menu tests. No Android
         // system key injection and no controller attachment or bindings.
