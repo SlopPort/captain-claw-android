@@ -25,3 +25,36 @@ Fizyczny Redmi Note 8 z Androidem 16 uruchamia wersję ARM64. Aktualizacja z 0.4
 ## Bilingual menus
 
 `redmi-menu-0.4.21-en/pl` passed 17 navigation transitions each, all six volume gestures, mute/unmute and disabled shared-sound controls. Exact-APK translation checks passed 109/109 names in both languages. English maximum-volume screenshot was visually inspected. These are app-window events; no controller was tested.
+
+## Dense level-nine observation
+
+`redmi-dense-9-0.4.21`: 90.24 seconds at controlled position (11027,5500), stationary protected hero, no shots or HP edits, quiet preview diagnostics, viewport 1040x480. After consistently excluding the first 300-frame batch: 17 batches, harmonic mean **59.953 FPS**, batch range 59.6–60.0, worst logged frame **69 ms**, maximum batch p95 18 ms. Battery 28.6→28.7 C, not CPU temperature. Final position unqueried because quiet mode disables mailbox polling; setup position and final screenshot remain. Original files restored. This is short one-scene evidence with occasional stalls, not a sustained/all-level 60 FPS pass. Huawei used a different viewport, so no controlled phone-to-phone speedup is claimed.
+
+## All fourteen map starts
+
+`redmi-production-0.4.21-level1..14` passed with preview diagnostics off, no diagnostic commands, viewport 1040x480 and twelve seconds after each load. Test checkpoint-zero saves use HP 100, lives 3, bullets 10, magic 5, dynamite 3. Original config/progress restored. The table contains only startup-scene frame batches; it does not establish FPS throughout each level or a natural campaign.
+
+| Level | Logged FPS range | Worst logged frame | Maximum batch p95 |
+| --- | --- | --- | --- |
+| 1 | 60.0–60.3 | 19 ms | 18 ms |
+| 2 | 60.0–60.4 | 19 ms | 18 ms |
+| 3 | 60.0–60.4 | 40 ms | 18 ms |
+| 4 | 60.0–60.3 | 19 ms | 18 ms |
+| 5 | 60.0–60.4 | 21 ms | 18 ms |
+| 6 | 59.5–60.0 | 89 ms | 18 ms |
+| 7 | 60.0–60.4 | 22 ms | 17 ms |
+| 8 | 60.0–60.3 | 23 ms | 18 ms |
+| 9 | 60.0–60.3 | 18 ms | 18 ms |
+| 10 | 60.0–60.2 | 22 ms | 18 ms |
+| 11 | 60.0–60.4 | 19 ms | 18 ms |
+| 12 | 60.0–60.3 | 20 ms | 18 ms |
+| 13 | 60.0–60.4 | 19 ms | 18 ms |
+| 14 | 60.0–60.2 | 19 ms | 17 ms |
+
+Startup FPS estimates slightly above 60 reflect finite measurement windows, not a higher refresh-rate claim. Isolated long frames remain visible in the table.
+
+## ARMv7 and final restoration
+
+`compat-redmi-armv7-0.4.21-menu/level` passed actual 32-bit library mapping, native menu, ordinary 100 ms jump, exit pickup, score and level two on this same ARM APK. ARM64 was reinstalled afterwards and confirmed through package metadata. After all menu, performance, map and ABI fixtures, the real save/config bytes were pulled again and compared with their pre-update 0.4.3 copies: both remained identical. This does not claim preservation of every possible preference or verification of untested upgrade paths.
+
+Na Redmi przeszły starty wszystkich 14 map bez diagnostyki oraz rzeczywista próba biblioteki 32-bitowej. Następnie przywrócono ARM64. Pomiary początków map były bliskie 60 FPS, ale wystąpiła pojedyncza klatka 89 ms. Ciężka scena poziomu 9 dała średnio 59,953 FPS przez 90 sekund z przycięciami do 69 ms; nie jest to zaliczenie stałych 60 FPS całej kampanii.

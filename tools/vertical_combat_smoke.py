@@ -68,7 +68,15 @@ def main():
                     # on a step can still have its center below a tall hero's.
                     player_y=initial['player_box'][1]+initial['player_box'][3]
                     enemy_y=initial['enemy_box'][1]+initial['enemy_box'][3]
-                    assert (player_y<enemy_y) == (above=='hero'),'Requested vertical relation not established'
+                    if (player_y<enemy_y) != (above=='hero'):
+                        # Live acrobatic AI can leave the step before the ADB
+                        # status round-trip. Preserve evidence; never count this
+                        # as an executed action or weaken the geometry gate.
+                        (session.report/'invalid-fixture.json').write_text(json.dumps(dict(
+                            apk_sha256=apk_sha256,prototype=args.prototype,above=above,side=side,
+                            requested_action=action,fixture_established=False,action_executed=False,
+                            initial=initial,reason='Requested vertical relation no longer present'),indent=2),encoding='utf-8')
+                        raise AssertionError('Requested vertical relation not established')
                     start=len(session.logs())
                     direction='right' if side>0 else 'left'
                     session.command('laddertrace vertical-'+action+' 2600')

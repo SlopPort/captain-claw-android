@@ -27,3 +27,11 @@ A failed rollback keeps its evidence and staging intact: cleanup cannot hide a d
 ## Polski
 
 Nieudany import mógł zostawić dużą kopię roboczą danych aż do kolejnej próby importu. Teraz aplikacja sprząta ją po poprawnym odzyskaniu danych, również po ponownym uruchomieniu i bezpośrednim wznowieniu ekranu gry. Nie usuwa zapisów gracza ani nie zgaduje zawartości uszkodzonego dziennika. Próby na Huawei i emulatorze Androida 5 przeszły, podobnie jak 64 próby granic operacji i rzeczywiste ubijanie procesu w trzech wariantach wcześniejszej instalacji. Nadal trzeba sprawdzić rzeczywisty brak miejsca i pełną obsługę selektora plików.
+
+## Fresh committed-source build
+
+`clean-source-0.4.21-r2` exported commit `b93af5a97f3a870debd176c90f5034bd97be81a5` (source ZIP SHA-256 `8e6c74aeed7a2cfc39b2f4f3dda5da7e7c17ac136306a782e400465f62844157`) and built fresh native objects for both ARM ABIs in 6m 1s. APK SHA-256 `a61c7a6eb1c3ab8065f4f7d7e92dd49a74a70a6adbfd4e298d139050720bb831`. It uses locally pinned Git dependencies and installed SDK/JDK/Gradle cache, not a fresh-machine download. The different binary hash is not a byte-reproducibility claim. Phone test results against the main `cfc586…` APK are not automatically assigned to this build.
+
+The first `clean-source-0.4.21` attempt selected the host's old 32-bit Java 8 JRE and failed before compilation while reserving the Gradle heap. It remains a failed environment setup attempt. Explicit Android Studio JDK resolved it. The build helper now rejects an old/missing JDK before cloning dependencies; this preflight was checked against that old JRE.
+
+`clean-source-redmi-0.4.21-jump` subsequently passed all six focused-window jump/multitouch cases and direct activity restoration on the exact clean-build `a61c7a…` APK: takeoff 18–20 ms, short rise 72.9–74.6 px, held rise 154.8–155 px. Config/progress restored; the more broadly tested `cfc586…` package was reinstalled with ARM64 afterwards. This runtime check is not menu/all-map coverage for the clean binary.

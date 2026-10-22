@@ -36,7 +36,7 @@ Default Android key names: BUTTON_A for jump, BUTTON_X for melee, BUTTON_B for s
 
 ## Build from source
 
-Install Git, Python 3.11+, JDK, Android SDK/Build Tools 35, NDK 27.2.12479018 and CMake 3.22.1. Set JAVA_HOME and ANDROID_HOME. Then run:
+Install Git, Python 3.11+, JDK 17+, Android SDK/Build Tools 35, NDK 27.2.12479018 and CMake 3.22.1. Set JAVA_HOME and ANDROID_HOME. Then run:
 
 ```sh
 python tools/bootstrap.py
@@ -50,3 +50,5 @@ The adaptation and OpenClaw use GPL-3.0; see [LICENSE.txt](LICENSE.txt). Depende
 New: [touch audio sliders and physical Huawei PL/EN checks](docs/validation/MENU-AUDIO-0.4.19.md), [180 controlled combat fixtures](docs/validation/VERTICAL-45-0.4.18.md), [archived rejected experiments](experiments/README.md).
 
 [0.4.21: abandoned-import cleanup](docs/validation/IMPORT-CLEANUP-0.4.21.md) and [physical Redmi Android 16 evidence](docs/validation/REDMI-0.4.21.md).
+
+[Detailed English build instructions](docs/BUILDING.en.md).

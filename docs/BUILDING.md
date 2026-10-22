@@ -1,6 +1,8 @@
 # Budowanie
 
-Sprawdzone narzędzia: JDK z Android Studio, Gradle 8.10.2, Android SDK 35 / Build Tools 35.0.0, NDK 27.2.12479018, CMake 3.22.1, Python 3.11 lub nowszy i Git. Pierwsza konfiguracja wymaga internetu do pobrania zależności, SDK i pluginu Gradle.
+[English](BUILDING.en.md)
+
+Sprawdzone narzędzia: pełny JDK 17 lub nowszy (np. z Android Studio), Gradle 8.10.2, Android SDK 35 / Build Tools 35.0.0, NDK 27.2.12479018, CMake 3.22.1, Python 3.11 lub nowszy i Git. Pierwsza konfiguracja wymaga internetu do pobrania zależności, SDK i pluginu Gradle.
 
 1. Zainstaluj wskazane pakiety przez SDK Manager. Ustaw `JAVA_HOME` na JDK i `ANDROID_HOME` na SDK; lokalna konfiguracja SDK może też być w ignorowanym `local.properties`.
 2. W katalogu projektu wykonaj `python tools/bootstrap.py`. Pobierze rewizje z `sources.lock.json`, podmoduł FreeType i zastosuje lokalny patch. Skrypt nie resetuje istniejących zmian przy niezgodnej rewizji.

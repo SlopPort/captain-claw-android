@@ -9,7 +9,7 @@ Zakres zlecenia od 2026-10-22: realizujemy pozostałe punkty, ale testy padów z
 ### Co mamy
 
 - Lokalny projekt z historią Git, odtwarzalnymi łatkami OpenClaw/SDL, instrukcjami instalacji PL/EN, przypisaniem autorstwa i archiwum otwartych źródeł. Komercyjne dane gry pozostają oddzielnie.
-- APK dla ARM64 i ARMv7; rzeczywiste próby na Huawei z Androidem 10 oraz wybrane próby emulatorów Androida 5 i 15. Każdy nowszy kandydat wymaga własnego potwierdzenia; nie obiecujemy działania na wszystkich telefonach.
+- APK dla ARM64 i ARMv7; rzeczywiste próby na Huawei z Androidem 10 i Redmi z Androidem 16 oraz wybrane próby emulatorów Androida 5 i 15. Każdy nowszy kandydat wymaga własnego potwierdzenia; nie obiecujemy działania na wszystkich telefonach.
 - Import własnego REZ lub ZIP, narzędzia zapisów, gałka i przyciski dotykowe, regulowana wysokość skoku, mapowanie pada oraz zapamiętywany wybór PL/EN dla naszych ekranów i napisów.
 - Kontrolowane dowody przejść technicznych wszystkich 14 map i walk z bossami. Nie jest to naturalne przejście kampanii. [Szczegóły](validation/CAMPAIGN-1.0.md).
 - Dodatkowe pomiary trafień powyżej/poniżej przeciwnika, przyjęcia ataku, animacji i ucieczki. Część prób używa izolowanego terenu i wyłączonej ofensywnej AI; ich ograniczenia są jawne. [Wyniki](validation/VERTICAL-COMBAT.md).
@@ -40,7 +40,7 @@ Scope from 2026-10-22: proceed with the remaining work, but defer controller tes
 ### What we have
 
 - A local Git project, reproducible OpenClaw/SDL patches, Polish/English installation guides, attribution and an open-source archive. Commercial game data remains separate.
-- ARM64/ARMv7 APKs, physical Huawei Android 10 testing and selected Android 5/15 emulator trials. Each newer candidate needs its own evidence; this does not establish support for every phone.
+- ARM64/ARMv7 APKs, physical Huawei Android 10 and Redmi Android 16 testing, plus selected Android 5/15 emulator trials. Each newer candidate needs its own evidence; this does not establish support for every phone.
 - Import of the player's own REZ/ZIP, save tools, touch stick/buttons, variable jump height, configurable controller actions and persisted PL/EN selection for our screens and added captions.
 - Controlled evidence for technical transitions across all 14 maps and boss encounters. This is not a natural campaign playthrough. [Evidence](validation/CAMPAIGN-1.0.md).
 - Additional measurements of attacks with the hero above/below enemies, accepted inputs, animations and escape. Some trials use isolated geometry or disabled offensive AI; their limits are explicit. [Results](validation/VERTICAL-COMBAT.md).
@@ -63,3 +63,5 @@ Scope from 2026-10-22: proceed with the remaining work, but defer controller tes
 | P1 | Prepare the release | Close blockers, publish honest known limitations, verify clean builds, licenses/NOTICE and absence of commercial/private data. Prepare signed APKs, matching sources and SHA-256 checksums; keep the signing key private. Retain LLM-work disclosure and upstream attribution. Label 1.0 only after its gates pass. Online publication requires a separate instruction. |
 
 If 60 FPS or another required gate is not achieved, it remains open. Do not transfer an older build's results to a newer APK or replace natural traversal with teleports. The final report should clearly separate completed work, release blockers and optional post-1.0 improvements.
+
+Aktualizacja 0.4.21 / Update 0.4.21: [Redmi — 14 startów map, PL/EN, ARM64/ARMv7 i pomiary FPS](validation/REDMI-0.4.21.md), [sprzątanie importu i czysta kompilacja](validation/IMPORT-CLEANUP-0.4.21.md), [ograniczone próby aktywnego Tiger Guarda](validation/ACTIVE-TIGER-0.4.21.md). These results do not close the natural-campaign, sustained-60-FPS or full-disk gates.
