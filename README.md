@@ -84,3 +84,5 @@ Nowe: [dotykowe suwaki dźwięku i próby PL/EN na Huawei](docs/validation/MENU-
 [0.4.24: pomiar wejścia na ruchomą platformę](docs/validation/PLATFORM-0.4.24.md). Próby kontrolowane przeszły na Redmi i Huawei; [cała kampania nadal nieukończona](docs/validation/NATURAL-CAMPAIGN-0.4.23.md).
 
 [Naturalny checkpoint i ponowne wczytanie przez menu](docs/validation/NATURAL-CHECKPOINT-0.4.24.md). Osiągnięto checkpoint 1 poziomu 1; cała kampania nadal wymaga przejścia.
+
+Dla kolejnej osoby: [przekazanie projektu](docs/HANDOFF.md), [współpraca](CONTRIBUTING.md), [publikacja](docs/PUBLISHING.md).
