@@ -223,3 +223,5 @@ Pierwszy poziom nadal nieukończony. Są to kolejne sprawdzone fragmenty natural
 trasy, nie nieprzerwane przejście całej gry ani gwarancja FPS czy wersja 1.0.
 Po zakończeniu ponownie pobrano konfigurację i zapis z telefonu — oba pliki były
 identyczne bajt w bajt z kopiami użytkownika sprzed próby.
+
+[Huawei continuation and log-reader recovery / Kontynuacja na Huawei i odzyskiwanie logów](HUAWEI-CAMPAIGN-0.4.24.md).

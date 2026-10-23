@@ -40,11 +40,38 @@ class CampaignSession:
         return [parts[1] for line in adb('shell','ps',check=False).splitlines()
                 if len(parts:=line.split())>2 and parts[-1]=='pl.pazur.port' and parts[1].isdigit()]
 
-    def log_command(self):
+    def log_command(self, since=None):
         if self.device_sdk is None:self.device_sdk=int(adb('shell','getprop','ro.build.version.sdk').strip())
         base=['adb','logcat','-v','threadtime']
-        base+=['--pid='+self.pid] if self.device_sdk>=24 else ['-T','1']
+        if since:base+=['-T',since]
+        elif self.device_sdk<24:base+=['-T','1']
+        if self.device_sdk>=24:base+=['--pid='+self.pid]
         return base+['-s','SDL/APP','libc','AndroidRuntime']
+
+    def ensure_log_stream(self):
+        """Reconnect only this session's dead logcat client; never restart ADB.
+
+        A server/USB interruption can close logcat while the game keeps running.
+        Resume at the last recorded timestamp so route observations do not use
+        stale samples. The owner calls this from its idle loop, outside restart
+        and cleanup operations. Attached read-only helpers own no stream.
+        """
+        if self.stream is None or self.stream.poll() is None:
+            return False
+        if not self.backed_up or self.pid not in self.process_ids():
+            return False
+        path=self.report/'native.log'
+        previous=path.read_text(encoding='utf-8',errors='replace') if path.exists() else ''
+        stamps=re.findall(r'(?m)^(\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3}) ',previous)
+        since=stamps[-1] if stamps else None
+        if self.output:self.output.close()
+        # Reopening in append mode matters: another recovery reader may have
+        # appended evidence after the original writer's file offset.
+        self.output=path.open('ab')
+        self.stream=subprocess.Popen(self.log_command(since),stdout=self.output,stderr=subprocess.DEVNULL)
+        with (self.report/'log-reconnections.jsonl').open('a',encoding='utf-8') as record:
+            record.write(json.dumps({'time':time.time(),'since':since,'game_restarted':False})+'\n')
+        return True
 
     def logs(self):
         path=self.report/'native.log'

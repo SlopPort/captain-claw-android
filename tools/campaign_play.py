@@ -97,6 +97,7 @@ def main():
         counter = 0
         try:
             while True:
+                session.ensure_log_stream()
                 incoming = session.report/'input.json'
                 if not incoming.exists():
                     time.sleep(.1)
