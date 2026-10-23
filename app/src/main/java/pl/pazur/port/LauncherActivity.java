@@ -138,7 +138,8 @@ public class LauncherActivity extends LocalizedActivity {
         layout.addView(importButton);
         languageButton=new Button(this);languageButton.setText(R.string.language);
         languageButton.setOnClickListener(v->AppLanguage.choose(this));layout.addView(languageButton);
-        setContentView(layout);
+        android.widget.ScrollView scroll=new android.widget.ScrollView(this);
+        scroll.setFillViewport(true);scroll.addView(layout);setContentView(scroll);
     }
 
     @Override protected void onActivityResult(int request, int result, Intent data) {

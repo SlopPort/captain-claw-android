@@ -10,7 +10,7 @@ from pathlib import Path
 import re
 import subprocess
 
-FORBIDDEN_PREFIXES=('upstream/','reports/','build/','dist/','.gradle/',
+FORBIDDEN_PREFIXES=('private-signing/','upstream/','reports/','build/','dist/','.gradle/',
                     '.npm-cache/','app/build/','app/.cxx/',
                     'app/src/main/assets/music/','app/src/main/assets/import-support/')
 FORBIDDEN_SUFFIXES=('.apk','.aab','.rez','.pat','.exe','.dll','.so','.jks',

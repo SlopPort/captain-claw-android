@@ -46,3 +46,5 @@ The APK verifier checks both ARM libraries and static ARM64 ELF load alignment f
 For device tests, install Android platform-tools, enable USB debugging and put `adb` on PATH. With several devices connected, explicitly select `ANDROID_SERIAL`. Read [test scope](TESTING.md) before running a script: some fixtures replace test configuration/progress temporarily, and old scripts have different input methods. Current compatibility evidence is linked from the [English README](../README.en.md). Minimum API 21 is a package setting, not a guarantee for every Android 5+ phone.
 
 Source changes, documentation and automated testing in this adaptation were performed by OpenAI Codex (LLM), guided by human requirements and feedback. Upstream code retains its authorship and licenses.
+
+Release signing / Podpis wydania: [local key and safe migration](RELEASE-SIGNING.md).

@@ -7,7 +7,9 @@ by human requirements and device feedback. Upstream OpenClaw authorship is separ
 Redmi was authorized for this task on 2026-10-23. Its initially offline ADB
 connection recovered; final 0.4.25 tests now run on Android 16.
 See [current Redmi evidence](validation/REDMI-0.4.25.md). Respect current device allocation.
-Latest candidate: [0.4.25 checks and retained failures](validation/READINESS-0.4.25.md),
+Latest candidate: [0.4.26 import checks](validation/IMPORT-FLOW-0.4.26.md) and
+[signed candidate evidence](validation/RELEASE-0.4.26.md). Both phones retain the debug signature.
+Preserve private-signing/ locally; never publish it. Earlier [0.4.25 checks and retained failures](validation/READINESS-0.4.25.md),
 [twenty-minute Huawei measurement](validation/SUSTAINED-HUAWEI-0.4.25.md), and
 [bounded ENOSPC](validation/IMPORT-FULL-DISK.md).
 Do not resume autonomous campaign traversal. Continue technical checks and fixes;
@@ -21,7 +23,7 @@ zgłoszenia użytkownika zapisuj z wersją APK, poziomem i sposobem odtworzenia.
 
 ## English
 
-**0.4.25-dev is not release 1.0. No complete natural campaign clear exists.**
+**0.4.26-dev is not release 1.0. No complete natural campaign clear exists.**
 Six further retries did not extend the natural route; see
 [retained failures and driver limitations](validation/CAMPAIGN-RETRIES-0.4.24.md).
 Do not replay the old route blindly after knockback or a missed landing.

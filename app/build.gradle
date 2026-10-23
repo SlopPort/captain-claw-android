@@ -5,21 +5,43 @@ tasks.register('prepareRuntimeAssets', Exec) {
     commandLine runtimePython, 'tools/prepare_runtime_assets.py'
 }
 tasks.configureEach { if (name == 'preBuild') dependsOn 'prepareRuntimeAssets' }
+// Passwords are read locally, never passed in Gradle command arguments or Git.
+def releaseKeyPath = System.getenv('PAZUR_RELEASE_KEYSTORE')
+def releasePasswordPath = System.getenv('PAZUR_RELEASE_PASSWORD_FILE')
+def releaseSigningAvailable = releaseKeyPath && releasePasswordPath && file(releaseKeyPath).isFile() && file(releasePasswordPath).isFile()
+tasks.register('requireReleaseSigning') {
+    doLast { if (!releaseSigningAvailable) throw new GradleException('Release signing requires PAZUR_RELEASE_KEYSTORE and PAZUR_RELEASE_PASSWORD_FILE. See docs/RELEASE-SIGNING.md.') }
+}
+tasks.configureEach { if (name == 'preReleaseBuild') dependsOn 'requireReleaseSigning' }
 android {
+    signingConfigs {
+        if (releaseSigningAvailable) {
+            localRelease {
+                storeFile file(releaseKeyPath)
+                storePassword file(releasePasswordPath).getText('UTF-8').trim()
+                keyAlias 'pazur'
+                keyPassword storePassword
+            }
+        }
+    }
     namespace 'pl.pazur.port'
     compileSdk 35
     ndkVersion '27.2.12479018'
     defaultConfig {
-        applicationId 'pl.pazur.port'
+        // Separate installed identity only for isolated release runtime checks.
+        // Java/JNI namespace stays unchanged; normal builds retain the app ID.
+        def runtimePackage = project.findProperty('runtimePackage') ?: 'pl.pazur.port'
+        if (!(runtimePackage in ['pl.pazur.port','pl.pazur.port.releasecheck'])) throw new GradleException('Unsupported runtimePackage')
+        applicationId runtimePackage
         minSdk 21
         targetSdk 35
-        versionCode 37
-        versionName '0.4.25-dev'
+        versionCode 38
+        versionName '0.4.26-dev'
         testInstrumentationRunner(project.findProperty('testRunner') ?: 'pl.pazur.port.JumpTouchTest')
         ndk { abiFilters((project.findProperty('abis') ?: 'arm64-v8a').split(',')) }
         externalNativeBuild { cmake { arguments '-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON', '-DANDROID_STL=c++_shared', '-DPAZUR_NATIVE_IPO='+(project.findProperty('nativeLto') ?: 'ON'); targets 'openclaw' } }
     }
     externalNativeBuild { cmake { path '../CMakeLists.txt'; version '3.22.1' } }
     sourceSets.main.java.srcDirs += '../upstream/SDL/android-project/app/src/main/java'
-    buildTypes { debug { jniDebuggable true }; release { minifyEnabled false } }
+    buildTypes { debug { jniDebuggable true }; release { minifyEnabled false; if (releaseSigningAvailable) signingConfig signingConfigs.localRelease } }
 }

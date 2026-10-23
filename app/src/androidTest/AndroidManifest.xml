@@ -8,4 +8,8 @@
     <instrumentation android:name="pl.pazur.port.LanguageTest" android:targetPackage="pl.pazur.port" />
     <instrumentation android:name="pl.pazur.port.MenuTouchTest" android:targetPackage="pl.pazur.port" />
     <instrumentation android:name="pl.pazur.port.LifecycleTest" android:targetPackage="pl.pazur.port" />
+    <instrumentation android:name="pl.pazur.port.ImportFlowTest" android:targetPackage="pl.pazur.port" />
+    <application>
+        <provider android:name="pl.pazur.port.ImportStreamProvider" android:authorities="pl.pazur.port.test.importstream" android:exported="true" />
+    </application>
 </manifest>

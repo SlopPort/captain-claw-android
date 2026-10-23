@@ -1,0 +1,85 @@
+# Import flow 0.4.26 / Przebieg importu
+
+OpenAI Codex (LLM), 2026-10-23. Physical Redmi Note 8 / Android 16 and Huawei
+P9 Lite / Android 10. Exact debug APK (code 38) SHA-256:
+`f32e9e96e64b91dd12ea7eff0303a97ea3c7abf1d9b16fbe08f6fa4023a3cb1f`.
+
+## Verified / Potwierdzone
+
+On both devices the production launcher, its async worker and ContentResolver ran
+with ordinary target-app permissions, without broad storage grants or adopted
+shell identity. The host isolated a missing font to reach first-install UI and
+backed up support/config/save files. Four cases passed:
+
+1. Open the actual system document picker from the real button, verify the active
+   window belongs to the resolved picker, cancel with accessibility Back, require
+   return to this app and an enabled button. No other foreground app receives input.
+2. Inject a cancelled picker callback; original config/support/progress unchanged.
+3. Supply an invalid 168-byte REZ through a real content URI; production import
+   rejects it, re-enables the chooser and preserves config/support/progress.
+4. Import the user's full 107,297,326-byte REZ through the content URI and normal
+   production validation/staging/commit. Native launch intent follows success.
+   Its test monitor blocks native startup so the host can restore files safely.
+
+Cases 2–4 inject a picker result into the production Activity callback. They do
+**not** prove selecting the full file through DocumentsUI, third-party cloud
+providers or every ZIP workflow. The first case alone exercises real picker UI.
+The provider is packaged only in the test APK, serves one read-only copied fixture
+behind a random per-run capability and has no access to the game's directory.
+The host removes that fixture/token afterwards. It never distributes game data.
+
+Final cleanup runs production startup recovery before byte-exact restoration of
+support/config/save files and verifies the full REZ hash. Instrumentation calls
+have a 180-second host timeout. Private report prefixes:
+`import-flow-redmi-0.4.26-final`, `import-flow-huawei-0.4.26-final`.
+Huawei PL/EN/footer and parser/save/support checks also passed on this exact APK.
+All six native libraries are byte-identical to 0.4.25 debug; only launcher UI and
+version metadata changed. This does not transfer evidence to the release variant.
+
+The importer now scrolls so its controls can be revealed on small screens without
+changing the system font. Earlier save-tool scrolling remains in place.
+
+## Retained failed setup
+
+The first Redmi attempt used an IntentFilter ActivityMonitor. It also matched an
+actionless launcher start, leaving startActivitySync blocked before import. The
+own-app process was stopped, host cleanup restored original bytes, and the failure
+is retained under `import-flow-redmi-0.4.26`. The test now injects only the callback;
+the separate real-picker cancellation path does not intercept its launch.
+Intermediate r2/r3 successes are retained separately, not substituted for this
+failed setup. No production import crash was established by that failure.
+
+## Polski
+
+Na obu telefonach przeszło otwarcie i anulowanie prawdziwego selektora, odrzucenie
+błędnego REZ i import pełnego pliku użytkownika. Wybór pliku dla pełnego importu
+był zastąpiony kontrolowaną odpowiedzią; samo kopiowanie, walidacja i transakcja
+wykonały się w prawdziwym kodzie aplikacji, z jej zwykłymi uprawnieniami.
+Własne dane i zapisy przywrócono i porównano. Plik gry nie trafia do repozytorium.
+Nadal potrzebne są próby wybierania dużego pliku w samym selektorze, ZIP i dostawcy
+chmurowi. Nie zastępujemy ich wynikami tej ograniczonej próby.
+
+## Full ZIP and adversarial archives / Pełny ZIP i błędne paczki
+
+Six further cases passed on each physical phone, same exact debug APK above:
+`import-zip-redmi-0.4.26` and `import-zip-huawei-0.4.26`.
+
+- Full prepared ZIP containing the full user REZ and four support files committed
+  successfully and requested native startup; no progress replacement.
+- `../SAVES.XML` entry was rejected without writing outside staging.
+- Duplicate config.xml entries, a missing required-file set, a CRC-corrupted
+  entry and malformed config in a full-size ZIP were rejected.
+- Each case resets support/config fixtures; production recovery runs before final
+  restoration. Original REZ, support, config and save bytes verified unchanged.
+- A separate immutable provider-side REZ copy is retained until restoration is
+  verified, so a ZIP fixture can never accidentally become the recovery source.
+
+These six cases inject only the picker result; extraction/validation/commit are
+production code under ordinary app permissions. They do not add a claim of full
+file selection through DocumentsUI. ZIP test copies/logs remain private, ignored
+reports containing the user's own data; do not publish them.
+
+Na obu telefonach przeszedł pełny ZIP. Odrzucono próbę wyjścia ścieżką poza katalog,
+duplikaty, brak plików, błędne CRC i uszkodzony XML w dużej paczce. Weryfikowano
+niezmieniony zapis i dane; każda próba ma własny raport. Archiwa testowe zawierają
+własne dane użytkownika i pozostają poza repozytorium.

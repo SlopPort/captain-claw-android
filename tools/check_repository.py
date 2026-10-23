@@ -7,7 +7,7 @@ port=Path(__file__).resolve().parents[1]
 git=['git','-c','safe.directory='+port.as_posix(),'-C',str(port)]
 names=subprocess.check_output(git+['ls-files','-z']).decode('utf-8').split('\0')
 names=[n for n in names if n]
-forbidden=('upstream/','build/','dist/','reports/','.gradle/','.npm-cache/',
+forbidden=('private-signing/','upstream/','build/','dist/','reports/','.gradle/','.npm-cache/',
            'app/build/','app/.cxx/','tooling/node_modules/',
            'app/src/main/assets/music/','app/src/main/assets/controllers/','app/src/main/assets/import-support/')
 errors=[]

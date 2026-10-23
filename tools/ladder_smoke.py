@@ -1,13 +1,13 @@
 """Sample production ladder physics/animation in an isolated app-local fixture."""
 from pathlib import Path
 import argparse
-import hashlib
 import json
 import re
 import subprocess
 import time
 import xml.etree.ElementTree as ET
 from gamepad_quit_smoke import adb, REMOTE, PORT
+from android_package import installed_apk_sha256
 
 
 def main():
@@ -23,6 +23,7 @@ def main():
     parser.add_argument('--seam-jumps',action='store_true',help='Trace short/full jumps at and just below the first cap, with late sideways input')
     parser.add_argument('--jump-case',choices=['jump_'+s+'_'+str(h)+'_'+d for s in ('cap','below') for h in (100,250) for d in ('none','left','right')],help='Select one jump trace instead of the full matrix')
     args=parser.parse_args()
+    apk_sha256=installed_apk_sha256()
     if args.jump_case:args.seam_jumps=True
     if args.seam_audit or args.seam_exits or args.seam_jumps:args.first_map_ladder=True
     if args.idle_edges:args.edges=True
@@ -261,7 +262,7 @@ def main():
             'trace_samples':len(traces),'trace_labels':sorted({r['label'] for r in traces}),
             'stationary_fall_candidates':stationary_fall,
             'stuck_grounded_fall':stuck_fall,
-            'apk_sha256':hashlib.file_digest((PORT/'app/build/outputs/apk/debug/app-debug.apk').open('rb'),'sha256').hexdigest()},indent=2),encoding='utf-8')
+            'apk_sha256':apk_sha256},indent=2),encoding='utf-8')
     if args.expect_fixed and args.seam_jumps:assert not stuck_fall,stuck_fall
 
 

@@ -26,3 +26,5 @@ Wrapper weryfikuje SHA-256 dystrybucji Gradle. `preBuild` przygotowuje bank muzy
 ## Telefon
 
 Włącz debugowanie USB, zainstaluj platform-tools i dodaj `adb` do PATH. Przy kilku urządzeniach ustaw `ANDROID_SERIAL`. Testy urządzenia mają opisy w `docs/TESTING.md`. Minimalne API 21 jest ustawieniem pakietu; działanie na każdym Androidzie 5+ nie zostało potwierdzone.
+
+Release signing / Podpis wydania: [local key and safe migration](RELEASE-SIGNING.md).

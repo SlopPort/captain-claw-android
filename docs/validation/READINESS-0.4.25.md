@@ -1,8 +1,8 @@
 # 0.4.25-dev readiness / Przygotowanie wydania
 
 OpenAI Codex (LLM), 2026-10-23. Human owns campaign playtesting. No physical-pad
-tests. Redmi permission was granted, but ADB remained offline; no Redmi result
-is claimed. Huawei USB tethering/settings were left unchanged.
+tests. Redmi was initially offline; the later [physical Redmi results](REDMI-0.4.25.md)
+are recorded separately. Huawei USB tethering/settings were left unchanged.
 
 ## Changes / Zmiany
 

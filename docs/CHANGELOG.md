@@ -1,5 +1,18 @@
 # Historia adaptacji
 
+## 0.4.26 — import i podpis wydania / Import and signing
+
+Przewijany ekran instalacji. Próby rzeczywistego anulowania selektora i pełnego
+REZ na Androidzie 10/16, z przywracaniem danych. [Zakres](validation/IMPORT-FLOW-0.4.26.md).
+Oddzielny, lokalny klucz wydania i blokowanie release bez konfiguracji podpisu;
+klucz i hasło nigdy nie są częścią źródeł. [Podpis](RELEASE-SIGNING.md).
+Audyt [drabin, krawędzi i wysokości](validation/TERRAIN-HEIGHTS-0.4.25.md) dotyczy
+0.4.25. Sześć bibliotek debug pozostaje identycznych; nie zmieniano fizyki/balansu.
+
+Scrollable installer; actual picker cancellation plus full-REZ stream tests on
+Android 10/16. Separate local signing identity; release builds require explicit
+signing files. This remains development work, not 1.0 or a complete campaign clear.
+
 ## 0.4.25 — dostępność ekranów i przygotowanie wydania
 
 Własna ikona bez grafik oryginalnej gry, informacja o autorach narzędzi zapisów
