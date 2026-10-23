@@ -8,11 +8,13 @@ import json
 import subprocess
 import xml.etree.ElementTree as ET
 from gamepad_quit_smoke import adb, REMOTE, PORT
+from android_package import installed_apk_sha256
 
 
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--report',required=True);args=parser.parse_args()
+    apk_sha256=installed_apk_sha256()
     report=PORT/'reports'/args.report;report.mkdir(parents=True,exist_ok=False)
     owned=('combat-command.txt','combat-response.txt','combat-command.tmp','score-window-before.png','score-window-after.png')
     for name in owned:
@@ -40,7 +42,7 @@ def main():
         assert 'INSTRUMENTATION_CODE: 0' in output,output
         assert 'Score screen initialized OK' in log and 'Level name: Claw - Level 2' in log
         assert 'Fatal signal' not in log and 'FATAL EXCEPTION' not in log
-        (report/'results.json').write_text(json.dumps(dict(passed=True,input='Android window MotionEvent',natural_playthrough=False)),encoding='utf-8')
+        (report/'results.json').write_text(json.dumps(dict(passed=True,apk_sha256=apk_sha256,input='Android window MotionEvent',natural_playthrough=False)),encoding='utf-8')
         print('Android window score confirmation and level 2: PASS',flush=True)
     finally:
         adb('shell','am','force-stop','pl.pazur.port')

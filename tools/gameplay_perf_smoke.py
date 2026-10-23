@@ -81,6 +81,7 @@ def main():
         log_output=(report/'native.log').open('wb')
         reader=subprocess.Popen(['adb','logcat','--pid='+pid,'-v','threadtime','-s','SDL/APP','libc','AndroidRuntime'],
                                 stdout=log_output,stderr=subprocess.DEVNULL)
+        (report/'log-reader.json').write_text(json.dumps({'host_pid':reader.pid,'game_pid':pid}),encoding='utf-8')
         deadline=time.monotonic()+45
         while 'Pazur simulation clock reset' not in logs() and time.monotonic()<deadline:time.sleep(.5)
         assert 'Level loaded !' in logs() and 'Pazur simulation clock reset' in logs(),'Simulation not ready'
@@ -118,6 +119,11 @@ def main():
         sequence=[('right',400,.5),('sword',100,.35),('left',400,.5),
                   ('jump',250,1.1),('pistol',100,.35),('down',400,.5)]
         while time.monotonic()<deadline:
+            # A few early batches must not turn a truncated twenty-minute log
+            # into a successful sustained observation. Only inspect our client;
+            # never restart the shared ADB server or another device.
+            if reader.poll() is not None:
+                raise RuntimeError('Owned logcat reader stopped; sustained evidence is incomplete')
             if args.observe:
                 time.sleep(.5)
                 continue

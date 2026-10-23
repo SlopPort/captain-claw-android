@@ -8,12 +8,14 @@ import json
 import re
 import subprocess
 from campaign_session import CampaignSession
+from android_package import installed_apk_sha256
 from gamepad_quit_smoke import adb
 
 
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--report',required=True);args=parser.parse_args()
+    apk_sha256=installed_apk_sha256()
     with CampaignSession(args.report,level=1) as session:
         with (session.report/'lifecycle-native.log').open('wb') as out:
             reader=subprocess.Popen(['adb','logcat','-T','1','-s','SDL/APP','libc','AndroidRuntime'],stdout=out,stderr=subprocess.DEVNULL)
@@ -28,7 +30,8 @@ def main():
         held=positions('lifecycle-held-resume');repress=positions('lifecycle-repress')
         assert len(held)>=5 and max(held)-min(held)<2,held
         assert len(repress)>=3 and max(repress)-min(repress)>20,repress
-        result=dict(passed=True,held_axis_after_resume_drift=max(held)-min(held),
+        assert installed_apk_sha256()==apk_sha256,'Package changed during lifecycle test'
+        result=dict(passed=True,apk_sha256=apk_sha256,held_axis_after_resume_drift=max(held)-min(held),
                     repress_movement=max(repress)-min(repress),physical_controller=False,
                     fixtures=['isolated level start','virtual SDL controller'])
         (session.report/'results.json').write_text(json.dumps(result,indent=2),encoding='utf-8')

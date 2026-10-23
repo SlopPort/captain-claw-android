@@ -1,10 +1,10 @@
 """Enter the real last-life death path and tap Game Over inside the app only."""
 import argparse
-import hashlib
 import json
 import subprocess
 import xml.etree.ElementTree as ET
 from gamepad_quit_smoke import adb, REMOTE, PORT
+from android_package import installed_apk_sha256
 
 
 def main():
@@ -25,6 +25,7 @@ def main():
     flag=config.find('DebugOptions/PreviewIncompleteLevel14')
     if flag is None:flag=ET.SubElement(config.find('DebugOptions'),'PreviewIncompleteLevel14')
     flag.text='true';config.write(report/'test.xml',encoding='utf-8',xml_declaration=True)
+    apk_sha256=installed_apk_sha256()
     rows=[]
     try:
         for cycle in range(args.cycles):
@@ -54,7 +55,7 @@ def main():
         for name in ('combat-command.txt','combat-response.txt','combat-command.tmp','game-over-before.png','game-over-after.png'):
             adb('shell','rm','-f',REMOTE+name)
         (report/'results.json').write_text(json.dumps({'cycles':rows,
-            'apk_sha256':hashlib.file_digest((PORT/'app/build/outputs/apk/debug/app-debug.apk').open('rb'),'sha256').hexdigest()},indent=2),encoding='utf-8')
+            'apk_sha256':apk_sha256},indent=2),encoding='utf-8')
         print('Original config and saves restored',flush=True)
 
 

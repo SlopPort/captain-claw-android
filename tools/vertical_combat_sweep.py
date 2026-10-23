@@ -57,7 +57,8 @@ def main():
                 assert len(outcomes)==4 and all(v['apk_sha256']==apk for v in outcomes),'Wrong child coverage/build'
                 row.update(cases=4,damage_observed=sum(v['enemy_damage_observed'] for v in outcomes),
                            hero_damage=sum(v['player_damage'] for v in outcomes),
-                           all_cases_created_attack_area=all(v['area_created'] for v in outcomes))
+                           all_cases_created_attack_area=None if any(v.get('deferred_request_trace_observed') for v in outcomes) else all(v['area_created'] for v in outcomes),
+                           deferred_area_request_trace=any(v.get('deferred_request_trace_observed') for v in outcomes))
             rows.append(row)
             (folder/'results.json').write_text(json.dumps(summary,indent=2),encoding='utf-8')
             print(json.dumps(row),flush=True)

@@ -4,20 +4,24 @@ Updated / Aktualizacja: 2026-10-23. Adaptation work: OpenAI Codex (LLM), guided
 by human requirements and device feedback. Upstream OpenClaw authorship is separate.
 
 **Scope update, 2026-10-23:** the human takes over natural campaign playtesting.
-Ask the human whether Redmi is available before any use of that phone.
-Latest independent checks: [actual bounded ENOSPC](validation/IMPORT-FULL-DISK.md)
-and [static Android readiness](validation/READINESS-2026-10-23.md). No APK change.
+Redmi was authorized for this task on 2026-10-23. Its initially offline ADB
+connection recovered; final 0.4.25 tests now run on Android 16.
+See [current Redmi evidence](validation/REDMI-0.4.25.md). Respect current device allocation.
+Latest candidate: [0.4.25 checks and retained failures](validation/READINESS-0.4.25.md),
+[twenty-minute Huawei measurement](validation/SUSTAINED-HUAWEI-0.4.25.md), and
+[bounded ENOSPC](validation/IMPORT-FULL-DISK.md).
 Do not resume autonomous campaign traversal. Continue technical checks and fixes;
 use human campaign reports as evidence, recording APK, level and reproduction.
 
 **Zmiana zakresu, 2026-10-23:** użytkownik przejmuje przechodzenie kampanii.
-Przed jakimkolwiek użyciem Redmi zapytaj użytkownika, czy telefon jest dostępny.
+Użytkownik udostępnił Redmi do tego zadania. Początkowy stan offline ustąpił;
+[bieżące próby 0.4.25](validation/REDMI-0.4.25.md) dotyczą Androida 16.
 Nie wznawiaj samodzielnego przechodzenia. Kontynuuj kontrole techniczne i poprawki;
 zgłoszenia użytkownika zapisuj z wersją APK, poziomem i sposobem odtworzenia.
 
 ## English
 
-**0.4.24-dev is not release 1.0. No complete natural campaign clear exists.**
+**0.4.25-dev is not release 1.0. No complete natural campaign clear exists.**
 Six further retries did not extend the natural route; see
 [retained failures and driver limitations](validation/CAMPAIGN-RETRIES-0.4.24.md).
 Do not replay the old route blindly after knockback or a missed landing.
@@ -37,9 +41,10 @@ missed jumps reach the lower floor, where normal combat/pickups left HP85.
 This is partial route coverage. The next persistent checkpoint and level exit
 have not been reached naturally. [Exact evidence and failures](validation/HUAWEI-CAMPAIGN-0.4.24.md).
 
-Next work: finish the cyclic-peg/trigger-elevator route with phase-aware ordinary
-input, then reach persistent checkpoint 2, finish level 1 and continue all maps
-and bosses. Do not replace a failed traversal with a teleport or invulnerability.
+The human owns further route/campaign testing. Do not resume this autonomous
+route. Continue technical installation, lifecycle, terrain/combat and compatibility
+checks, and use human bug reports to reproduce failures. Technical teleports must
+remain explicitly labelled; they are never natural progression evidence.
 The former live phone session has ended and original user files were restored
 byte for byte. Runtime position on the lower floor is not a new game save.
 Ignored local evidence is not available to a fresh clone; reproduce a route or
@@ -55,8 +60,8 @@ consume each observation tick once. A reader timeout is not automatically a game
 55 FPS in a heavy Huawei scene is the human's accepted target, not an established
 minimum on every map. Preserve image quality. Do not call the adaptation complete
 because controlled map starts/boss fixtures passed. Physical controller tests are
-currently excluded at the user's request. Redmi is reserved for another project
-until the user reallocates it; current work may use Huawei and must preserve its
+currently excluded at the user's request. Redmi is authorized and online;
+current work may also use Huawei and must preserve its
 USB internet tether. No phone serial belongs in this document.
 
 Remaining compatibility and release gates are maintained in the roadmap. New
@@ -88,7 +93,7 @@ Sprawdzono je na Huawei bez restartu gry i serwera ADB. Powtórzony graniczny wp
 należy odczytywać tylko raz. Brak próbek nie dowodzi błędu rozgrywki.
 
 55 FPS w ciężkiej scenie jest zaakceptowanym celem, nie potwierdzonym minimum.
-Testy fizycznych padów są wyłączone na życzenie użytkownika. Redmi pozostaje dla
-innego projektu; Huawei może być używany bez zmian jego połączenia USB z internetem.
+Testy fizycznych padów są wyłączone na życzenie użytkownika. Redmi jest obecnie
+udostępniony do tych prób; Huawei może być używany bez zmian połączenia USB z internetem.
 Nie publikuj numerów urządzeń, danych gry ani prywatnych raportów. Zachowaj autorów
 OpenClaw i bibliotek oraz informację o pracy LLM. Pozostałe bramki wydania są w planie 1.0.

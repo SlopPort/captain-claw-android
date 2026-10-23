@@ -65,15 +65,54 @@ font scale were restored and that instance was closed.
 
 ## Open checks / Otwarte próby
 
-The sustained Huawei observation and final scroll-APK Huawei/API-21 follow-up
-are recorded separately when complete. Do not infer their outcome from this file.
+The [full sustained Huawei observation](SUSTAINED-HUAWEI-0.4.25.md) completed:
+approximately 58.99 FPS, minimum batch 57 FPS, single longest interval 31 ms.
+It applies to the preceding exact APK listed above, not a universal minimum.
+The final scroll x86_64 package also passed API-21 feature/PL/EN/footer checks
+and native/menu/100 ms jump/exit/score/next-map fixtures
+(`compat-api21-0.4.25-scroll`), with one exit placement. Emulator files were synced
+before shutting down that task-owned instance.
+
+Final ARM scroll candidate `6175b1…` on Huawei passed actual PL/EN/footer screens,
+parser/save/support checks and all six touch/jump cases
+(`jump-touch-huawei-0.4.25-scroll`). The lifecycle trial passed with zero drift
+after resume and 178.88 px movement after fresh input (`lifecycle-huawei-0.4.25`).
+That uses a virtual SDL controller and does not test physical Bluetooth hardware.
+The test companion now registers the existing lifecycle instrumentation directly.
+
+Sustained-test reliability was also checked on this exact ARM candidate: terminating
+only the worker's own verified logcat client produced the explicit incomplete-log
+failure and no success JSON, with config/save bytes restored. The Windows helper
+verifies the ADB client's direct parent PID and command before termination;
+it never restarts the shared server. A normal twenty-second observation then
+passed with four batches and restoration. Reports:
+`perf-reader-abort-huawei-0.4.25` and `perf-reader-positive-huawei-0.4.25`.
+
+APK content inventory found no REZ/MIDI/WAV/MP3/OGG/movie entries. Music assets
+are the pinned FreePats instrument bank; original game music still comes from
+user-supplied data. Support ZIP non-XML content is the four documented generated
+help/credit PNGs. Packaged dependency licence files were present. This is a bounded
+inventory check, not a claim that filename matching proves copyright clearance.
 Remaining gates include real document-picker/cancellation/large-data workflow,
-Redmi once online, physical ARM 16 KB coverage, sustained performance acceptance,
+physical ARM 16 KB coverage, sustained performance acceptance,
 active combat/terrain and release signing. Natural campaign testing belongs to
 the human. No claim of 1.0 readiness or all-level minimum FPS.
+
+[Active Officer step evidence](ACTIVE-OFFICER-0.4.25.md) adds sixteen mixed
+outcomes, four confirmed-after-hit escape cases and a diagnostic parser follow-up.
+It does not close complete enemy/terrain coverage or original-game parity.
 
 Po polsku: poprawiono brak dostępu do przycisku Wstecz przy dużej czcionce,
 dodano własną ikonę i polski opis autorstwa narzędzi zapisów oraz jawne reguły
 kopii danych dla nowych Androidów. Próby Huawei, Androida 5 i ograniczony test
 16 KB mają przypisane dokładne APK. Błędy emulatora i nieudane próby pozostają
 udokumentowane; nie udajemy, że wszystkie warunki wydania są spełnione.
+
+Final ARM candidate also passed Huawei's explicit ARMv7 native/menu/jump/exit/score/
+next-map fixture (`compat-huawei-armv7-0.4.25`); ARM64 was restored afterwards.
+Normal level 14 loaded with music, preview and diagnostic modes disabled, without
+missing-actor messages (`normal-level14-huawei-0.4.25`). Neither test proves a
+natural level clear. Final Huawei config/save hashes match the pre-session bytes.
+
+Redmi's initial offline connection recovered. See [final Android-16 trials](REDMI-0.4.25.md)
+for exact package identity, measured touch response and recovery evidence.

@@ -1,12 +1,26 @@
 # Droga do 1.0 / Road to 1.0
 
-Aktualizacja 2026-10-23: użytkownik przejmuje kampanię. Przed użyciem Redmi
-ponownie zapytaj o dostępność. [Rzeczywisty brak miejsca](validation/IMPORT-FULL-DISK.md)
+0.4.25: [bieżące paczki, zgodność i dostępność ekranów](validation/READINESS-0.4.25.md)
+oraz [pełne 20 minut Huawei](validation/SUSTAINED-HUAWEI-0.4.25.md): około 59 FPS,
+najniższa paczka 57 FPS, pojedynczy odstęp do 31 ms. Wynik wspiera cel 55 FPS
+w tej scenie, nie potwierdza minimum każdej klatki ani wszystkich poziomów.
+Redmi został udostępniony; początkowy stan offline ustąpił.
+[Bieżące testy Androida 16](validation/REDMI-0.4.25.md).
+
+0.4.25: [current packages/runtime checks](validation/READINESS-0.4.25.md) and
+[full twenty-minute Huawei run](validation/SUSTAINED-HUAWEI-0.4.25.md): about
+59 FPS, minimum batch 57 FPS, individual interval up to 31 ms. This supports the
+accepted goal in this scene, not a universal per-frame/all-level minimum. The
+human authorized Redmi; the initial offline connection recovered.
+[Current Android-16 evidence](validation/REDMI-0.4.25.md).
+
+Aktualizacja 2026-10-23: użytkownik przejmuje kampanię. Redmi jest obecnie
+udostępniony; przed kolejną sesją potwierdź przydział, jeśli ulegnie zmianie. [Rzeczywisty brak miejsca](validation/IMPORT-FULL-DISK.md)
 przeszedł dla transakcji importu na wydzielonym dysku emulatora Androida 5;
 selektor plików, duże dane i zwykłe uprawnienia aplikacji nadal wymagają prób.
 
-Update 2026-10-23: the human owns campaign playtesting. Ask about Redmi availability
-before using it. [Actual ENOSPC](validation/IMPORT-FULL-DISK.md) passed for the
+Update 2026-10-23: the human owns campaign playtesting. Redmi is currently allocated; confirm availability
+if that allocation changes. [Actual ENOSPC](validation/IMPORT-FULL-DISK.md) passed for the
 import transaction on a bounded Android-5 emulator filesystem; document-picker UX,
 large data and ordinary app-permission coverage remain open.
 

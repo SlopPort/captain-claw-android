@@ -7,4 +7,5 @@
     <instrumentation android:name="pl.pazur.port.PortFeaturesTest" android:targetPackage="pl.pazur.port" />
     <instrumentation android:name="pl.pazur.port.LanguageTest" android:targetPackage="pl.pazur.port" />
     <instrumentation android:name="pl.pazur.port.MenuTouchTest" android:targetPackage="pl.pazur.port" />
+    <instrumentation android:name="pl.pazur.port.LifecycleTest" android:targetPackage="pl.pazur.port" />
 </manifest>

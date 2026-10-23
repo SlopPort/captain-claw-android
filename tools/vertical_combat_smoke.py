@@ -37,9 +37,11 @@ def main():
     parser.add_argument('--jump-hold-ms',type=int,choices=range(20,1001),metavar='20..1000',default=250)
     parser.add_argument('--actions',nargs='+',choices=('standing','jump','duck','escape'),default=['standing','jump'])
     parser.add_argument('--passive',action='store_true',help='Disable enemy offensive AI to separate geometric misses from interrupted hero input; parry remains')
+    parser.add_argument('--react-after-hit',action='store_true',help='Wait for an actual enemy hit before sending the requested reaction; never restores health')
     parser.add_argument('--above',choices=('enemy','hero'),help='Run only one vertical relation')
     parser.add_argument('--side',type=int,choices=(-1,1),help='Run only one enemy side')
     args=parser.parse_args()
+    if args.react_after_hit and args.passive:parser.error('After-hit reactions require active enemy AI')
     # Hash the package actually installed, not a build output that another ABI
     # build can replace while the phone is under test. No APK data is printed.
     package=adb('shell','pm','path','pl.pazur.port').strip()
@@ -77,6 +79,16 @@ def main():
                             requested_action=action,fixture_established=False,action_executed=False,
                             initial=initial,reason='Requested vertical relation no longer present'),indent=2),encoding='utf-8')
                         raise AssertionError('Requested vertical relation not established')
+                    reaction_state=None
+                    if args.react_after_hit:
+                        until=time.monotonic()+4
+                        while time.monotonic()<until:
+                            observed=state(session)
+                            if 0<observed['player_hp']<initial['player_hp']:
+                                reaction_state=observed;break
+                            if observed['player_hp']<=0:raise AssertionError('Hero died before reaction input')
+                            time.sleep(.05)
+                        if reaction_state is None:raise AssertionError('No live after-hit state observed')
                     start=len(session.logs())
                     direction='right' if side>0 else 'left'
                     session.command('laddertrace vertical-'+action+' 2600')
@@ -99,14 +111,27 @@ def main():
                                   r'area contact: source=(\d+) target=(\S+) damage=(\d+) area=([\d,-]+) body=([\d,-]+) integer_overlap=(\d)',evidence)]
                     created=[dict(source=int(source),damage=int(damage),box=list(map(int,box.split(','))))
                              for source,damage,box in re.findall(r'area created: source=(\d+) damage=(\d+) box=([\d,-]+)',evidence)]
+                    # 0.4.23 removed an unsafe immediate Box2D bounds query.
+                    # New builds log requests before deferred body creation.
+                    # Preserve this distinction: a request is not proof of a
+                    # created body, and absent legacy text is not a hitbox miss.
+                    requested=[dict(source=int(source),damage=int(damage),
+                                    position=[float(x),float(y)],size=[float(w),float(h)],offset=[float(dx),float(dy)])
+                               for source,damage,x,y,w,h,dx,dy in re.findall(
+                                   r'area requested: source=(\d+) damage=(\d+) position=([-\d.]+),([-\d.]+) size=([-\d.]+),([-\d.]+) offset=([-\d.]+),([-\d.]+)',evidence)]
                     defeated=bool(re.search(r'Pazur enemy defeated: '+re.escape(initial['enemy'])+r'\s*$',evidence,re.M))
                     row=dict(apk_sha256=apk_sha256,prototype=args.prototype,source_level=level,above=above,side=side,step_height=args.height,action=action,
                              initial=initial,after=after,final=final,enemy_defeated=defeated,
                              player_damage=initial['player_hp']-final['player_hp'],
                              enemy_damage_observed=defeated or 0<=final['enemy_hp']<initial['enemy_hp'],
                              offensive_ai_disabled=args.passive,
+                             reaction_after_confirmed_hit=args.react_after_hit,
+                             state_before_reaction=reaction_state,
                              area_contacts=contacts,
                              area_created=created,
+                             area_requests=requested,
+                             area_created_field_is_legacy=True,
+                             deferred_request_trace_observed=bool(requested),
                              parry_decisions=[dict(actor=n,damage_type=int(t),chance=int(c),roll=int(v),resisted=b=='1')
                                  for n,t,c,v,b in re.findall(r'Pazur parry decision: actor=(\S+) type=(\d+) chance=(\d+) roll=(\d+) resisted=(\d)',evidence)],
                              resistance_events=[dict(actor=n,delta=int(d),damage_type=int(t),health=int(h))
