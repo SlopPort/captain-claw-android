@@ -53,3 +53,15 @@ sprawdza człowiek; testy fizycznych padów pozostają odłożone.
 Font-scale clarification: Redmi checks used its existing system font setting.
 The explicit 2.0 font-scale reproduction and fix were verified on the separate
 small-screen emulator, as recorded in [readiness](READINESS-0.4.25.md).
+
+## Explicit ARMv7 follow-up / Osobna próba ARMv7
+
+The same APK was installed explicitly with `--abi armeabi-v7a`. Actual process
+library mappings confirmed 32-bit execution. Menu, 100 ms held jump, one exit
+fixture placement, score and level 2 all passed (`compat-redmi-armv7-0.4.25`).
+A finally block reinstalled ARM64; package inspection confirms ARM64 and
+0.4.25-dev afterwards. This checks functionality, not 32-bit performance parity.
+
+Ten sam APK uruchomiono jawnie jako 32-bitowy. Potwierdzono bibliotekę w procesie,
+menu, skok i techniczne przejście do poziomu 2. Przywrócono ARM64. Nie jest to
+dowód jednakowej wydajności obu wariantów.
