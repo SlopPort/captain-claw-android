@@ -1,5 +1,18 @@
 # Historia adaptacji
 
+## 0.4.27 — cykl życia eksportu i walidacja zapisów
+
+Naprawiono odtworzoną BadTokenException po zamknięciu ekranu eksportu oraz
+przyjmowanie niezamkniętego XML, drugiego korzenia i zdublowanych metadanych.
+Poprawne zapisy pozostają obsługiwane. Testy Androida 5/10/15/16 i podpisanych
+ARM64/ARMv7: [dowody i ograniczenia](validation/READINESS-0.4.27.md).
+Bez zmian natywnej fizyki i balansu. Uzupełniono aktywny audyt 45 wariantów,
+rzeczywisty wybór pliku na obu telefonach i diagnostykę uruchamiania testów.
+
+Fixed a reproduced late-export BadTokenException and malformed save acceptance.
+Added lifecycle/framing tests, isolated signed controls checks and honest active
+combat evidence, preserving failed fixtures. Human campaign QA remains open.
+
 ## 0.4.26 — import i podpis wydania / Import and signing
 
 Przewijany ekran instalacji. Próby rzeczywistego anulowania selektora i pełnego

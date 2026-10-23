@@ -18,7 +18,7 @@ class CampaignSession:
     def __init__(self, report, level=1, apk_support=False, start_menu=False, diagnostics=True, progress_save=None):
         self.report=PORT/'reports'/report
         self.level=level;self.pid='';self.ticket=0
-        self.stream=None;self.output=None;self.backed_up=False
+        self.stream=None;self.output=None;self.log_error=None;self.backed_up=False
         self.apk_support=apk_support;self.support_backed_up=False
         self.start_menu=start_menu
         self.diagnostics=diagnostics
@@ -46,7 +46,7 @@ class CampaignSession:
         if since:base+=['-T',since]
         elif self.device_sdk<24:base+=['-T','1']
         if self.device_sdk>=24:base+=['--pid='+self.pid]
-        return base+['-s','SDL/APP','libc','AndroidRuntime']
+        return base+['-s','SDL/APP','SDL','libc','AndroidRuntime']
 
     def ensure_log_stream(self):
         """Reconnect only this session's dead logcat client; never restart ADB.
@@ -68,7 +68,7 @@ class CampaignSession:
         # Reopening in append mode matters: another recovery reader may have
         # appended evidence after the original writer's file offset.
         self.output=path.open('ab')
-        self.stream=subprocess.Popen(self.log_command(since),stdout=self.output,stderr=subprocess.DEVNULL)
+        self.stream=subprocess.Popen(self.log_command(since),stdout=self.output,stderr=self.log_error or subprocess.DEVNULL)
         with (self.report/'log-reconnections.jsonl').open('a',encoding='utf-8') as record:
             record.write(json.dumps({'time':time.time(),'since':since,'game_restarted':False})+'\n')
         return True
@@ -80,10 +80,12 @@ class CampaignSession:
     def wait(self, marker, seconds=45, after=0):
         deadline=time.monotonic()+seconds
         while time.monotonic()<deadline:
+            self.ensure_log_stream()
             text=self.logs()[after:]
             if 'Fatal signal' in text or 'FATAL EXCEPTION' in text:raise RuntimeError('Game crashed')
             if marker in text:return
             time.sleep(.1)
+        (self.report/'wait-timeout.json').write_text(json.dumps({'marker':marker,'game_pids':self.process_ids(),'reader_exit_code':self.stream.poll() if self.stream else None},indent=2),encoding='utf-8')
         raise RuntimeError('Missing marker: '+marker)
 
     def command(self, value):
@@ -121,7 +123,9 @@ class CampaignSession:
         adb('shell','am','force-stop','pl.pazur.port')
         for name in ('combat-command.txt','combat-response.txt','combat-command.tmp'):
             adb('shell','rm','-f',REMOTE+name)
-        adb('shell','am','start','-n','pl.pazur.port/.LauncherActivity')
+        # Own fresh-process fixture: remove any orphan document-picker child
+        # left above this app's root by an intentional earlier force-stop.
+        adb('shell','am','start','-f','0x14000000','-n','pl.pazur.port/.LauncherActivity')
         deadline=time.monotonic()+30;self.pid=''
         while time.monotonic()<deadline:
             pids=self.process_ids()
@@ -129,7 +133,7 @@ class CampaignSession:
             time.sleep(.2)
         if not self.pid:raise RuntimeError('No game process after restart')
         self.stream=subprocess.Popen(self.log_command(),
-            stdout=self.output,stderr=subprocess.DEVNULL)
+            stdout=self.output,stderr=self.log_error or subprocess.DEVNULL)
         self.wait(marker,after=start)
 
     def __enter__(self):
@@ -175,7 +179,9 @@ class CampaignSession:
                 ET.ElementTree(root).write(self.report/'saves.test.xml',encoding='utf-8',xml_declaration=True)
             adb('push',str(self.report/'config.test.xml'),REMOTE+'config.xml')
             adb('push',str(self.report/'saves.test.xml'),REMOTE+'SAVES.XML')
-            adb('shell','am','start','-n','pl.pazur.port/.LauncherActivity')
+            # Own fresh-process fixture: remove any orphan document-picker child
+            # left above this app's root by an intentional earlier force-stop.
+            adb('shell','am','start','-f','0x14000000','-n','pl.pazur.port/.LauncherActivity')
             deadline=time.monotonic()+30
             while time.monotonic()<deadline:
                 pids=self.process_ids()
@@ -183,8 +189,9 @@ class CampaignSession:
                 time.sleep(.2)
             if not self.pid:raise RuntimeError('No game process')
             self.output=(self.report/'native.log').open('wb')
+            self.log_error=(self.report/'logcat-stderr.txt').open('ab')
             self.stream=subprocess.Popen(self.log_command(),
-                stdout=self.output,stderr=subprocess.DEVNULL)
+                stdout=self.output,stderr=self.log_error or subprocess.DEVNULL)
             if self.start_menu:self.wait('Changing to: 3')
             else:
                 self.wait('Level loaded !');self.wait('Pazur simulation clock reset')
@@ -199,6 +206,7 @@ class CampaignSession:
             try:self.stream.wait(timeout=5)
             except subprocess.TimeoutExpired:self.stream.kill();self.stream.wait(timeout=5)
         if self.output:self.output.close()
+        if self.log_error:self.log_error.close()
         if self.backed_up:
             adb('shell','am','force-stop','pl.pazur.port')
             for remote,local in [('config.xml','config.original.xml'),('SAVES.XML','saves.original.xml')]:

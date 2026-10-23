@@ -69,3 +69,5 @@ a dopiero potem świadomie przeprowadzić reinstalację i przywrócenie postępu
 Podpisany kandydat nadal wymaga własnych prób; nie nazywamy go wersją 1.0.
 
 [0.4.26 candidate verification and isolated runtime scope](validation/RELEASE-0.4.26.md).
+
+[0.4.27 candidate verification and isolated controls](validation/RELEASE-0.4.27.md).

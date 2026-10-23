@@ -1,5 +1,7 @@
 # Droga do 1.0 / Road to 1.0
 
+0.4.27: [bezpieczny eksport, walidacja i zgodność / export safety, validation and compatibility](validation/READINESS-0.4.27.md), [podpisane ARM64/ARMv7 / signed runtime](validation/RELEASE-0.4.27.md), [45 aktywnych wariantów / active variants](validation/ACTIVE-NORMAL-0.4.26.md). Wykonane próby nie zastępują kampanii, naturalnych schodów i uniwersalnego minimum FPS. Nie publikujemy 1.0. / These bounded checks do not establish campaign completion, all natural terrain or a universal FPS floor; no 1.0 is published.
+
 0.4.26: [pełny import i anulowanie selektora / full import and picker cancellation](validation/IMPORT-FLOW-0.4.26.md), [drabiny i aktywne wysokości / ladders and active heights](validation/TERRAIN-HEIGHTS-0.4.25.md), [prywatny podpis wydania / private release identity](RELEASE-SIGNING.md). Naturalna kampania pozostaje zadaniem człowieka; fizyczne pady nadal poza bieżącym zakresem.
 
 

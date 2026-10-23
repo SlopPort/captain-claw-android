@@ -11,7 +11,13 @@ import java.io.*;
  * cannot silently undo the imported progress. Existing saves get a backup. */
 public class FileToolsActivity extends LocalizedActivity {
     private File root(){return getExternalFilesDir(null);}
-    private void message(String text){new AlertDialog.Builder(this).setMessage(text).setPositiveButton("OK",null).show();}
+    private void message(String text){
+        // A document provider may finish after Back, rotation or process UI
+        // recreation. The export/import remains valid, but this old Activity's
+        // window token must never receive a new dialog (BadTokenException).
+        if(isFinishing()||isDestroyed())return;
+        new AlertDialog.Builder(this).setMessage(text).setPositiveButton("OK",null).show();
+    }
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
         LinearLayout layout=new LinearLayout(this);layout.setOrientation(LinearLayout.VERTICAL);layout.setPadding(24,24,24,24);

@@ -25,6 +25,7 @@ def main():
     parser.add_argument('--count',type=int,default=45)
     parser.add_argument('--height',type=int,choices=(16,32,48,64),default=48)
     parser.add_argument('--passive',action='store_true')
+    parser.add_argument('--continue-invalid-fixture',action='store_true',help='Continue only explicit height-guard rejections after verified restoration; never counts them as action passes')
     args=parser.parse_args()
     if not os.environ.get('ANDROID_SERIAL'):raise RuntimeError('Set ANDROID_SERIAL explicitly')
     prototypes=re.findall(r'ActorPrototype_\w+',(PORT/'native/CombatPrototypes.h').read_text())
@@ -40,7 +41,7 @@ def main():
                  height=args.height,offensive_ai_disabled=args.passive,all_requested_fixtures_completed=False,
                  natural_playthrough=False,controller_input=False,global_input=False,
                  fixture_initializes_hero_hp_to_100=True,fixture_sets_pistol_ammo_to_99=True,
-                 health_edited_during_action=False,
+                 health_edited_during_action=False,continue_invalid_fixture=args.continue_invalid_fixture,
                  original_file_hashes=before,rows=rows)
     try:
         for index in range(args.start,args.start+args.count):
@@ -59,13 +60,26 @@ def main():
                            hero_damage=sum(v['player_damage'] for v in outcomes),
                            all_cases_created_attack_area=None if any(v.get('deferred_request_trace_observed') for v in outcomes) else all(v['area_created'] for v in outcomes),
                            deferred_area_request_trace=any(v.get('deferred_request_trace_observed') for v in outcomes))
+            invalid=list((PORT/'reports'/args.report).glob('case-'+str(index)+'-*/invalid-fixture.json'))
+            driver=(folder/('case-'+str(index)+'-run.txt')).read_text(errors='replace')
+            expected_invalid=bool(invalid) and 'Requested vertical relation not established' in driver
+            row['explicit_height_guard_rejection']=expected_invalid
+            if expected_invalid:
+                row['invalid_fixture_reports']=[p.parent.name for p in invalid]
+                row['completed_cases_before_rejection']=len(list((PORT/'reports'/args.report).glob('case-'+str(index)+'-*/results.json')))
+                # Native crash text must never be reclassified as a geometry skip.
+                for path in (PORT/'reports'/args.report).glob('case-'+str(index)+'-*/native.log'):
+                    native=path.read_text(errors='replace')
+                    if 'Fatal signal' in native or 'FATAL EXCEPTION' in native:expected_invalid=False
+            row['explicit_height_guard_rejection']=expected_invalid
             rows.append(row)
             (folder/'results.json').write_text(json.dumps(summary,indent=2),encoding='utf-8')
             print(json.dumps(row),flush=True)
             assert restored,'Original files were not restored; stop without overwriting evidence'
             assert installed_apk_sha256()==apk,'Installed APK changed; stop comparison'
-            assert result.returncode==0,'Fixture failed; inspect the retained child report before continuing'
-        summary['all_requested_fixtures_completed']=True
+            assert result.returncode==0 or (args.continue_invalid_fixture and expected_invalid),'Fixture failed; inspect the retained child report before continuing'
+        summary['all_requested_prototypes_visited']=True
+        summary['all_requested_fixtures_completed']=all(row['exit_code']==0 for row in rows)
     finally:
         summary['elapsed_seconds']=time.monotonic()-started
         (folder/'results.json').write_text(json.dumps(summary,indent=2),encoding='utf-8')

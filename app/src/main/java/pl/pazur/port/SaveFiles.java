@@ -22,23 +22,34 @@ final class SaveFiles {
         StringBuilder out=new StringBuilder("<GameSaves>");
         Set<Integer> levels=new HashSet<>(),checks=new HashSet<>();Set<String> fields=new HashSet<>();
         int level=0,checkpoint=-1;boolean first=false;String levelName="";
+        boolean rootSeen=false,rootClosed=false,numberSeen=false,nameSeen=false;
+        Deque<String> structure=new ArrayDeque<>();
         while(parser.nextToken()!=XmlPullParser.END_DOCUMENT) {
             int type=parser.getEventType();String name=parser.getName();
             if(type==XmlPullParser.DOCDECL)throw new IOException("DOCTYPE is not supported");
+            // Canonical formatting must not silently repair truncated/multiple
+            // documents. Android pull parsers can reach EOF with an open root.
+            if((type==XmlPullParser.TEXT||type==XmlPullParser.CDSECT||type==XmlPullParser.ENTITY_REF)&&parser.getDepth()==0&&
+                (parser.getText()==null||!parser.getText().trim().isEmpty()))throw new IOException("Text outside save root");
             if(type==XmlPullParser.START_TAG) {
                 int depth=parser.getDepth();
-                if(depth==1 && name.equals("GameSaves"))continue;
-                if(depth==2 && name.equals("Level")) {level=0;levelName="";checks.clear();out.append("<Level>");continue;}
+                if(depth==1 && name.equals("GameSaves")) {
+                    if(rootSeen)throw new IOException("Multiple save roots");
+                    rootSeen=true;structure.push(name);continue;
+                }
+                if(depth==2 && name.equals("Level")) {level=0;levelName="";numberSeen=false;nameSeen=false;structure.push(name);checks.clear();out.append("<Level>");continue;}
                 if(depth==3 && name.equals("LevelNumber")) {
+                    if(numberSeen)throw new IOException("Duplicate level number field");numberSeen=true;
                     level=Integer.parseInt(parser.nextText().trim());
                     if(level<1||level>14||!levels.add(level))throw new IOException("Invalid/duplicate level");
                     out.append("<LevelNumber>").append(level).append("</LevelNumber>");continue;
                 }
                 if(depth==3 && name.equals("LevelName")) {
+                    if(nameSeen)throw new IOException("Duplicate level name field");nameSeen=true;
                     levelName=parser.nextText();if(levelName.length()>128)throw new IOException("Level name too long");
                     out.append("<LevelName>").append(levelName.replace("&","&amp;").replace("<","&lt;").replace(">","&gt;")).append("</LevelName>");continue;
                 }
-                if(depth==3 && name.equals("Checkpoint")) {checkpoint=-1;fields.clear();out.append("<Checkpoint>");continue;}
+                if(depth==3 && name.equals("Checkpoint")) {checkpoint=-1;structure.push(name);fields.clear();out.append("<Checkpoint>");continue;}
                 if(depth==4 && Arrays.asList(FIELDS).contains(name)) {
                     long value=Long.parseLong(parser.nextText().trim());
                     if(!fields.add(name)||value<0||value>1000000000L)throw new IOException("Invalid save value");
@@ -48,10 +59,13 @@ final class SaveFiles {
                 }
                 throw new IOException("Unexpected save element: "+name);
             } else if(type==XmlPullParser.END_TAG) {
+                if(structure.isEmpty()||!structure.pop().equals(name))throw new IOException("Mismatched save closing tag");
+                if(name.equals("GameSaves"))rootClosed=true;
                 if(name.equals("Checkpoint")) {if(fields.size()!=FIELDS.length||checkpoint<0)throw new IOException("Incomplete checkpoint");out.append("</Checkpoint>");}
                 if(name.equals("Level")) {if(level==0||levelName.isEmpty()||!checks.contains(0))throw new IOException("Incomplete level");if(level==1)first=true;out.append("</Level>");}
             }
         }
+        if(!rootSeen||!rootClosed||!structure.isEmpty())throw new IOException("Incomplete save document");
         if(!first)throw new IOException("Level 1 is required");
         out.append("</GameSaves>");return out.toString().getBytes("UTF-8");
     }

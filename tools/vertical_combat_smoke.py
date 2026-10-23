@@ -23,7 +23,7 @@ def state(session):
     hp,duck,x,y,box,name,actor,target_hp,target_max=match.groups()
     target_box=re.search(r'probe target box: actor=\S+ box=([\d,-]+)',log)
     return dict(player_hp=int(hp),duck=duck=='1',position=[float(x),float(y)],
-                player_box=list(map(int,box.split(','))),enemy=name,enemy_hp=int(target_hp),
+                player_box=list(map(int,box.split(','))),enemy=name,enemy_actor_id=int(actor),enemy_hp=int(target_hp),
                 enemy_max=int(target_max),enemy_box=list(map(int,target_box[1].split(','))) if target_box else None)
 
 
@@ -119,11 +119,20 @@ def main():
                                     position=[float(x),float(y)],size=[float(w),float(h)],offset=[float(dx),float(dy)])
                                for source,damage,x,y,w,h,dx,dy in re.findall(
                                    r'area requested: source=(\d+) damage=(\d+) position=([-\d.]+),([-\d.]+) size=([-\d.]+),([-\d.]+) offset=([-\d.]+),([-\d.]+)',evidence)]
+                    # Health loss/defeat is not necessarily caused by Claw:
+                    # an enemy grenade can damage its owner in this fixture.
+                    damage_events=[dict(actor=name,before=int(before),after=int(after_hp),source=int(source))
+                        for name,before,after_hp,source in re.findall(
+                            r'Pazur combat: actor=(\S+) health=(-?\d+)->(-?\d+) source=(\d+)',evidence)
+                        if name==initial['enemy']]
                     defeated=bool(re.search(r'Pazur enemy defeated: '+re.escape(initial['enemy'])+r'\s*$',evidence,re.M))
                     row=dict(apk_sha256=apk_sha256,prototype=args.prototype,source_level=level,above=above,side=side,step_height=args.height,action=action,
                              initial=initial,after=after,final=final,enemy_defeated=defeated,
                              player_damage=initial['player_hp']-final['player_hp'],
                              enemy_damage_observed=defeated or 0<=final['enemy_hp']<initial['enemy_hp'],
+                             enemy_damage_attribution='Any observed target loss/defeat; not proof of hero melee damage',
+                             matching_target_name_damage_events=damage_events,
+                             owner_source_target_damage_observed=any(v['source']==initial['enemy_actor_id'] and v['after']<v['before'] for v in damage_events),
                              offensive_ai_disabled=args.passive,
                              reaction_after_confirmed_hit=args.react_after_hit,
                              state_before_reaction=reaction_state,
