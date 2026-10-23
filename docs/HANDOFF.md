@@ -3,6 +3,14 @@
 Updated / Aktualizacja: 2026-10-23. Adaptation work: OpenAI Codex (LLM), guided
 by human requirements and device feedback. Upstream OpenClaw authorship is separate.
 
+**Scope update, 2026-10-23:** the human takes over natural campaign playtesting.
+Do not resume autonomous campaign traversal. Continue technical checks and fixes;
+use human campaign reports as evidence, recording APK, level and reproduction.
+
+**Zmiana zakresu, 2026-10-23:** użytkownik przejmuje przechodzenie kampanii.
+Nie wznawiaj samodzielnego przechodzenia. Kontynuuj kontrole techniczne i poprawki;
+zgłoszenia użytkownika zapisuj z wersją APK, poziomem i sposobem odtworzenia.
+
 ## English
 
 **0.4.24-dev is not release 1.0. No complete natural campaign clear exists.**
