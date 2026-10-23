@@ -1,5 +1,39 @@
 # Android compatibility / Zgodność z Androidem
 
+## Bieżący stan / Current status — 0.4.27, 2026-10-23
+
+Opracował OpenAI Codex (LLM). Nie deklarujemy zgodności ze wszystkimi Androidami.
+Poniższa tabela opisuje konkretne testy; starsze sekcje niżej są historią, a nie
+aktualnym zestawieniem braków. [Dokładne paczki i wyniki](READINESS-0.4.27.md),
+[podpisane warianty](RELEASE-0.4.27.md).
+
+| Obszar / Area | Potwierdzone / Verified | Ograniczenie / Limit |
+| --- | --- | --- |
+| Huawei P9 Lite, Android 10, 2 GB | 0.4.27 ARM64 debug: zapisy, PL/EN, eksport po zamknięciu ekranu; 10/10 startów poziomu 8. Osobny podpisany wariant ARM64/ARMv7: menu, mapy 1/14, muzyka, skok, techniczny zapis mapy 2 | Jeden wcześniejszy timeout startu pozostaje niewyjaśniony; ponowne próby nie dowodzą braku wszystkich awarii |
+| Redmi Note 8, Android 16 | 0.4.27 ARM64 debug: zapisy, PL/EN, cykl życia eksportu. Osobny podpisany wariant ARM64/ARMv7: ten sam zakres uruchomienia i zapisu | Jeden model i ROM nie reprezentują wszystkich urządzeń ani wszystkich Androidów 16 |
+| Android 5 / API21 | 0.4.27 x86_64 emulator: silnik, menu, skok 100 ms, techniczne wyjście/zapis mapy 2, poprawne i uszkodzone zapisy, eksport, PL/EN | Brak fizycznego telefonu API21 i pełnej próby importu przez jego selektor; dane emulatora dostarczono jako fixture |
+| Android 15 / API35, rzeczywiste strony 16 KB | 0.4.27 x86_64: walidacja i eksport; wcześniejsze 0.4.26: silnik/menu oraz skok 600 ms i techniczny zapis mapy 2 | Skok 100 ms w 0.4.26 nie zaliczył progu przy dużych zacięciach emulatora; brak fizycznego ARM 16 KB |
+| ARM64 / ARMv7 i podpis | 0.4.27 podpis, wyrównanie ZIP/ELF 16 KB; osobny podpisany pakiet testowy działa na obu telefonach w obu ABI | Zmieniony identyfikator instalacji; nie jest to próba migracji istniejących zapisów między podpisami |
+| Import pełnego REZ/ZIP | 0.4.26: produkcyjna ścieżka importu i pełny wybór REZ w DocumentsUI na obu telefonach, z przywróceniem plików | Nie sprawdzono wszystkich chmur, selektorów ani systemów plików; próby nie zostały powtórzone w całości na 0.4.27 |
+| Wydajność | 20 minut ciężkiej sceny Huawei na wcześniejszym debug: około 59 FPS, najniższa paczka 57; natywne biblioteki debug bez zmian | Nie jest to minimum każdej klatki, wszystkich map ani wynik podpisanego release |
+| Inne telefony, ROM-y, pady | Konfigurowalne sterowanie i udokumentowane wcześniejsze próby | Brak ogólnej certyfikacji; fizyczne pady odłożone, kampanię testuje człowiek |
+
+Wymagania kompilacji: minimum API21, ARM64 lub ARMv7. x86_64 jest wariantem
+emulatorowym, nie częścią obecnego APK dla telefonów. Udany start mapy lub
+techniczne wywołanie wyjścia nie oznacza naturalnego przejścia kampanii.
+Błędy zgłaszaj z wersją APK, modelem, Androidem/ROM-em i sposobem odtworzenia.
+Nie publikuj kluczy podpisu, pełnych danych gry ani prywatnych identyfikatorów.
+
+English: tested devices are the Huawei on Android 10 and Redmi on Android 16,
+plus separate API21 and actual-16-KB API35 x86_64 emulators. Exact scope/version
+matters. Signed ARM64/ARMv7 checks use an isolated package, not migration of the
+existing debug app. No universal Android support, physical ARM16KB, all-map FPS
+floor, cloud-provider compatibility or full campaign clear is claimed. The API35
+short-jump failure remains open; a longer hold does not replace it. Report APK
+version, device, OS/ROM and reproduction steps; keep keys and game data private.
+
+## Historical evidence / Historyczne dowody
+
 Status recorded by OpenAI Codex (LLM), 2026-10-22. Build support and device testing are different claims.
 
 | Area | Evidence | Remaining work |
