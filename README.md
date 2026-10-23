@@ -1,10 +1,12 @@
 # Kapitan Pazur na Androida
 
-Bieżące **0.4.27** naprawia eksport kończący się po zamknięciu ekranu oraz odrzucanie uszkodzonych kopii zapisów. [Dokładne testy telefonów i emulatorów](docs/validation/READINESS-0.4.27.md), [podpisany kandydat ARM64/ARMv7](docs/validation/RELEASE-0.4.27.md), [aktywny audyt 45 wariantów przeciwników](docs/validation/ACTIVE-NORMAL-0.4.26.md). Kampanię przechodzi człowiek; fizyczne pady są odłożone. Głosy EN nadal wymagają własnych angielskich danych gry.
+Bieżące **0.4.29** poprawia pauzę Startem, przycięcie muzyki złotej myszy, awarię kierunków pada na ekranie końca gry i zapamiętanie krótkiego ataku podczas trafienia. [Odtworzenia, wyniki Huawei i ograniczenia](docs/validation/USER-REGRESSIONS-0.4.29.md). Redmi nie był aktualizowany; wcześniejsze testy zgodności dotyczą swoich wersji APK.
+
+Wcześniejsze **0.4.27** naprawia eksport kończący się po zamknięciu ekranu oraz odrzucanie uszkodzonych kopii zapisów. [Dokładne testy telefonów i emulatorów](docs/validation/READINESS-0.4.27.md), [podpisany kandydat ARM64/ARMv7](docs/validation/RELEASE-0.4.27.md), [aktywny audyt 45 wariantów przeciwników](docs/validation/ACTIVE-NORMAL-0.4.26.md). Kampanię przechodzi człowiek; fizyczne pady są odłożone. Głosy EN nadal wymagają własnych angielskich danych gry.
 
 [English README](README.en.md)
 
-Natywna adaptacja [OpenClaw](https://github.com/pjasicek/OpenClaw) na Androida, z danymi dostarczanymi przez użytkownika. Silnik C++/SDL dla ARM64 i ARMv7, minimum API 21. Aktualna wersja rozwojowa: **0.4.27-dev**. Pełne wydanie 1.0 pozostaje w przygotowaniu.
+Natywna adaptacja [OpenClaw](https://github.com/pjasicek/OpenClaw) na Androida, z danymi dostarczanymi przez użytkownika. Silnik C++/SDL dla ARM64 i ARMv7, minimum API 21. Aktualna wersja rozwojowa: **0.4.29-dev**. Pełne wydanie 1.0 pozostaje w przygotowaniu.
 
 **[Droga do 1.0 — po polsku i angielsku](docs/ROADMAP-1.0.md)** rozdziela wykonane prace, warunki wydania i potrzebne testy. Ostatnie poprawki zabezpieczają zapisy punktów kontrolnych i ukończenia poziomu oraz bezpośrednie wznowienie gry przez Androida. [Wyniki 0.4.18 i czyste budowanie](docs/validation/ATOMIC-PROGRESS-0.4.18.md), [start 0.4.17](docs/validation/STARTUP-0.4.17.md), [20 minut ciężkiej sceny](docs/validation/SUSTAINED-0.4.15.md).
 

@@ -3,5 +3,7 @@
 gradlew text eol=lf
 *.bat text eol=crlf
 *.ps1 text eol=crlf
-*.patch -text
+# Diff context includes a leading space on empty lines and upstream CRLF.
+# Preserve patch bytes; these are syntax, not trailing whitespace in our code.
+*.patch -text whitespace=-blank-at-eol,cr-at-eol
 *.jar binary

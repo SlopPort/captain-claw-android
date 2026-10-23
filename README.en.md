@@ -1,12 +1,14 @@
 # Captain Claw for Android
 
-Current **0.4.27** fixes late export dialogs and malformed save acceptance. [Exact phone/emulator evidence](docs/validation/READINESS-0.4.27.md), [signed ARM64/ARMv7 candidate](docs/validation/RELEASE-0.4.27.md), [active audit of 45 enemy variants](docs/validation/ACTIVE-NORMAL-0.4.26.md). The human owns campaign testing; physical controllers remain deferred. English voices require your own English game data.
+Current **0.4.29** fixes raw-Start pause, the Catnip music hitch and directional-input Game Over crash, and buffers one short melee tap during hurt. [Huawei reproductions, results and limits](docs/validation/USER-REGRESSIONS-0.4.29.md). Redmi was not updated; earlier compatibility evidence retains its exact-version scope.
+
+Earlier **0.4.27** fixes late export dialogs and malformed save acceptance. [Exact phone/emulator evidence](docs/validation/READINESS-0.4.27.md), [signed ARM64/ARMv7 candidate](docs/validation/RELEASE-0.4.27.md), [active audit of 45 enemy variants](docs/validation/ACTIVE-NORMAL-0.4.26.md). The human owns campaign testing; physical controllers remain deferred. English voices require your own English game data.
 
 [Polski](README.md) · **[Install step by step](docs/INSTALL-EN.md)**
 
 A native Android adaptation of [OpenClaw](https://github.com/pjasicek/OpenClaw), using game data supplied from the user's own copy of Claw. C++/SDL, ARM64 and ARMv7, minimum build API 21. Compatibility with every Android version or device is not established.
 
-Current development version: **0.4.27-dev**. A final 1.0 release remains in preparation. The bilingual **[Road to 1.0](docs/ROADMAP-1.0.md)** separates completed work and release gates. Recent changes protect checkpoint/next-level saves and prepare direct Android activity restoration. See [0.4.18 persistence and clean-source build evidence](docs/validation/ATOMIC-PROGRESS-0.4.18.md), [0.4.17 startup](docs/validation/STARTUP-0.4.17.md) and [twenty-minute dense-scene observation](docs/validation/SUSTAINED-0.4.15.md). Controlled [campaign evidence](docs/validation/CAMPAIGN-1.0.md) is not a natural playthrough.
+Current development version: **0.4.29-dev**. A final 1.0 release remains in preparation. The bilingual **[Road to 1.0](docs/ROADMAP-1.0.md)** separates completed work and release gates. Recent changes protect checkpoint/next-level saves and prepare direct Android activity restoration. See [0.4.18 persistence and clean-source build evidence](docs/validation/ATOMIC-PROGRESS-0.4.18.md), [0.4.17 startup](docs/validation/STARTUP-0.4.17.md) and [twenty-minute dense-scene observation](docs/validation/SUSTAINED-0.4.15.md). Controlled [campaign evidence](docs/validation/CAMPAIGN-1.0.md) is not a natural playthrough.
 
 **Language:** before data import, or under **PAD → Language / Język**, choose Polski or English. Android screens, menu text and our help support both languages; in-game labels change after restarting the game. Voices, backgrounds and original score-screen artwork depend on your game data. [PL/EN menus and 0.4.16 evidence](docs/validation/MENU-LANGUAGE-0.4.16.md).
 

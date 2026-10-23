@@ -131,6 +131,11 @@ void reconcile(Uint32 timestamp=0) {
     if (pad.right||b(SDL_CONTROLLER_BUTTON_DPAD_RIGHT)) next.insert(SDLK_RIGHT);
     if (pad.up||b(SDL_CONTROLLER_BUTTON_DPAD_UP)) next.insert(SDLK_UP);
     if (pad.down||b(SDL_CONTROLLER_BUTTON_DPAD_DOWN)) next.insert(SDLK_DOWN);
+    // Android events bypass SDL remapping. Keep physical Start available even
+    // when an older/custom profile assigned Pause to Android Back (code 4).
+    // A user may add another pause binding; Start remains the safe menu key.
+    bool rawStart=false;
+    for(const auto& key:rawHeld) if(key.second==108)rawStart=true;
     const auto now=SDL_GetTicks();
     if (mode==1) {
         if (b(SDL_CONTROLLER_BUTTON_A)||rawAction(0,pad)) {
@@ -140,12 +145,12 @@ void reconcile(Uint32 timestamp=0) {
         if (b(SDL_CONTROLLER_BUTTON_X)||rawAction(1,pad)) next.insert(SDLK_LCTRL);
         if (b(SDL_CONTROLLER_BUTTON_B)||rawAction(2,pad)) next.insert(SDLK_LALT);
         if (b(SDL_CONTROLLER_BUTTON_Y)||rawAction(3,pad)) next.insert(SDLK_LSHIFT);
-        if (b(SDL_CONTROLLER_BUTTON_START)||b(SDL_CONTROLLER_BUTTON_BACK)||rawAction(4,pad)) next.insert(SDLK_ESCAPE);
+        if (b(SDL_CONTROLLER_BUTTON_START)||rawStart||b(SDL_CONTROLLER_BUTTON_BACK)||rawAction(4,pad)) next.insert(SDLK_ESCAPE);
     } else {
         if (b(SDL_CONTROLLER_BUTTON_A)||rawAction(5,pad)) next.insert(SDLK_RETURN);
         if (b(SDL_CONTROLLER_BUTTON_B)||b(SDL_CONTROLLER_BUTTON_BACK)||rawAction(6,pad)) next.insert(SDLK_ESCAPE);
         if (rawAction(4,pad)) next.insert(g_pApp->GetGameLogic()->GetGameState()==GameState_Menu?SDLK_RETURN:SDLK_ESCAPE);
-        if (b(SDL_CONTROLLER_BUTTON_START)) next.insert(g_pApp->GetGameLogic()->GetGameState()==GameState_Menu?SDLK_RETURN:SDLK_ESCAPE);
+        if (b(SDL_CONTROLLER_BUTTON_START)||rawStart) next.insert(g_pApp->GetGameLogic()->GetGameState()==GameState_Menu?SDLK_RETURN:SDLK_ESCAPE);
     }
     const auto previous=pressed;
     pressed=next;

@@ -37,6 +37,8 @@ std::map<SDL_Keycode, Uint32> heldKeys;
 // Test-only scheduling avoids USB round-trip latency between two ordinary
 // button presses. It never calls attack/damage logic directly.
 Uint32 scheduledSwordAt=0;
+Uint32 meleeAfterHitUntil=0;
+int meleeAfterHitHealth=0;
 struct JumpTrace {
     bool armed=false, airborne=false, received=false;
     std::string label;
@@ -103,6 +105,14 @@ void status() {
 }
 
 bool PazurCombatProbe::Handle(const std::vector<std::string>& args, const ActorMap& actors) {
+    if(args[0]=="combatmeleeafterhit") {
+        // One ordinary SDL tap after real enemy damage; no health editing or
+        // direct attack invocation. Avoid USB latency during the hurt window.
+        auto claw=g_pApp->GetGameLogic()->GetClawActor();
+        auto hp=MakeStrongPtr(claw->GetComponent<HealthComponent>());
+        meleeAfterHitHealth=hp->GetHealth();meleeAfterHitUntil=SDL_GetTicks()+3000;
+        SDL_Log("Pazur melee after hit: armed hp=%d",meleeAfterHitHealth);return true;
+    }
     if (args.empty()) return false;
     auto logic = g_pApp->GetGameLogic();
     // Virtual input must remain releasable in menus where no hero exists.
@@ -523,6 +533,18 @@ void PazurCombatProbe::Poll() {
         !g_pApp->GetGameLogic()) return;
     const bool playing=g_pApp->GetGameLogic()->IsRunning() &&
         g_pApp->GetGameLogic()->GetGameState()==GameState_IngameRunning;
+    if(meleeAfterHitUntil) {
+        if(!playing || (Sint32)(now-meleeAfterHitUntil)>=0)meleeAfterHitUntil=0;
+        else {
+            auto claw=g_pApp->GetGameLogic()->GetClawActor();
+            auto hp=MakeStrongPtr(claw->GetComponent<HealthComponent>());
+            if(hp->GetHealth()<=0)meleeAfterHitUntil=0;
+            else if(hp->GetHealth()<meleeAfterHitHealth) {
+                meleeAfterHitUntil=0;keyEvent(SDLK_LCTRL,true);heldKeys[SDLK_LCTRL]=now+100;
+                SDL_Log("Pazur melee after hit: sent hp=%d",hp->GetHealth());
+            }
+        }
+    }
     if(scheduledSwordAt) {
         if(!playing)scheduledSwordAt=0;
         else if((Sint32)(now-scheduledSwordAt)>=0) {

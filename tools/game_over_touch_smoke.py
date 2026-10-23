@@ -11,9 +11,11 @@ def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--report',default='game-over-touch')
     parser.add_argument('--cycles',type=int,default=1)
+    parser.add_argument('--powerup',action='store_true')
+    parser.add_argument('--rapid-taps',type=int,choices=range(1,9),default=1)
     parser.add_argument('--expect-blocked',action='store_true',help='Baseline reproduction, not a passing exit test')
     args=parser.parse_args()
-    report=PORT/'reports'/args.report;report.mkdir(parents=True,exist_ok=True)
+    report=PORT/'reports'/args.report;report.mkdir(parents=True,exist_ok=False)
     for name in ('combat-command.txt','combat-response.txt'):
         if subprocess.run(['adb','shell','test','-e',REMOTE+name],capture_output=True).returncode==0:
             raise RuntimeError('Existing diagnostic mailbox: '+name)
@@ -34,7 +36,7 @@ def main():
             adb('push',str(report/'SAVES.XML'),REMOTE+'SAVES.XML')
             for name in ('combat-command.txt','combat-response.txt'):adb('shell','rm','-f',REMOTE+name)
             adb('logcat','-c')
-            output=adb('shell','am','instrument','-w','-r','-e','scenario','game-over',
+            output=adb('shell','am','instrument','-w','-r','-e','scenario','game-over','-e','death_powerup',str(args.powerup).lower(),'-e','death_taps',str(args.rapid_taps),
                 'pl.pazur.port.test/pl.pazur.port.JumpTouchTest')
             (report/('instrumentation-'+str(cycle)+'.log')).write_text(output,encoding='utf-8')
             log=adb('logcat','-d','-s','SDL/APP','libc','AndroidRuntime')
@@ -46,7 +48,7 @@ def main():
             passed='INSTRUMENTATION_CODE: 0' in output and opened and exited!=args.expect_blocked
             passed=passed and 'Fatal signal' not in log and 'FATAL EXCEPTION' not in log
             row={'cycle':cycle,'game_over_opened':opened,'returned_to_menu':exited,
-                'baseline_block_expected':args.expect_blocked,'expectation_met':passed}
+                'baseline_block_expected':args.expect_blocked,'expectation_met':passed,'powerup_active_before_death':args.powerup,'requested_taps':args.rapid_taps}
             rows.append(row);print(json.dumps(row),flush=True)
             assert passed,'See screenshots and native log'
     finally:

@@ -101,7 +101,7 @@ inline std::string Label(const std::string& name,const std::string& path) {
         :PazurUi::Text("PORT ANDROID\nKod i testy: OpenAI Codex (LLM)\nWymagania i uwagi: człowiek\n\nSilnik i port: GPL 3\nBiblioteki: własne licencje\n\nClaw: Monolith Productions\nDane gry zachowują prawa autorów\nGracz dostarcza własne dane\n\nPlansze autorstwa: Codex",
             "ANDROID PORT\nCode and tests: OpenAI Codex (LLM)\nRequirements and feedback: human\n\nEngine and port: GPL 3\nLibraries retain their licenses\n\nClaw: Monolith Productions\nGame data remains copyrighted\nPlayer supplies their own data\n\nCredit cards: Codex");
     if(name=="MAIN_MENU_TEXT")return path.find("GAMEOVER")!=std::string::npos
-        ?PazurUi::Text("Koniec gry\nDotknij, aby wrócić","Game Over\nTap to return")
+        ?PazurUi::Text("Koniec gry\nDotknij ekranu: menu główne","Game Over\nTap screen: main menu")
         :PazurUi::Text("Menu główne","Main menu");
     if(name.find("_LOAD_CHECKPOINT_1_BUTTON")!=std::string::npos)return PazurUi::Text("Punkt kontrolny 1","Checkpoint 1");
     if(name.find("_LOAD_CHECKPOINT_2_BUTTON")!=std::string::npos)return PazurUi::Text("Punkt kontrolny 2","Checkpoint 2");

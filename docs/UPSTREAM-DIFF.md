@@ -1,5 +1,7 @@
 # Co wykonano ponad OpenClaw
 
+0.4.29 dodaje do zmian Androida pamięć przygotowanej muzyki (do trzech utworów), obsługę kierunków na tekstowym menu i bufor jednego ataku podczas animacji trafienia (do 400 ms). Bufor jest świadomym udogodnieniem portu, nie potwierdzonym zachowaniem Monolith. [Odtworzenia i testy](validation/USER-REGRESSIONS-0.4.29.md).
+
 [English](UPSTREAM-DIFF.en.md)
 
 Aktualizacja 0.4.18: menu i pomoc mają własne napisy PL/EN renderowane czcionką telefonu; import danych odzyskuje się po przerwaniu, każda ścieżka startu przygotowuje dane, a zapisy punktów kontrolnych i końca poziomu są publikowane atomowo. Dodano rzeczywiste próby emulatora 16 KB i czystego budowania źródeł. [Menu](validation/MENU-LANGUAGE-0.4.16.md), [start](validation/STARTUP-0.4.17.md), [zapis i dowody](validation/ATOMIC-PROGRESS-0.4.18.md).

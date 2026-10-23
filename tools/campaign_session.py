@@ -211,6 +211,7 @@ class CampaignSession:
             adb('shell','am','force-stop','pl.pazur.port')
             for remote,local in [('config.xml','config.original.xml'),('SAVES.XML','saves.original.xml')]:
                 adb('push',str(self.report/local),REMOTE+remote)
+                assert subprocess.check_output(['adb','exec-out','cat',REMOTE+remote])==(self.report/local).read_bytes(),'Restore mismatch: '+remote
             if self.support_backed_up:adb('push',str(self.report/'support.original.zip'),REMOTE+'ASSETS.ZIP')
             for name in ('combat-command.txt','combat-response.txt','combat-command.tmp','campaign-test.png'):
                 adb('shell','rm','-f',REMOTE+name)

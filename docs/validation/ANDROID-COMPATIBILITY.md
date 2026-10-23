@@ -1,5 +1,7 @@
 # Android compatibility / Zgodność z Androidem
 
+**Latest code 0.4.29:** [Huawei-only regression evidence](USER-REGRESSIONS-0.4.29.md). Native code changed; the 0.4.27 matrix below is historical evidence for its own artifacts. Redmi was not queried or updated. / Najnowszy kod zmieniono i sprawdzono na Huawei; wcześniejsza macierz nie jest certyfikacją nowego APK na innych Androidach.
+
 ## Bieżący stan / Current status — 0.4.27, 2026-10-23
 
 Opracował OpenAI Codex (LLM). Nie deklarujemy zgodności ze wszystkimi Androidami.

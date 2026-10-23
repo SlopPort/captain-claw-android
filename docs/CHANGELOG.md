@@ -1,5 +1,20 @@
 # Historia adaptacji
 
+## 0.4.29 — pauza, bonus, koniec gry i krótkie ataki
+
+Start działa także przy własnym przypisaniu pauzy. Przygotowanie muzyki poziomu
+oraz bonusu odbywa się przy wczytywaniu, z pamięcią do trzech utworów. Usunięto
+odtworzoną asercję po ruchu pada na tekstowym ekranie końca gry; komunikat opisuje
+powrót do menu. Jeden krótki atak podczas trafienia może czekać do 400 ms na
+zakończenie animacji. To udogodnienie portu, bez zmiany hitboxów i odporności,
+nie deklaracja zgodności z oryginałem. [Dokładne próby Huawei](validation/USER-REGRESSIONS-0.4.29.md).
+0.4.28 był lokalną paczką pośrednią do odtworzeń; Redmi nie był używany.
+
+Raw Start remains a pause/menu fallback, music prewarming removes measured pickup
+loading work, and text-only menu navigation no longer aborts or searches forever.
+One melee tap during hurt is buffered for at most 400 ms and cleared on death.
+Exact final APK evidence is Huawei-only; no campaign or physical-pad certification.
+
 ## 0.4.27 — cykl życia eksportu i walidacja zapisów
 
 Naprawiono odtworzoną BadTokenException po zamknięciu ekranu eksportu oraz

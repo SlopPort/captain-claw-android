@@ -1,6 +1,8 @@
 # Handoff / Przekazanie projektu
 
-**Current / Bieżące 0.4.27:** [safety and compatibility / poprawki i zgodność](validation/READINESS-0.4.27.md), [signed runtime / podpisane APK](validation/RELEASE-0.4.27.md), [45 active variants / 45 aktywnych wariantów](validation/ACTIVE-NORMAL-0.4.26.md). Main apps remain ARM64 debug; isolated releasecheck apps were removed. Keys and password stay private. Natural campaign and physical pads remain outside this batch.
+**Latest / Najnowsze 0.4.29, 2026-10-23:** [user-regression report / zgłoszenia](validation/USER-REGRESSIONS-0.4.29.md). Huawei only; Redmi is allocated to another task and must not be queried/updated. Preserve Huawei USB internet and never restart the shared ADB server. Current user scope explicitly includes controller pause and reported combat/death bugs; earlier general pad deferral does not exclude these new reports. Main Huawei is ARM64 debug29; Redmi was left at its previous version. Human retains natural campaign QA. / Aktualny zakres obejmuje pauzę padem, walkę i zgłoszoną awarię, ale nie samodzielne przechodzenie kampanii.
+
+**Earlier / Wcześniejsze 0.4.27:** [safety and compatibility / poprawki i zgodność](validation/READINESS-0.4.27.md), [signed runtime / podpisane APK](validation/RELEASE-0.4.27.md), [45 active variants / 45 aktywnych wariantów](validation/ACTIVE-NORMAL-0.4.26.md). Main apps remain ARM64 debug; isolated releasecheck apps were removed. Keys and password stay private. Natural campaign and physical pads remain outside this batch.
 
 Updated / Aktualizacja: 2026-10-23. Adaptation work: OpenAI Codex (LLM), guided
 by human requirements and device feedback. Upstream OpenClaw authorship is separate.
@@ -25,7 +27,7 @@ zgłoszenia użytkownika zapisuj z wersją APK, poziomem i sposobem odtworzenia.
 
 ## English
 
-**0.4.27-dev is not release 1.0. No complete natural campaign clear exists.**
+**0.4.29-dev is not release 1.0. No complete natural campaign clear exists.**
 Six further retries did not extend the natural route; see
 [retained failures and driver limitations](validation/CAMPAIGN-RETRIES-0.4.24.md).
 Do not replay the old route blindly after knockback or a missed landing.

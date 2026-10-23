@@ -604,12 +604,11 @@ index eba8809..834d82f 100644
          Point contactPoint;
          if (SDL_IntersectRect(&areaDamageAABB, &actorAABB, &impactRect))
 diff --git a/OpenClaw/Engine/Actor/Components/ControllableComponent.cpp b/OpenClaw/Engine/Actor/Components/ControllableComponent.cpp
-index a131374..52dc51f 100644
+index a131374..61143ca 100644
 --- a/OpenClaw/Engine/Actor/Components/ControllableComponent.cpp
 +++ b/OpenClaw/Engine/Actor/Components/ControllableComponent.cpp
 @@ -1,4 +1,7 @@
--#include "ControllableComponent.h"
-+#include "ControllableComponent.h"
+ #include "ControllableComponent.h"
 +#ifdef __ANDROID__
 +#include "HapticFeedback.h"
 +#endif
@@ -652,12 +651,10 @@ index a131374..52dc51f 100644
      if (m_State == ClawState_JumpShooting ||
          m_State == ClawState_JumpAttacking)
      {
-@@ -395,7 +406,12 @@ void ClawControllableComponent::VOnStartFalling()
- }
+@@ -396,6 +407,11 @@ void ClawControllableComponent::VOnStartFalling()
  
  void ClawControllableComponent::VOnLandOnGround(float fromHeight)
--{
-+{
+ {
 +#ifdef __ANDROID__
 +    if(m_State!=ClawState_Dying)PazurHaptics::Trigger(PazurHaptics::Landing);
 +#endif
@@ -675,12 +672,10 @@ index a131374..52dc51f 100644
      if (m_State == ClawState_JumpShooting ||
          m_State == ClawState_JumpAttacking ||
          m_bFrozen)
-@@ -423,7 +441,10 @@ void ClawControllableComponent::VOnStartJumping()
-     }
+@@ -424,6 +442,9 @@ void ClawControllableComponent::VOnStartJumping()
  
      m_pClawAnimationComponent->SetAnimation("jump");
--    m_State = ClawState_Jumping;
-+    m_State = ClawState_Jumping;
+     m_State = ClawState_Jumping;
 +#ifdef __ANDROID__
 +    PazurHaptics::Trigger(PazurHaptics::Jump);
 +#endif
@@ -714,7 +709,7 @@ index a131374..52dc51f 100644
      // TODO: Decide whether to keep it
      static bool useAlternativeClimbAnim = true;
      if (bIsOnTopEdge && useAlternativeClimbAnim)
-@@ -502,6 +529,8 @@ void ClawControllableComponent::VOnClimb(bool bIsClimbingUp, bool bIsOnTopEdge)
+@@ -502,11 +529,24 @@ void ClawControllableComponent::VOnClimb(bool bIsClimbingUp, bool bIsOnTopEdge)
  
  void ClawControllableComponent::VOnStopClimbing()
  {
@@ -723,7 +718,23 @@ index a131374..52dc51f 100644
      m_pClawAnimationComponent->PauseAnimation();
  }
  
-@@ -759,6 +788,8 @@ bool ClawControllableComponent::IsActorFrozen()
+ void ClawControllableComponent::OnAttack()
+ {
++#ifdef __ANDROID__
++    if(m_State==ClawState_TakingDamage) {
++        // Preserve one deliberate tap until recovery; do not attack during
++        // stagger, enlarge hitboxes or change damage/invulnerability timing.
++        m_AttackAfterDamageUntil=SDL_GetTicks()+400;
++        if(g_pApp->GetDebugOptions()->bPreviewIncompleteLevel14)
++            SDL_Log("Pazur melee buffer: queued during hurt");
++        return;
++    }
++    m_AttackAfterDamageUntil=0;
++#endif
+     if (IsAttackingOrShooting() ||
+         m_State == ClawState_Climbing ||
+         m_State == ClawState_TakingDamage ||
+@@ -759,6 +799,8 @@ bool ClawControllableComponent::IsActorFrozen()
  
  void ClawControllableComponent::SetCurrentPhysicsState()
  {
@@ -732,7 +743,7 @@ index a131374..52dc51f 100644
      if (m_pPhysicsComponent->IsFalling())
      {
          m_pClawAnimationComponent->SetAnimation("fall");
-@@ -981,6 +1012,7 @@ void ClawControllableComponent::VOnAnimationLooped(Animation* pAnimation)
+@@ -981,6 +1023,7 @@ void ClawControllableComponent::VOnAnimationLooped(Animation* pAnimation)
              pClawLifeComponent->GetLives() - 1));
          IEventMgr::Get()->VTriggerEvent(pEvent);
  
@@ -740,7 +751,34 @@ index a131374..52dc51f 100644
          SetCurrentPhysicsState();
          m_pPhysicsComponent->RestoreGravityScale();
          m_pRenderComponent->SetVisible(true);
-@@ -1136,6 +1168,8 @@ bool ClawControllableComponent::IsDucking()
+@@ -989,6 +1032,15 @@ void ClawControllableComponent::VOnAnimationLooped(Animation* pAnimation)
+              animName == "damage2")
+     {
+         SetCurrentPhysicsState();
++#ifdef __ANDROID__
++        const auto pending=m_AttackAfterDamageUntil;
++        m_AttackAfterDamageUntil=0;
++        if(pending && (Sint32)(SDL_GetTicks()-pending)<0) {
++            if(g_pApp->GetDebugOptions()->bPreviewIncompleteLevel14)
++                SDL_Log("Pazur melee buffer: consumed after hurt");
++            OnAttack();
++        }
++#endif
+     }
+     else if (animName == "land")
+     {
+@@ -1013,6 +1065,10 @@ bool ClawControllableComponent::IsAttackingOrShooting()
+ 
+ void ClawControllableComponent::VOnHealthBelowZero(DamageType damageType, int sourceActorId)
+ {
++#ifdef __ANDROID__
++    m_AttackAfterDamageUntil=0;
++#endif
++
+     if (m_State == ClawState_Dying)
+     {
+         return;
+@@ -1136,6 +1192,8 @@ bool ClawControllableComponent::IsDucking()
  
  void ClawControllableComponent::OnDuck()
  {
@@ -749,7 +787,7 @@ index a131374..52dc51f 100644
      if (!IsDucking())
      {
          m_pClawAnimationComponent->SetAnimation("duck");
-@@ -1145,6 +1179,8 @@ void ClawControllableComponent::OnDuck()
+@@ -1145,6 +1203,8 @@ void ClawControllableComponent::OnDuck()
  
  void ClawControllableComponent::OnStand()
  {
@@ -758,6 +796,22 @@ index a131374..52dc51f 100644
      m_State = ClawState_Standing;
      SetCurrentPhysicsState();
  }
+diff --git a/OpenClaw/Engine/Actor/Components/ControllableComponent.h b/OpenClaw/Engine/Actor/Components/ControllableComponent.h
+index 22c0852..2778cc4 100644
+--- a/OpenClaw/Engine/Actor/Components/ControllableComponent.h
++++ b/OpenClaw/Engine/Actor/Components/ControllableComponent.h
+@@ -175,6 +175,11 @@ private:
+ 
+     bool m_bIsInBossFight;
+ 
++#ifdef __ANDROID__
++    // One short melee tap may arrive during the ~350 ms hurt animation.
++    // Expire in wall-clock time so pausing never stores a future surprise hit.
++    uint32 m_AttackAfterDamageUntil = 0;
++#endif
+     int m_TakeDamageDuration;
+     int m_TakeDamageTimeLeftMs;
+ 
 diff --git a/OpenClaw/Engine/Actor/Components/ControllerComponents/HealthComponent.cpp b/OpenClaw/Engine/Actor/Components/ControllerComponents/HealthComponent.cpp
 index a0cfe72..fcf5cd8 100644
 --- a/OpenClaw/Engine/Actor/Components/ControllerComponents/HealthComponent.cpp
@@ -1686,7 +1740,7 @@ index 4619a3b..5b7fd9c 100644
      std::string m_ClawDialogSound;
      std::string m_BossDialogSound;
 diff --git a/OpenClaw/Engine/Audio/Audio.cpp b/OpenClaw/Engine/Audio/Audio.cpp
-index 97c8d19..de1c1d1 100644
+index 97c8d19..1c20377 100644
 --- a/OpenClaw/Engine/Audio/Audio.cpp
 +++ b/OpenClaw/Engine/Audio/Audio.cpp
 @@ -1,8 +1,12 @@
@@ -1744,13 +1798,15 @@ index 97c8d19..de1c1d1 100644
  
      int reservedChannels = Mix_ReserveChannels(16);
  #ifndef __EMSCRIPTEN__
-@@ -107,6 +132,13 @@ bool Audio::Initialize(const GameOptions& config)
+@@ -107,6 +132,15 @@ bool Audio::Initialize(const GameOptions& config)
  
  void Audio::Terminate()
  {
 +#ifdef __ANDROID__
 +    if (m_bIsAudioInitialized) {
 +        StopAllSounds();
++        for(auto& song:m_AndroidPreparedMusic)Mix_FreeMusic(song.second);
++        m_AndroidPreparedMusic.clear();
 +        Mix_CloseAudio();
 +        m_bIsAudioInitialized = false;
 +    }
@@ -1758,23 +1814,45 @@ index 97c8d19..de1c1d1 100644
  #ifdef _WIN32
      TerminateMidiRPC();
  #endif //_WIN32
-@@ -179,11 +211,37 @@ static int SetupPlayMusicThread(void* pData)
+@@ -177,13 +211,60 @@ static int SetupPlayMusicThread(void* pData)
+     return 0;
+ }
  
++#ifdef __ANDROID__
++bool Audio::PrepareMusic(const char* musicData, size_t musicSize)
++{
++    const std::string bytes(musicData,musicSize);
++    if(m_AndroidPreparedMusic.count(bytes))return true;
++    // Never free the song used by the audio callback. Eviction and preparation
++    // run only on the game thread; halt precedes any active-song replacement.
++    if(m_AndroidPreparedMusic.size()>=3) {
++        for(auto it=m_AndroidPreparedMusic.begin();it!=m_AndroidPreparedMusic.end();++it) {
++            if(it->second!=m_AndroidMusic) {
++                Mix_FreeMusic(it->second);m_AndroidPreparedMusic.erase(it);break;
++            }
++        }
++    }
++    const auto started=SDL_GetTicks();
++    auto entry=m_AndroidPreparedMusic.emplace(bytes,nullptr).first;
++    SDL_RWops* input=SDL_RWFromConstMem(entry->first.data(),entry->first.size());
++    if(input)entry->second=Mix_LoadMUS_RW(input,1);
++    if(!entry->second) {
++        LOG_ERROR("MIDI preparation failed: "+std::string(Mix_GetError()));
++        m_AndroidPreparedMusic.erase(entry);return false;
++    }
++    SDL_Log("Pazur MIDI prepare: bytes=%u elapsed=%u ms cached=%u",
++        unsigned(musicSize),unsigned(SDL_GetTicks()-started),unsigned(m_AndroidPreparedMusic.size()));
++    return true;
++}
++#endif
++
  void Audio::PlayMusic(const char* musicData, size_t musicSize, bool looping)
  {
 +#ifdef __ANDROID__
-+    // Own both the song and its input until playback is stopped. Keeping this
-+    // on the game thread also serializes level changes and music replacement.
++    const auto started=SDL_GetTicks();
 +    StopMusic();
-+    m_AndroidMusicBytes.assign(musicData, musicData + musicSize);
-+    SDL_RWops* input = SDL_RWFromConstMem(m_AndroidMusicBytes.data(), m_AndroidMusicBytes.size());
-+    if (!input) return;
-+    m_AndroidMusic = Mix_LoadMUS_RW(input, 1);
-+    if (!m_AndroidMusic) {
-+        LOG_ERROR("MIDI load failed: " + std::string(Mix_GetError()));
-+        m_AndroidMusicBytes.clear();
-+        return;
-+    }
++    if(!PrepareMusic(musicData,musicSize))return;
++    m_AndroidMusic=m_AndroidPreparedMusic.at(std::string(musicData,musicSize));
 +    Mix_VolumeMusic(m_MusicVolume);
 +    s_MusicOutputPending = true;
 +    if (Mix_PlayMusic(m_AndroidMusic, looping ? -1 : 0) != 0) {
@@ -1785,6 +1863,7 @@ index 97c8d19..de1c1d1 100644
 +    if (!m_bMusicOn) Mix_PauseMusic();
 +    SDL_Log("Pazur MIDI: loaded %u bytes, playing=%d paused=%d",
 +        unsigned(musicSize), Mix_PlayingMusic(), Mix_PausedMusic());
++    SDL_Log("Pazur MIDI switch: elapsed=%u ms",unsigned(SDL_GetTicks()-started));
 +#else
 +    if (!m_bMusicOn) return;
      _MusicInfo* pMusicInfo = new _MusicInfo(musicData, musicSize, looping, m_bMusicOn ? m_MusicVolume : -1);
@@ -1796,22 +1875,20 @@ index 97c8d19..de1c1d1 100644
  }
  
  void Audio::PauseMusic()
-@@ -223,6 +281,14 @@ void Audio::ResumeMusic()
+@@ -223,6 +304,12 @@ void Audio::ResumeMusic()
  
  void Audio::StopMusic()
  {
 +#ifdef __ANDROID__
 +    Mix_HaltMusic();
-+    if (m_AndroidMusic) {
-+        Mix_FreeMusic(m_AndroidMusic);
-+        m_AndroidMusic = nullptr;
-+    }
-+    m_AndroidMusicBytes.clear();
++    // Keep at most three prepared tracks, including level/powerup music, so
++    // acquiring or losing Catnip does not reload its instrument samples.
++    m_AndroidMusic = nullptr;
 +#else
  #ifdef _WIN32
      RpcTryExcept
      {
-@@ -236,6 +302,7 @@ void Audio::StopMusic()
+@@ -236,6 +323,7 @@ void Audio::StopMusic()
  #else
      Mix_HaltMusic();
  #endif //_WIN32
@@ -1819,7 +1896,7 @@ index 97c8d19..de1c1d1 100644
  }
  
  void Audio::SetMusicVolume(int volumePercentage)
-@@ -270,6 +337,7 @@ int Audio::GetMusicVolume()
+@@ -270,6 +358,7 @@ int Audio::GetMusicVolume()
  
  bool Audio::PlaySound(const char* soundData, size_t soundSize, const SoundProperties& soundProperties)
  {
@@ -1827,7 +1904,7 @@ index 97c8d19..de1c1d1 100644
      SDL_RWops* soundRwOps = SDL_RWFromMem((void*)soundData, soundSize);
      Mix_Chunk* soundChunk = Mix_LoadWAV_RW(soundRwOps, 1);
  
-@@ -278,6 +346,7 @@ bool Audio::PlaySound(const char* soundData, size_t soundSize, const SoundProper
+@@ -278,6 +367,7 @@ bool Audio::PlaySound(const char* soundData, size_t soundSize, const SoundProper
  
  bool Audio::PlaySound(Mix_Chunk* sound, const SoundProperties& soundProperties)
  {
@@ -1836,24 +1913,37 @@ index 97c8d19..de1c1d1 100644
      int chunkVolume = (int)((((float)soundProperties.volume) / 100.0f) * (float)m_SoundVolume);
  
 diff --git a/OpenClaw/Engine/Audio/Audio.h b/OpenClaw/Engine/Audio/Audio.h
-index d12e28d..186fb90 100644
+index d12e28d..3d5319e 100644
 --- a/OpenClaw/Engine/Audio/Audio.h
 +++ b/OpenClaw/Engine/Audio/Audio.h
-@@ -2,6 +2,7 @@
+@@ -2,6 +2,8 @@
  #define AUDIO_H_
  
  #include <stdint.h>
 +#include <vector>
++#include <map>
  #include <SDL2/SDL_mixer.h>
  
  #include "../GameApp/BaseGameApp.h"
-@@ -58,6 +59,10 @@ private:
+@@ -20,6 +22,11 @@ public:
+     void SetSoundVolume(int volumePercentage); 
+ 
+     void PlayMusic(const char* musicData, size_t musicSize, bool looping);
++#ifdef __ANDROID__
++    // Prepare at level load, before input/simulation resumes. Bounded to three
++    // songs; immutable map keys own the bytes referenced by SDL_mixer.
++    bool PrepareMusic(const char* musicData, size_t musicSize);
++#endif
+     void PauseMusic();
+     void ResumeMusic();
+     void StopMusic();
+@@ -58,6 +65,10 @@ private:
      int m_MusicVolume;
      bool m_bSoundOn;
      bool m_bMusicOn;
 +#ifdef __ANDROID__
 +    Mix_Music* m_AndroidMusic = nullptr;
-+    std::vector<char> m_AndroidMusicBytes;
++    std::map<std::string, Mix_Music*> m_AndroidPreparedMusic;
 +#endif
  };
  
@@ -2805,7 +2895,7 @@ index 8042f57..6b94448 100644
  
      if (!extraData)
 diff --git a/OpenClaw/Engine/UserInterface/HumanView.cpp b/OpenClaw/Engine/UserInterface/HumanView.cpp
-index ec64d79..7807d01 100644
+index ec64d79..d3a79cc 100644
 --- a/OpenClaw/Engine/UserInterface/HumanView.cpp
 +++ b/OpenClaw/Engine/UserInterface/HumanView.cpp
 @@ -1,4 +1,10 @@
@@ -2830,7 +2920,23 @@ index ec64d79..7807d01 100644
          if (!m_bPostponeRenderPresent)
          {
              SDL_RenderPresent(renderer);
-@@ -443,7 +453,9 @@ void HumanView::AmmoUpdatedDelegate(IEventDataPtr pEventData)
+@@ -258,6 +268,15 @@ bool HumanView::LoadGame(TiXmlElement* pLevelXmlElem, LevelData* pLevelData)
+     m_CurrentLevelMusic = "/LEVEL" + ToStr(pLevelData->GetLevelNumber()) +
+         "/MUSIC/PLAY.XMI";
+ 
++#ifdef __ANDROID__
++    // TiMidity instrument loading otherwise blocks the first Catnip pickup.
++    // Warm both transition targets during level loading, preserving live audio.
++    for(const auto& path:{m_CurrentLevelMusic,std::string("/GAME/MUSIC/POWERUP.XMI")}) {
++        auto midi=MidiResourceLoader::LoadAndReturnMidiFile(path.c_str());
++        if(midi)g_pApp->GetAudio()->PrepareMusic(midi->data,midi->size);
++    }
++#endif
++
+     SoundInfo soundInfo(m_CurrentLevelMusic);
+     soundInfo.isMusic = true;
+     soundInfo.loops = -1;
+@@ -443,7 +462,9 @@ void HumanView::AmmoUpdatedDelegate(IEventDataPtr pEventData)
          { 
              m_pHUD->UpdateAmmo(pCastEventData->GetAmmoCount());
          }
@@ -2841,7 +2947,7 @@ index ec64d79..7807d01 100644
          {
              LOG_ERROR("Unknown ammo type: " + ToStr(pCastEventData->GetAmmoType()));
          }
-@@ -633,8 +645,17 @@ void HumanView::RequestPlaySoundDelegate(IEventDataPtr pEventData)
+@@ -633,8 +654,17 @@ void HumanView::RequestPlaySoundDelegate(IEventDataPtr pEventData)
              if (play)
              {
                  shared_ptr<Mix_Chunk> pSound = WavResourceLoader::LoadAndReturnSound(pSoundInfo->soundToPlay.c_str());
@@ -2861,7 +2967,7 @@ index ec64d79..7807d01 100644
              }
          }
      }
-@@ -825,6 +846,10 @@ void HumanView::ClawDiedDelegate(IEventDataPtr pEventData)
+@@ -825,6 +855,10 @@ void HumanView::ClawDiedDelegate(IEventDataPtr pEventData)
  
          shared_ptr<ScreenElementMenu> pGameOverMenu(new ScreenElementMenu(g_pApp->GetRenderer()));
          DO_AND_CHECK(pGameOverMenu->Initialize(pXmlGameOverMenuRoot));
@@ -2872,7 +2978,7 @@ index ec64d79..7807d01 100644
  
          m_ScreenElements.push_back(pGameOverMenu);
          pGameOverMenu->VSetVisible(true);
-@@ -1340,4 +1365,4 @@ void TeleportFadeInOutProcess::VRender(uint32 msDiff)
+@@ -1340,4 +1374,4 @@ void TeleportFadeInOutProcess::VRender(uint32 msDiff)
      SDL_DestroyTexture(pRightRectTexture);
  
      Util::RenderForcePresent(pRenderer);
@@ -2963,7 +3069,7 @@ index 49c7f1e..78d568c 100644
          customData.tap = tap;
          sdlEvent.user.code = type;
 diff --git a/OpenClaw/Engine/UserInterface/UserInterface.cpp b/OpenClaw/Engine/UserInterface/UserInterface.cpp
-index 9966337..64357d4 100644
+index 9966337..06d1c90 100644
 --- a/OpenClaw/Engine/UserInterface/UserInterface.cpp
 +++ b/OpenClaw/Engine/UserInterface/UserInterface.cpp
 @@ -11,6 +11,9 @@
@@ -3076,7 +3182,7 @@ index 9966337..64357d4 100644
      }
      else
      {
-@@ -696,28 +739,94 @@ void ScreenElementMenuPage::VOnRender(uint32 msDiff)
+@@ -696,28 +739,92 @@ void ScreenElementMenuPage::VOnRender(uint32 msDiff)
      {
          if (pMenuItem->VIsVisible())
          {
@@ -3150,10 +3256,12 @@ index 9966337..64357d4 100644
 +    if(HandleAudioTouch(evt))return true;
 +#endif
      int activeMenuItemIdx = GetActiveMenuItemIdx();
-     if (m_MenuItems.size() > 0)
-     {
-         assert(activeMenuItemIdx >= 0);
-     }
+-    if (m_MenuItems.size() > 0)
+-    {
+-        assert(activeMenuItemIdx >= 0);
+-    }
++    // A text-only page may legitimately have no active/focusable button.
++    // Its Enter/Escape keyboard actions must still work.
  
 -    // Cannot be switch-case since I have to check the "repeat" aswell
 +    // Repeat only navigation, never a confirmation or page-changing action.
@@ -3173,7 +3281,7 @@ index 9966337..64357d4 100644
          if (keyCode == SDL_SCANCODE_DOWN)
          {
              MoveToMenuItemIdx(activeMenuItemIdx, 1);
-@@ -765,14 +874,24 @@ bool ScreenElementMenuPage::VOnEvent(SDL_Event& evt)
+@@ -765,14 +872,24 @@ bool ScreenElementMenuPage::VOnEvent(SDL_Event& evt)
          if (evt.button.button == SDL_BUTTON_LEFT)
          {
              SDL_Rect clickRect;
@@ -3198,7 +3306,29 @@ index 9966337..64357d4 100644
                  if (SDL_HasIntersection(&clickRect, &itemRect))
                  {
                      if (pMenuItem->CanBeFocused())
-@@ -926,6 +1045,11 @@ bool ScreenElementMenuPage::MoveToMenuItemIdx(int oldIdx, int idxIncrement, bool
+@@ -896,6 +1013,9 @@ bool ScreenElementMenuPage::MoveToMenuItemIdx(int oldIdx, int idxIncrement, bool
+         return false;
+     }
+ 
++    bool hasDestination=false;
++    for(const auto& item:m_MenuItems)if(item->CanBeFocused()){hasDestination=true;break;}
++    if(!hasDestination)return false; // Keep text state intact across repeated directions.
+     DeactivateAllMenuItems();
+ 
+     // Moving up
+@@ -904,7 +1024,10 @@ bool ScreenElementMenuPage::MoveToMenuItemIdx(int oldIdx, int idxIncrement, bool
+ 
+     while (true)
+     {
+-        assert(tryCount <= (int)m_MenuItems.size() && "Could not find any button to switch focus to");
++        // Text-only Game Over pages have no focusable buttons. A held pad
++        // direction is harmless there; never abort debug or loop forever in
++        // release while searching for a destination that does not exist.
++        if (tryCount >= (int)m_MenuItems.size()) return false;
+ 
+         // At first button and we pressed "up" -> move to last button
+         if (buttonIdx < 0 && idxIncrement < 0)
+@@ -926,6 +1049,11 @@ bool ScreenElementMenuPage::MoveToMenuItemIdx(int oldIdx, int idxIncrement, bool
          tryCount++;
      }
  
@@ -3210,7 +3340,7 @@ index 9966337..64357d4 100644
      if (playSound)
      {
          // Play sound
-@@ -939,6 +1063,9 @@ bool ScreenElementMenuPage::MoveToMenuItemIdx(int oldIdx, int idxIncrement, bool
+@@ -939,6 +1067,9 @@ bool ScreenElementMenuPage::MoveToMenuItemIdx(int oldIdx, int idxIncrement, bool
  
  void ScreenElementMenuPage::OnPageLoaded()
  {
@@ -3220,7 +3350,7 @@ index 9966337..64357d4 100644
      // Focus on first active button
      MoveToMenuItemIdx(m_MenuItems.size() - 1, 1, false);
  }
-@@ -1042,6 +1169,9 @@ bool ScreenElementMenuItem::VOnEvent(SDL_Event& evt)
+@@ -1042,6 +1173,9 @@ bool ScreenElementMenuItem::VOnEvent(SDL_Event& evt)
  
  bool ScreenElementMenuItem::Initialize(TiXmlElement* pElem)
  {
@@ -3230,7 +3360,7 @@ index 9966337..64357d4 100644
      SetPointIfDefined(&m_Position, pElem->FirstChildElement("Position"), "x", "y");
      SetPointIfDefined(&m_DefaultPosition, pElem->FirstChildElement("Position"), "x", "y");
      ParseValueFromXmlElem(&m_Name, pElem->FirstChildElement("Name"));
-@@ -1138,14 +1268,23 @@ bool ScreenElementMenuItem::Initialize(TiXmlElement* pElem)
+@@ -1138,14 +1272,23 @@ bool ScreenElementMenuItem::Initialize(TiXmlElement* pElem)
  
      if (shared_ptr<Image> pImage = LoadImageFromXmlElement(pElem->FirstChildElement("DisabledImage")))
      {
@@ -3254,7 +3384,7 @@ index 9966337..64357d4 100644
          m_Images.insert(std::make_pair(MenuItemState_Active, pImage));
      }
  
-@@ -1274,6 +1413,44 @@ bool ScreenElementMenuItem::Initialize(TiXmlElement* pElem)
+@@ -1274,6 +1417,44 @@ bool ScreenElementMenuItem::Initialize(TiXmlElement* pElem)
          return false;
      }
  
@@ -3299,7 +3429,7 @@ index 9966337..64357d4 100644
      return true;
  }
  
-@@ -1305,6 +1482,11 @@ bool ScreenElementMenuItem::Press()
+@@ -1305,6 +1486,11 @@ bool ScreenElementMenuItem::Press()
  
  bool ScreenElementMenuItem::SetState(MenuItemState state)
  {
@@ -3311,7 +3441,7 @@ index 9966337..64357d4 100644
      if (m_Images.find(state) != m_Images.end())
      {
          if (state != m_State)
-@@ -1380,4 +1562,4 @@ SDL_Rect ScreenElementMenuItem::GetMenuItemRect()
+@@ -1380,4 +1566,4 @@ SDL_Rect ScreenElementMenuItem::GetMenuItemRect()
      itemRect.h = itemHeight;
  
      return itemRect;

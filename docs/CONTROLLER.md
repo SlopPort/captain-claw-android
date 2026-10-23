@@ -1,5 +1,7 @@
 # Przypisanie przycisków / Controller bindings
 
+Od 0.4.29 fizyczny Start (Android BUTTON_START) pozostaje przyciskiem pauzy/menu także przy własnym mapowaniu. Nie przypisuj mu innej akcji w grze. Fizyczne nadruki zależą od trybu pada. / Since 0.4.29 Android BUTTON_START remains a pause/menu fallback alongside custom bindings; reserve it for menu use. Printed labels depend on controller mode. [Regression evidence](validation/USER-REGRESSIONS-0.4.29.md).
+
 ## Polski
 
 1. Połącz pada w ustawieniach Androida i otwórz grę. GameSir Nova 2 Lite został sparowany na testowym Huawei w czerwonym trybie jako Pro Controller. Inne tryby i telefony mogą zgłaszać inne nazwy przycisków.

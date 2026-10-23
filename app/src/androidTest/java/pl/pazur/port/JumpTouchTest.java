@@ -17,6 +17,8 @@ public class JumpTouchTest extends Instrumentation {
     private Activity game;
     private boolean baseline;
     private boolean gameOver;
+    private boolean deathWithPowerup;
+    private int gameOverTaps=1;
     private boolean score;
     private boolean directActivity;
     private long down;
@@ -28,6 +30,8 @@ public class JumpTouchTest extends Instrumentation {
         super.onCreate(args);
         baseline="baseline".equals(args.getString("layout"));
         gameOver="game-over".equals(args.getString("scenario"));
+        deathWithPowerup="true".equals(args.getString("death_powerup"));
+        gameOverTaps=Math.max(1,Math.min(8,Integer.parseInt(args.getString("death_taps","1"))));
         score="score".equals(args.getString("scenario"));
         directActivity="true".equals(args.getString("direct_activity"));
         start();
@@ -131,13 +135,17 @@ public class JumpTouchTest extends Instrumentation {
                 finish(0,result);return;
             }
             if(gameOver) {
+                if(deathWithPowerup){command("catnip");SystemClock.sleep(500);}
                 command("combatlastlife");
                 SystemClock.sleep(4500);
                 screenshot("game-over-before.png");
-                down=SystemClock.uptimeMillis();
-                single(MotionEvent.ACTION_DOWN,logicalWidth/2,240);
-                SystemClock.sleep(80);
-                single(MotionEvent.ACTION_UP,logicalWidth/2,240);
+                for(int tap=0;tap<gameOverTaps;tap++) {
+                    down=SystemClock.uptimeMillis();
+                    single(MotionEvent.ACTION_DOWN,logicalWidth/2,240);
+                    SystemClock.sleep(30);
+                    single(MotionEvent.ACTION_UP,logicalWidth/2,240);
+                    SystemClock.sleep(30);
+                }
                 // Returning to Main initializes its pages/textures. This is a
                 // functional exit check, not a 1.5-second load-time assertion.
                 SystemClock.sleep(8000);
