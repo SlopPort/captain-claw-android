@@ -6,6 +6,12 @@ by human requirements and device feedback. Upstream OpenClaw authorship is separ
 ## English
 
 **0.4.24-dev is not release 1.0. No complete natural campaign clear exists.**
+Six further retries did not extend the natural route; see
+[retained failures and driver limitations](validation/CAMPAIGN-RETRIES-0.4.24.md).
+Do not replay the old route blindly after knockback or a missed landing.
+The experimental first-carrier helper has no device pass yet. All owners ended;
+the final Huawei configuration/save comparison passed. [Game-data language
+research and current limits](GAME-LANGUAGE.md) distinguish English UI from voices.
 Start with [contributing](../CONTRIBUTING.en.md), [build](BUILDING.en.md),
 [installation](INSTALL-EN.md), [release gates](ROADMAP-1.0.md), and
 [upstream differences](UPSTREAM-DIFF.md). The last document is currently Polish.

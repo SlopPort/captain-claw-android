@@ -11,7 +11,7 @@ To wersja testowa. Od 0.4.8 potrzebujesz telefonu z Androidem, APK tego portu i 
 3. Dotknij **Wybierz dane gry** i wskaż **CLAW.REZ**. Poczekaj; gra uruchomi się sama. Nie potrzebujesz Pythona ani przygotowania ZIP.
 4. Przy kolejnych uruchomieniach dane są już w aplikacji.
 
-Język wybierzesz przed importem lub w grze przez **PAD → Język / Language**. Dostępne są Polski i English. Ekrany Androida zmieniają język od razu; uruchom grę ponownie, aby zmienić menu i napisy w grze. Od 0.4.16 menu i pomoc mają własne polskie i angielskie napisy. Głosy, tła i oryginalne obrazki podsumowania nadal pochodzą z Twoich danych gry.
+Język wybierzesz przed importem lub w grze przez **PAD → Język / Language**. Dostępne są Polski i English. Ekrany Androida zmieniają język od razu; uruchom grę ponownie, aby zmienić menu i napisy w grze. Od 0.4.16 menu i pomoc mają własne polskie i angielskie napisy. Głosy, tła i oryginalne obrazki podsumowania nadal pochodzą z Twoich danych gry. [Angielski dubbing i ograniczenia wyboru języka](GAME-LANGUAGE.md).
 
 Pomysł bezpośredniego REZ pochodzi z Claw Web (Arthur Boss i współtwórcy); implementacja Androida i walidacja są lokalną adaptacją. Oryginalne grafiki gry nadal pochodzą wyłącznie z Twojego REZ. Jeśli Twoja polska instalacja ma dodatkowy folder `Assets`, paczka ZIP przygotowana poniższym narzędziem uwzględni także te zasoby. Bezpośredni REZ używa zawartości samego archiwum.
 
