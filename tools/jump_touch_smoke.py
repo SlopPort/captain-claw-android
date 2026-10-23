@@ -1,11 +1,11 @@
 """Measure real app-local touch latency and jump height; restore user files and display."""
 from pathlib import Path
 import argparse
-import hashlib
 import json
 import re
 import subprocess
 import xml.etree.ElementTree as ET
+from android_package import installed_apk_sha256
 
 PORT=Path(__file__).resolve().parents[1]
 REMOTE='/sdcard/Android/data/pl.pazur.port/files/'
@@ -46,7 +46,7 @@ try:
           for n,q,t,h,d,j in re.findall(pattern,log)]
     assert len(rows)==6,rows
     result={'baseline':args.baseline,'size':args.size or 'physical','cases':rows,
-        'apk_sha256':hashlib.file_digest((PORT/'app/build/outputs/apk/debug/app-debug.apk').open('rb'),'sha256').hexdigest()}
+        'apk_sha256':installed_apk_sha256()}
     # Preserve measurements even when a slower device fails the latency threshold.
     result['passed']=False
     (REPORT/'results.json').write_text(json.dumps(result,indent=2),encoding='utf-8')

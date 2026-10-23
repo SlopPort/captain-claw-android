@@ -2,7 +2,7 @@
 
 [English README](README.en.md)
 
-Natywna adaptacja [OpenClaw](https://github.com/pjasicek/OpenClaw) na Androida, z danymi dostarczanymi przez użytkownika. Silnik C++/SDL dla ARM64 i ARMv7, minimum API 21. Aktualna wersja rozwojowa: **0.4.24-dev**. Pełne wydanie 1.0 pozostaje w przygotowaniu.
+Natywna adaptacja [OpenClaw](https://github.com/pjasicek/OpenClaw) na Androida, z danymi dostarczanymi przez użytkownika. Silnik C++/SDL dla ARM64 i ARMv7, minimum API 21. Aktualna wersja rozwojowa: **0.4.25-dev**. Pełne wydanie 1.0 pozostaje w przygotowaniu.
 
 **[Droga do 1.0 — po polsku i angielsku](docs/ROADMAP-1.0.md)** rozdziela wykonane prace, warunki wydania i potrzebne testy. Ostatnie poprawki zabezpieczają zapisy punktów kontrolnych i ukończenia poziomu oraz bezpośrednie wznowienie gry przez Androida. [Wyniki 0.4.18 i czyste budowanie](docs/validation/ATOMIC-PROGRESS-0.4.18.md), [start 0.4.17](docs/validation/STARTUP-0.4.17.md), [20 minut ciężkiej sceny](docs/validation/SUSTAINED-0.4.15.md).
 

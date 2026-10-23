@@ -45,4 +45,5 @@
     <string name="import_recovering">Checking game data…</string>
     <string name="import_recovery_error">"Cannot recover an interrupted import. Your backup has been kept. Free some storage and retry. Details: "</string>
     <string name="import_config_error">Invalid configuration in the game-data package.</string>
+    <string name="save_tools_credit">Inspired by Claw Web — Arthur Boss and contributors (GPLv3). Android adaptation: OpenAI Codex / LLM.</string>
 </resources>

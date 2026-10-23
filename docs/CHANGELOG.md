@@ -1,5 +1,22 @@
 # Historia adaptacji
 
+## 0.4.25 — dostępność ekranów i przygotowanie wydania
+
+Własna ikona bez grafik oryginalnej gry, informacja o autorach narzędzi zapisów
+w PL/EN oraz przewijanie tego ekranu. Brak dostępu do dolnego przycisku odtworzono
+na małym emulatorze z czcionką 200%; po poprawce próba obu języków przeszła.
+Jawne wyłączenie automatycznych kopii i transferu danych również dla nowszych
+Androidów; ręczny eksport zapisów pozostaje dostępny. Diagnostyka dotyku odczytuje
+sumę APK z urządzenia. Bounded retries of explicit exit teleports remain technical
+fixtures, with the count recorded; they are not campaign evidence. Bez zmian
+fizyki i balansu. Dokładne paczki, próby i ograniczenia: [raport](validation/READINESS-0.4.25.md).
+
+Original icon, localized save-tool credits and scrollable save tools. The clipped
+Back button was reproduced with large fonts on a small emulator and checked in
+PL/EN after the fix. Explicit modern Android backup/transfer exclusions retain
+the existing automatic-backup opt-out; manual save export remains. No gameplay
+or native-engine changes. Runtime coverage and retained failures are in the report.
+
 ## 0.4.24 — pomiary platform i naturalny checkpoint
 
 Opcjonalny odczyt ruchu platform i jednoczesny zwykły skok bez dodatkowego ciosu. Próby wejścia i przenoszenia na Redmi/Huawei. Naturalne dotarcie do pierwszego trwałego checkpointu i jego wczytanie przez menu z zachowaniem wyniku, żyć oraz amunicji. Cała kampania nadal nieukończona. [Pomiary](validation/PLATFORM-0.4.24.md), [naturalny zapis i wczytanie](validation/NATURAL-CHECKPOINT-0.4.24.md).

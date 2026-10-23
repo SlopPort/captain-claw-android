@@ -16,7 +16,7 @@ public class FileToolsActivity extends LocalizedActivity {
         super.onCreate(state);
         LinearLayout layout=new LinearLayout(this);layout.setOrientation(LinearLayout.VERTICAL);layout.setPadding(24,24,24,24);
         TextView title=new TextView(this);title.setText(getString(R.string.saves_vibration));title.setTextSize(22);layout.addView(title);
-        TextView credit=new TextView(this);credit.setText("Inspired by Claw Web — Arthur Boss and contributors (GPLv3). Android adaptation: OpenAI Codex / LLM.");layout.addView(credit);
+        TextView credit=new TextView(this);credit.setText(R.string.save_tools_credit);layout.addView(credit);
         Button export=new Button(this);export.setText(getString(R.string.export_progress));
         export.setOnClickListener(v->{Intent pick=new Intent(Intent.ACTION_CREATE_DOCUMENT).setType("text/xml").addCategory(Intent.CATEGORY_OPENABLE).putExtra(Intent.EXTRA_TITLE,"pazur-saves.xml");startActivityForResult(pick,1);});layout.addView(export);
         Button load=new Button(this);load.setText(getString(R.string.import_progress));
@@ -24,7 +24,11 @@ public class FileToolsActivity extends LocalizedActivity {
             .setNegativeButton(getString(R.string.import_cancel),null).setPositiveButton(getString(R.string.choose_file),(d,w)->startActivityForResult(new Intent(Intent.ACTION_OPEN_DOCUMENT).setType("*/*").addCategory(Intent.CATEGORY_OPENABLE),2)).show());layout.addView(load);
         CheckBox haptics=new CheckBox(this);haptics.setText(getString(R.string.vibration_optional));haptics.setChecked(new File(root(),"haptics-enabled").isFile());
         haptics.setOnCheckedChangeListener((button,on)->{try {File file=new File(root(),"haptics-enabled");if(on){try(FileOutputStream out=new FileOutputStream(file)){out.write(1);}}else if(file.exists()&&!file.delete())throw new IOException("Cannot change setting");}catch(IOException e){message(e.getMessage());}});layout.addView(haptics);
-        Button done=new Button(this);done.setText(getString(R.string.back));done.setOnClickListener(v->finish());layout.addView(done);setContentView(layout);
+        Button done=new Button(this);done.setText(getString(R.string.back));done.setOnClickListener(v->finish());layout.addView(done);
+        // Large system fonts can put the footer below a small display. Keep
+        // save actions and Back reachable without changing the system font.
+        ScrollView scroll=new ScrollView(this);scroll.setFillViewport(true);
+        scroll.addView(layout);setContentView(scroll);
     }
     @Override protected void onActivityResult(int request,int result,Intent data) {
         super.onActivityResult(request,result,data);if(result!=RESULT_OK||data==null)return;

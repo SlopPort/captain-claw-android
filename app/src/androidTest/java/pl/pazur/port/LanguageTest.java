@@ -17,6 +17,34 @@ import java.util.Arrays;
  */
 public class LanguageTest extends Instrumentation {
     private boolean previewNative;
+    private boolean checkFileFooter;
+    private View exactText(View view,String text) {
+        if(view instanceof TextView && ((TextView)view).getText().toString().equals(text))return view;
+        if(view instanceof ViewGroup) {
+            ViewGroup group=(ViewGroup)view;
+            for(int i=0;i<group.getChildCount();i++) {
+                View found=exactText(group.getChildAt(i),text);if(found!=null)return found;
+            }
+        }
+        return null;
+    }
+    private void requireFileFooter(Activity screen) throws Exception {
+        boolean[] visible={false};
+        for(int attempt=0;attempt<40;attempt++) {
+            runOnMainSync(()-> {
+                View button=exactText(screen.getWindow().getDecorView(),screen.getString(R.string.back));
+                if(button==null||button.getWidth()==0||button.getHeight()==0)return;
+                // Request the real parent hierarchy to reveal this control;
+                // presence in the view tree alone does not prove reachability.
+                button.requestRectangleOnScreen(new android.graphics.Rect(0,0,button.getWidth(),button.getHeight()),true);
+                android.graphics.Rect bounds=new android.graphics.Rect();
+                visible[0]=button.getGlobalVisibleRect(bounds)&&bounds.height()>=button.getHeight()&&bounds.width()>=button.getWidth();
+            });
+            if(visible[0])return;
+            Thread.sleep(50);
+        }
+        throw new Exception("File-tools Back button cannot be fully revealed: "+AppLanguage.code(screen));
+    }
     private byte[] bytes(File file) throws IOException {
         if(!file.exists())return null;
         try(InputStream in=new FileInputStream(file);ByteArrayOutputStream out=new ByteArrayOutputStream()) {
@@ -32,7 +60,7 @@ public class LanguageTest extends Instrumentation {
         }
         return false;
     }
-    @Override public void onCreate(Bundle args){super.onCreate(args);previewNative=args!=null&&"true".equals(args.getString("preview_native"));start();}
+    @Override public void onCreate(Bundle args){super.onCreate(args);previewNative=args!=null&&"true".equals(args.getString("preview_native"));checkFileFooter=args!=null&&"true".equals(args.getString("check_file_footer"));start();}
     @Override public void onStart() {
         Bundle result=new Bundle();Context context=getTargetContext();
         SharedPreferences prefs=context.getSharedPreferences("interface",Context.MODE_PRIVATE);
@@ -59,6 +87,7 @@ public class LanguageTest extends Instrumentation {
                 final Activity files=current;
                 runOnMainSync(()->visible[0]=contains(files.getWindow().getDecorView(),code.equals("en")?"Export progress to file":"Zapisz kopię postępu do pliku"));
                 if(!visible[0])throw new Exception("File tools translation not visible: "+code);
+                if(checkFileFooter)requireFileFooter(files);
                 runOnMainSync(files::finish);current=null;waitForIdleSync();
             }
             if(!Arrays.equals(bindings,bytes(new File(root,"controller-bindings.txt"))) ||

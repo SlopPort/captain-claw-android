@@ -39,6 +39,7 @@ def main():
             expected='/lib/'+{'armeabi-v7a':'arm','arm64-v8a':'arm64','x86_64':'x86_64'}[args.abi]+'/'
             assert any(expected in line for line in library_lines),'Unexpected engine library path'
             session.capture('menu' if menu else 'level-start')
+            exit_attempts=0
             if not menu:
                 if not args.skip_jump:
                     time.sleep(3)
@@ -47,7 +48,17 @@ def main():
                     session.wait('Pazur jump trace: label=abi-jump',seconds=6)
                     traces=re.findall(r'Pazur jump trace: label=abi-jump .*rise=([\d.]+).*jumps=(\d+)',session.logs())
                     assert traces and float(traces[-1][0])>40 and int(traces[-1][1])==1,traces
-                session.command('campaignfinish');session.wait('Score screen initialized OK')
+                # This is an explicit teleport fixture, never campaign proof.
+                # A slow emulator can miss the pickup on the first placement;
+                # retain a bounded count rather than silently declaring exit.
+                for attempt in range(3):
+                    session.command('campaignfinish');exit_attempts+=1
+                    try:
+                        session.wait('Score screen initialized OK',seconds=5)
+                        break
+                    except RuntimeError as error:
+                        if str(error)!='Missing marker: Score screen initialized OK':raise
+                else:raise RuntimeError('Existing exit not collected after three fixture placements')
                 for _ in range(12):
                     session.command('padvirtual tap 320 240');time.sleep(.35)
                     if 'Level name: Claw - Level 2' in session.logs():break
@@ -56,6 +67,7 @@ def main():
             result=dict(passed=True,apk_sha256=apk_sha256,version=installed[1],abi=args.abi,process_library_verified=True,
                         main_menu=menu,level1_jump_and_exit=not menu and not args.skip_jump,
                         level1_exit_verified=not menu,jump_verified=not menu and not args.skip_jump,natural_playthrough=False,
+                        exit_fixture_placements=exit_attempts,
                         jump_skipped=menu or args.skip_jump,
                         requested_jump_hold_ms=None if menu or args.skip_jump else args.jump_hold)
             (session.report/'results.json').write_text(json.dumps(result,indent=2),encoding='utf-8')
