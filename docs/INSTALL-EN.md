@@ -4,6 +4,10 @@
 
 This is a test version. From 0.4.8, you need an Android phone, this port's APK and **CLAW.REZ from your own copy of Claw**. A prepared `game-data.zip` also works. Do not rename or unpack these files.
 
+If storage is full, free space outside the game folder and retry. Keep the
+interrupted-import backup: the app needs space to restore it. Do not uninstall
+the game to fix an import error, as this can remove local saves.
+
 ## Easiest: APK + CLAW.REZ
 
 1. Open your own PC game folder. Copy `CLAW.REZ` and the APK to your phone's Download folder.

@@ -4,10 +4,14 @@ Updated / Aktualizacja: 2026-10-23. Adaptation work: OpenAI Codex (LLM), guided
 by human requirements and device feedback. Upstream OpenClaw authorship is separate.
 
 **Scope update, 2026-10-23:** the human takes over natural campaign playtesting.
+Ask the human whether Redmi is available before any use of that phone.
+Latest independent checks: [actual bounded ENOSPC](validation/IMPORT-FULL-DISK.md)
+and [static Android readiness](validation/READINESS-2026-10-23.md). No APK change.
 Do not resume autonomous campaign traversal. Continue technical checks and fixes;
 use human campaign reports as evidence, recording APK, level and reproduction.
 
 **Zmiana zakresu, 2026-10-23:** użytkownik przejmuje przechodzenie kampanii.
+Przed jakimkolwiek użyciem Redmi zapytaj użytkownika, czy telefon jest dostępny.
 Nie wznawiaj samodzielnego przechodzenia. Kontynuuj kontrole techniczne i poprawki;
 zgłoszenia użytkownika zapisuj z wersją APK, poziomem i sposobem odtworzenia.
 

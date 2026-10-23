@@ -4,6 +4,11 @@
 
 To wersja testowa. Od 0.4.8 potrzebujesz telefonu z Androidem, APK tego portu i pliku **CLAW.REZ z własnej kopii gry**. Gotowy `game-data.zip` również działa. Nie zmieniaj nazwy ani nie rozpakowuj tych plików.
 
+Jeżeli pojawi się komunikat o braku miejsca, zwolnij miejsce poza folderem gry
+i spróbuj ponownie. Gdy trwa przywracanie przerwanego importu, zachowaj jego
+kopię — aplikacja potrzebuje miejsca, aby ją odtworzyć. Nie odinstalowuj gry jako
+sposobu naprawy importu, bo możesz stracić lokalne zapisy.
+
 ## Najprościej: APK + CLAW.REZ
 
 1. Na komputerze otwórz folder własnej gry. Skopiuj `CLAW.REZ` i APK do Pobranych na telefonie.

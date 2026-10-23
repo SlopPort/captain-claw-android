@@ -1,5 +1,15 @@
 # Droga do 1.0 / Road to 1.0
 
+Aktualizacja 2026-10-23: użytkownik przejmuje kampanię. Przed użyciem Redmi
+ponownie zapytaj o dostępność. [Rzeczywisty brak miejsca](validation/IMPORT-FULL-DISK.md)
+przeszedł dla transakcji importu na wydzielonym dysku emulatora Androida 5;
+selektor plików, duże dane i zwykłe uprawnienia aplikacji nadal wymagają prób.
+
+Update 2026-10-23: the human owns campaign playtesting. Ask about Redmi availability
+before using it. [Actual ENOSPC](validation/IMPORT-FULL-DISK.md) passed for the
+import transaction on a bounded Android-5 emulator filesystem; document-picker UX,
+large data and ordinary app-permission coverage remain open.
+
 Stan: 2026-10-22. Dokument opracował OpenAI Codex (LLM). Wymagania i uwagi pochodzą od człowieka; OpenClaw i biblioteki zachowują autorstwo swoich twórców. Wyniki zawsze dotyczą konkretnego APK, urządzenia i scenariusza. To lista warunków wydania, nie deklaracja ukończenia prac.
 
 ## Polski
