@@ -1,6 +1,6 @@
 # Captain Claw for Android
 
-Current **0.4.29** fixes raw-Start pause, the Catnip music hitch and directional-input Game Over crash, and buffers one short melee tap during hurt. [Huawei reproductions, results and limits](docs/validation/USER-REGRESSIONS-0.4.29.md). Redmi was not updated; earlier compatibility evidence retains its exact-version scope.
+Current **0.4.29** fixes raw-Start pause, the Catnip music hitch and directional-input Game Over crash, and buffers one short melee tap during hurt. [Huawei reproductions, results and limits](docs/validation/USER-REGRESSIONS-0.4.29.md). [A separate Redmi 0.4.29 follow-up](docs/validation/REDMI-0.4.29.md) also passed after allocation on October 24. Earlier compatibility evidence retains its exact-version scope.
 
 Earlier **0.4.27** fixes late export dialogs and malformed save acceptance. [Exact phone/emulator evidence](docs/validation/READINESS-0.4.27.md), [signed ARM64/ARMv7 candidate](docs/validation/RELEASE-0.4.27.md), [active audit of 45 enemy variants](docs/validation/ACTIVE-NORMAL-0.4.26.md). The human owns campaign testing; physical controllers remain deferred. English voices require your own English game data.
 

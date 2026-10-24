@@ -1,6 +1,6 @@
 # Kapitan Pazur na Androida
 
-Bieżące **0.4.29** poprawia pauzę Startem, przycięcie muzyki złotej myszy, awarię kierunków pada na ekranie końca gry i zapamiętanie krótkiego ataku podczas trafienia. [Odtworzenia, wyniki Huawei i ograniczenia](docs/validation/USER-REGRESSIONS-0.4.29.md). Redmi nie był aktualizowany; wcześniejsze testy zgodności dotyczą swoich wersji APK.
+Bieżące **0.4.29** poprawia pauzę Startem, przycięcie muzyki złotej myszy, awarię kierunków pada na ekranie końca gry i zapamiętanie krótkiego ataku podczas trafienia. [Odtworzenia, wyniki Huawei i ograniczenia](docs/validation/USER-REGRESSIONS-0.4.29.md). [Ponowne próby 0.4.29 na Redmi](docs/validation/REDMI-0.4.29.md) również przeszły po jego udostępnieniu 24 października. Wcześniejsze testy zgodności dotyczą swoich wersji APK.
 
 Wcześniejsze **0.4.27** naprawia eksport kończący się po zamknięciu ekranu oraz odrzucanie uszkodzonych kopii zapisów. [Dokładne testy telefonów i emulatorów](docs/validation/READINESS-0.4.27.md), [podpisany kandydat ARM64/ARMv7](docs/validation/RELEASE-0.4.27.md), [aktywny audyt 45 wariantów przeciwników](docs/validation/ACTIVE-NORMAL-0.4.26.md). Kampanię przechodzi człowiek; fizyczne pady są odłożone. Głosy EN nadal wymagają własnych angielskich danych gry.
 

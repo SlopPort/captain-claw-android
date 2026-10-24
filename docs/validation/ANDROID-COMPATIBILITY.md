@@ -1,5 +1,7 @@
 # Android compatibility / Zgodność z Androidem
 
+**2026-10-24 follow-up:** [Redmi / Android 16, exact debug 0.4.29 regression checks](REDMI-0.4.29.md) also passed after the human reallocated the phone. Huawei-only statements below describe the previous batch. No new ARMv7, signed-release, emulator or physical-controller claim is added. / Poprawki sprawdzono także na Redmi; starsze ograniczenie dostępu dotyczyło poprzedniej sesji.
+
 **Latest code 0.4.29:** [Huawei-only regression evidence](USER-REGRESSIONS-0.4.29.md). Native code changed; the 0.4.27 matrix below is historical evidence for its own artifacts. Redmi was not queried or updated. / Najnowszy kod zmieniono i sprawdzono na Huawei; wcześniejsza macierz nie jest certyfikacją nowego APK na innych Androidach.
 
 ## Bieżący stan / Current status — 0.4.27, 2026-10-23

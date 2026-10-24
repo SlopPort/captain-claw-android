@@ -1,5 +1,7 @@
 # User regressions 0.4.29 / Zgłoszenia użytkownika
 
+**Follow-up, 2026-10-24:** the human later made Redmi available. [Separate exact-version checks and cleanup](REDMI-0.4.29.md) passed there. The Huawei-only scope below remains the record of the original 2026-10-23 batch.
+
 OpenAI Codex (LLM), 2026-10-23. Only Huawei P9 Lite / Android 10 was accessed in
 this batch. Redmi belongs to another task and was not queried or updated.
 No natural campaign traversal. Virtual SDL/raw input tests do not prove physical
