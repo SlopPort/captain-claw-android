@@ -1,92 +1,66 @@
-# Kapitan Pazur na Androida
+# Captain Claw for Android
 
-Bieżące **0.4.29** poprawia pauzę Startem, przycięcie muzyki złotej myszy, awarię kierunków pada na ekranie końca gry i zapamiętanie krótkiego ataku podczas trafienia. [Odtworzenia, wyniki Huawei i ograniczenia](docs/validation/USER-REGRESSIONS-0.4.29.md). [Ponowne próby 0.4.29 na Redmi](docs/validation/REDMI-0.4.29.md) również przeszły po jego udostępnieniu 24 października. Wcześniejsze testy zgodności dotyczą swoich wersji APK.
+An Android adaptation of [OpenClaw](https://github.com/pjasicek/OpenClaw), using **game files from your own PC copy of Claw**. This project does not include or download the commercial game.
 
-Wcześniejsze **0.4.27** naprawia eksport kończący się po zamknięciu ekranu oraz odrzucanie uszkodzonych kopii zapisów. [Dokładne testy telefonów i emulatorów](docs/validation/READINESS-0.4.27.md), [podpisany kandydat ARM64/ARMv7](docs/validation/RELEASE-0.4.27.md), [aktywny audyt 45 wariantów przeciwników](docs/validation/ACTIVE-NORMAL-0.4.26.md). Kampanię przechodzi człowiek; fizyczne pady są odłożone. Głosy EN nadal wymagają własnych angielskich danych gry.
+**Development version, not a finished 1.0 release.** A complete natural playthrough has not been verified. A human tester owns campaign testing; automated checks use separately documented scenarios.
 
-[English README](README.en.md)
+## Install and play
 
-Natywna adaptacja [OpenClaw](https://github.com/pjasicek/OpenClaw) na Androida, z danymi dostarczanymi przez użytkownika. Silnik C++/SDL dla ARM64 i ARMv7, minimum API 21. Aktualna wersja rozwojowa: **0.4.29-dev**. Pełne wydanie 1.0 pozostaje w przygotowaniu.
+You need this port's **APK** (the Android installer) and your own complete **`CLAW.REZ`** (the PC game's data file). A prepared `game-data.zip` also works.
 
-**[Droga do 1.0 — po polsku i angielsku](docs/ROADMAP-1.0.md)** rozdziela wykonane prace, warunki wydania i potrzebne testy. Ostatnie poprawki zabezpieczają zapisy punktów kontrolnych i ukończenia poziomu oraz bezpośrednie wznowienie gry przez Androida. [Wyniki 0.4.18 i czyste budowanie](docs/validation/ATOMIC-PROGRESS-0.4.18.md), [start 0.4.17](docs/validation/STARTUP-0.4.17.md), [20 minut ciężkiej sceny](docs/validation/SUSTAINED-0.4.15.md).
+1. Obtain a test APK supplied for this project, or [build one](docs/BUILDING.en.md). GitHub's **Source code (zip)** is source code, not an Android installer or game data. A finished 1.0 APK is not announced here.
+2. Copy the APK and `CLAW.REZ` to **Downloads** on your phone.
+3. Open the APK in the phone's **Files** app and install it.
+4. Open **Kapitan Pazur**, tap **Choose game data**, and select `CLAW.REZ`. Wait for the import; the game starts automatically.
 
-**Język:** przed importem danych lub w **PAD → Język / Language** wybierz Polski albo English. Ustawienia, menu i nasza pomoc obsługują oba języki; napisy w grze zmienią się po jej ponownym uruchomieniu. Głosy, tła i oryginalne grafiki podsumowań zależą od danych użytkownika. [Menu PL/EN i testy 0.4.16](docs/validation/MENU-LANGUAGE-0.4.16.md).
+**[Full installation guide and troubleshooting](docs/INSTALL-EN.md).** A tiny placeholder `CLAW.REZ` with a separate `Assets` folder requires the guide's ZIP preparation steps.
 
-Bieżące prace obejmują walki z Aquatisem i Marrowem, przechodzenie między mapami, dźwięki ataków i poprawki menu. [Wyniki i pozostałe warunki wydania](docs/validation/CAMPAIGN-1.0.md). Wcześniejsze [pomiary fizyki i drabin](docs/validation/FPS-0.4.11.md), [audyt zgłoszeń](docs/validation/BUG-AUDIT-2026-10-21.md) i [optymalizacja rysowania](docs/validation/FPS-0.4.9.md) opisują dokładny zakres sprawdzonych zmian.
+Updates must use the same signing key as your installed app. **Uninstalling can delete saves.** Export a backup before uninstalling or changing to an APK with a different signature.
 
-Od 0.4.8 można wskazać sam pełny **CLAW.REZ** zamiast przygotowanego ZIP. Pod **PAD → Kopie zapisów i wibracje** są eksport/import postępu i opcjonalne wibracje. Funkcje inspirowane Claw Web (Arthur Boss i współtwórcy), z przypisaniem pochodzenia w [NOTICE](NOTICE.md). Instalacja z 168-bajtową atrapą REZ i luźnym folderem Assets nadal wymaga ZIP.
+## Controls and language
 
-Gałka dotykowa, większe przyciski i regulowana wysokość skoku, szeroki widok planszy z zachowaniem proporcji, muzyka MIDI w APK, uzupełnienia poziomu 14 oraz walka z Omarem i inscenizacja zakończenia. Port korzysta z istniejącego silnika i rozgrywki OpenClaw.
+- The left touch stick moves, climbs and crouches. The right buttons jump, attack and shoot. Hold jump longer to jump higher.
+- In the Polish interface, **PAUZA** pauses and **BRON** changes weapon.
+- **PAD** opens controller bindings and Android settings. Default Android A/X/B/Y actions are jump/melee/shoot/weapon; Start pauses. Printed letters may differ by controller mode. See the [controller guide](docs/CONTROLLER.md).
+- Choose **Language / Język → English** before importing data, or later under **PAD**. Restart the game to apply in-game menu labels. Voices and original artwork depend on your own files: selecting English does not translate Polish audio. See [language limits](docs/GAME-LANGUAGE.md).
+- **PAD → Save backups and vibration** exports progress to a file you choose. Backups use this port's XML format, not Windows saves or Claw Web JSON.
 
-**Zakres własnej pracy:** [różnice względem OpenClaw](docs/UPSTREAM-DIFF.md). Zmiany silnika są zapisane jako odtwarzalny patch do konkretnego commita; kod Androida i nowe komponenty są osobno w tym repozytorium.
+## What this adaptation adds
 
-## Instalacja dla gracza
+Android builds and data import, touch controls, controller bindings, save export/import, optional vibration, a wider view without stretched sprites, MIDI playback support, gameplay fixes, and additional level 14/Omar/finale work. The finale is staged in the engine rather than reproducing the original movie.
 
-**[Polski: instalacja krok po kroku](docs/INSTALL-PL.md)** · **[English: step-by-step installation](docs/INSTALL-EN.md)**
+OpenClaw supplies the existing engine and much of the gameplay. See the [upstream comparison](docs/UPSTREAM-DIFF.md) for the adaptation's contributions and [NOTICE](NOTICE.md) for OpenClaw, Claw Web and dependency credits. Engine changes are patches to pinned dependency revisions.
 
-Gotowy APK instaluje aplikację. Dane z własnej kopii gry importuje się osobno jako pełny `CLAW.REZ` albo `game-data.zip`. Instrukcja wyjaśnia kopiowanie plików, instalowanie i najczęstsze problemy. Nie trzeba kompilować programu, jeśli ma się gotowy APK.
+## Test status and limitations
 
-## Transparentność
+Reports identify the exact APK and setup. Results for older builds are not automatic proof for the current source.
 
-Całą pracę nad adaptacją w tej sesji — kod, dokumentację, analizę i wykonanie testów automatycznych — wykonał agent LLM (OpenAI Codex), według wymagań i uwag człowieka. OpenClaw i biblioteki pozostają pracą ich autorów. [Ustalenia, ograniczenia i plan słabszego telefonu](docs/DEVELOPMENT-NOTES.md).
+- [0.4.29 regressions](docs/validation/USER-REGRESSIONS-0.4.29.md): pause, Catnip pickup audio, Game Over input and a short melee tap during hurt; [Redmi follow-up](docs/validation/REDMI-0.4.29.md).
+- [Current Game Over screen](docs/GAME-OVER-UI.md) and [original-executable behavior investigation](docs/ORIGINAL-BEHAVIOR-REA.md): what was observed, changed and still remains uncertain.
+- [Android compatibility matrix](docs/validation/ANDROID-COMPATIBILITY.md): tested devices, architectures and remaining gaps. Android 5/API 21 is the build minimum, not a guarantee for every phone.
+- [Road to 1.0](docs/ROADMAP-1.0.md): remaining release requirements. Controlled map starts, combat fixtures and boss checks do not prove that all fourteen levels can be completed naturally.
 
-All adaptation work in this session was performed by an LLM coding agent (OpenAI Codex), guided by human requirements and feedback. Upstream work retains its original attribution. Controlled tests are not a completed natural playthrough.
+The low-end target is Huawei P9 Lite, Android 10, 2 GB RAM. Many measured scenes approach 60 FPS; sustained 60 FPS throughout the campaign is not established. Measurements apply to the scenes and builds named in each report. Controller Bluetooth and USB modes require individual testing.
 
-## Budowanie
+To report a problem, give the APK version, phone model, Android version, level, your action and the result. Do not attach game archives, signing keys or personal information. See [testing](docs/TESTING.md) for technical checks.
 
-Zainstaluj JDK, SDK 35, Build Tools 35.0.0, NDK 27.2.12479018, CMake 3.22.1, Python 3.11+ i Git. Ustaw lokalizację SDK/JDK.
+## Build or contribute
+
+Read the [build guide](docs/BUILDING.en.md), [contribution guide](CONTRIBUTING.en.md) and [current handoff](docs/HANDOFF.md). Dependencies are pinned in `sources.lock.json`. Bootstrap downloads open-source dependencies and applies patches, not the commercial game.
+
+With the development tools configured:
 
 ```sh
 python tools/bootstrap.py
 ./gradlew '-Pabis=arm64-v8a,armeabi-v7a' :app:assembleDebug
 ```
 
-Na Windows użyj `tools/build.ps1 -Abis 'arm64-v8a,armeabi-v7a'`. APK powstaje w `app/build/outputs/apk/debug/`. Szczegóły: [budowanie i własne dane](docs/BUILDING.md).
+On Windows use `./gradlew.bat`. The installer is `app/build/outputs/apk/debug/app-debug.apk`.
 
-Repozytorium nie zawiera komercyjnych danych Claw. Własną instalację można spakować poleceniem:
+## Authorship and rights
 
-```sh
-python tools/pack_assets.py --game-root '/sciezka/do/wlasnej/instalacji'
-```
+All adaptation work in this development session — code, documentation, investigation and automated test execution — was performed by **OpenAI Codex, an LLM coding agent**, guided by an anonymous human's requirements and feedback. The human supplied hardware, a game installation and playtesting feedback. Upstream work remains credited to its authors.
 
-Zainstaluj APK i wybierz przygotowany `build/game-data.zip` w aplikacji. Dane i zapis są przechowywane w katalogu aplikacji. Odinstalowanie usuwa dane aplikacji.
+The adaptation and OpenClaw use GPL-3.0; see [LICENSE.txt](LICENSE.txt) and [NOTICE.md](NOTICE.md) for dependency licenses and attribution. This does not grant rights to redistribute Claw's commercial game files. Copyright expiry is not assumed. Public sources exclude game archives, extracted game assets, private test data and signing credentials.
 
-## Sterowanie dotykowe
-
-**Pad:** dotknij przycisku **PAD** na dole, pośrodku ekranu, aby przypisać fizyczne przyciski do czynności. [Instrukcja PL/EN](docs/CONTROLLER.md). Domyślne nazwy Androida mogą różnić się od nadruków na padzie.
-
-Gałka po lewej służy do ruchu, wspinania i kucania. Skok jest na dole po prawej; atak obok niego, strzał wyżej. Szybki tap daje użyteczny niski skok, dłuższe trzymanie zwiększa wysokość. BRON zmienia broń; PAUZA lub systemowy Wstecz otwiera menu.
-
-## Stan i ograniczenia
-
-Sprawdzono 45 wariantów zwykłych przeciwników, 1415 początkowych obiektów na 14 mapach, 16 typów atakujących pociskami z obu stron i 13 przypadków hitboxów. To kontrolowane scenariusze, nie pełne naturalne przejście gry. Balans i zakończenie nie mają pełnego porównania z wydaniem Windows.
-
-Najnowsze próby kampanii wykonujemy na Huawei P9 Lite z Androidem 10 i 2 GB RAM; wersja 0.4.21 przeszła także próby dotyku, menu i startów wszystkich map na Redmi Note 8 z Androidem 16. Po optymalizacjach wiele scen osiąga około 60 FPS, ale gęsta scena poziomu 9 mierzyła około 57–59 FPS. Nie ma jeszcze dowodu stałych 60 FPS przez całą kampanię. Minimum API 21 i dwie architektury są ustawieniami kompilacji, a nie potwierdzeniem działania na wszystkich telefonach. [Zakres sprawdzonej zgodności](docs/validation/ANDROID-COMPATIBILITY.md).
-
-Trwają końcowe prace nad kampanią. Pełne kontrolowane walki z Aquatisem i Marrowem oraz przejścia do następnych map przeszły testy; używają jawnych teleportów i ochrony bohatera. Nie oznacza to naturalnego przejścia wszystkich poziomów ani gotowej wersji 1.0. [Warunki wydania i wyniki](docs/validation/CAMPAIGN-1.0.md), [dźwięki ataków](docs/validation/ATTACK-AUDIO.md).
-
-- [Dotyk i skok](docs/validation/JUMP-TOUCH.md)
-- [Audyt walki](docs/validation/COMBAT-AUDIT.md)
-- [Szeroki ekran](docs/validation/JOYSTICK-WIDESCREEN.md)
-- [Finał](docs/validation/LEVEL14-FINALE.md)
-- [Testowanie](docs/TESTING.md)
-- [Zasady zmian](CONTRIBUTING.md)
-- [Autorzy i licencje](NOTICE.md)
-
-Kod adaptacji i OpenClaw: GPL-3.0, patrz [LICENSE.txt](LICENSE.txt). Biblioteki i bank instrumentów zachowują swoje licencje. Prawa do komercyjnych danych Claw pozostają przy ich właścicielach.
-
-Przy rozpoznaniu instalacji użyto pomocniczo [REA](https://github.com/morluto/rea) oraz zestawień [awesome-game-decompilations](https://github.com/CharlotteCross1998/awesome-game-decompilations), [open-source-games](https://github.com/bobeff/open-source-games), [awesome-reverse-engineering](https://github.com/morluto/awesome-reverse-engineering) i tematów android-ports/android-reverse. REA nie jest zależnością gry.
-
-Nowe: [dotykowe suwaki dźwięku i próby PL/EN na Huawei](docs/validation/MENU-AUDIO-0.4.19.md), [180 kontrolowanych prób walki](docs/validation/VERTICAL-45-0.4.18.md), [jawne archiwum odrzuconych eksperymentów](experiments/README.md).
-
-[0.4.21: odzyskiwanie miejsca po przerwanym imporcie](docs/validation/IMPORT-CLEANUP-0.4.21.md) i [rzeczywiste próby Redmi z Androidem 16](docs/validation/REDMI-0.4.21.md).
-
-[0.4.22: kontrola uszkodzonej konfiguracji przed importem](docs/validation/CONFIG-IMPORT-0.4.22.md). [Redmi: 20 minut ciężkiej sceny na 0.4.21](docs/validation/SUSTAINED-REDMI-0.4.21.md), średnio 59,998 FPS z pojedynczym przycięciem do 65 ms. To nie zaliczenie całej kampanii ani potwierdzenie przyjętego minimum 55 FPS w ciężkiej scenie Huawei.
-
-[0.4.23: poprawka awarii przy wybuchu beczki](docs/validation/POWDER-KEG-0.4.23.md). Próba regresji przeszła na Redmi (Android 16) i Huawei (Android 10). Naturalne przejście całej kampanii nadal trwa.
-
-[0.4.24: pomiar wejścia na ruchomą platformę](docs/validation/PLATFORM-0.4.24.md). Próby kontrolowane przeszły na Redmi i Huawei; [cała kampania nadal nieukończona](docs/validation/NATURAL-CAMPAIGN-0.4.23.md).
-
-[Naturalny checkpoint i ponowne wczytanie przez menu](docs/validation/NATURAL-CHECKPOINT-0.4.24.md). Osiągnięto checkpoint 1 poziomu 1; cała kampania nadal wymaga przejścia.
-
-Dla kolejnej osoby: [przekazanie projektu](docs/HANDOFF.md), [współpraca](CONTRIBUTING.md), [publikacja](docs/PUBLISHING.md).
+[REA](https://github.com/morluto/rea) is an investigation tool used during development, not a game dependency. Other research references are recorded in the development documentation.

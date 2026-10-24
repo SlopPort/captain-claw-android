@@ -1,61 +1,101 @@
-# Step-by-step installation
+# Install Captain Claw on Android
 
-[Polska instrukcja](INSTALL-PL.md)
+This is a development version. You need **this port's APK** and **game data from your own PC copy of Claw**. The APK installs the app; the game-data file supplies the levels, graphics and sounds. They are separate files.
 
-This is a test version. From 0.4.8, you need an Android phone, this port's APK and **CLAW.REZ from your own copy of Claw**. A prepared `game-data.zip` also works. Do not rename or unpack these files.
+You do not need a GitHub account, USB debugging, ADB or Android Studio to install an APK you already have.
 
-If storage is full, free space outside the game folder and retry. Keep the
-interrupted-import backup: the app needs space to restore it. Do not uninstall
-the game to fix an import error, as this can remove local saves.
+## 1. Get the two files ready
 
-## Easiest: APK + CLAW.REZ
+- **App installer:** a test APK supplied for this project. If none has been supplied, a developer must [build an APK](BUILDING.en.md). GitHub's **Code → Download ZIP** downloads source code; it cannot be installed on a phone.
+- **Game data:** `CLAW.REZ` from your own PC game folder, or a `game-data.zip` prepared with this project's tools. Do not unpack or rename it.
 
-1. Open your own PC game folder. Copy `CLAW.REZ` and the APK to your phone's Download folder.
-2. Install the APK using the steps below, then open Kapitan Pazur.
-3. Tap **Choose game data**, choose **CLAW.REZ** and wait. The game starts automatically. No Python or ZIP preparation is needed. On a Polish interface, the button is **Wybierz dane gry**.
-4. You only import once.
+**Which data file should I use?**
 
-Choose **Language / Język → English** before importing, or open **PAD → Language / Język** in the game. Android screens change immediately; restart the game to change its menus and in-game labels. From 0.4.16, menu text and help have our own Polish and English translations. Voices, backgrounds and original score-screen pictures still come from your game data. See [English voices and language-selection limits](GAME-LANGUAGE.md).
+| What you have | What to do |
+| --- | --- |
+| A complete `CLAW.REZ` | Select that file directly in the app. No ZIP preparation is needed. |
+| `CLAW.REZ` plus extra loose `Assets` files you want to include | Prepare `game-data.zip` using the steps below. Direct REZ import reads only the archive. |
+| A tiny 168-byte `CLAW.REZ` from a CrazyHook installation | This is a placeholder. Prepare a ZIP from the installation's loose `Assets` using the steps below. |
+| An existing `game-data.zip` made by this project's packaging tool | Select it directly. A ZIP of the entire PC game folder is not the same package. |
 
-The direct REZ workflow is inspired by Claw Web (Arthur Boss and contributors); Android implementation and validation are local adaptations. Original game artwork comes from your REZ. If a Polish installation has additional loose `Assets`, the ZIP workflow below also includes those files. Direct REZ uses only the archive contents.
+Public sources do not contain Claw game data, and the setup tools do not download it.
 
-**CrazyHook / a 168-byte REZ:** this is a placeholder, not the complete game. Prepare the ZIP from the loose `Assets` folder using the instructions below.
+## 2. Copy the files to your phone
 
-## Save backups and vibration
+1. Connect the phone to your computer with a USB cable and unlock it.
+2. If the phone asks how to use USB, choose **File transfer**. Labels vary between phones.
+3. On the computer, open the phone's storage and its **Download** or **Downloads** folder.
+4. Copy the APK and your complete `CLAW.REZ` or prepared `game-data.zip` into that folder.
 
-In the game, tap **PAD**, then **Save backups and vibration**. Export writes XML to a location you choose. Import accepts this port's XML (not Windows saves or Claw Web JSON); quit through the game menu and launch again to apply it. The previous save remains as `SAVES.before-import.xml` in app storage. Vibration is optional and off by default. Controller rumble support depends on its mode and Android driver.
+You can use another file-transfer method if you prefer. The goal is to have both files available on the phone.
 
-## I already have the APK and prepared data package
+## 3. Install the app
 
-1. Copy both files to your phone's **Download** folder. For USB transfer, unlock the phone, select **File transfer**, open the phone storage on your computer and copy the files into Download.
-2. Open **Files** on the phone, open **Downloads**, then tap the file ending in `.apk`.
-3. If Android blocks installation, follow the displayed Settings link and allow this Files application to install apps. Return and tap **Install**. Labels vary between Android versions. You can turn this permission off afterwards.
-4. Open **Kapitan Pazur**. Tap **Choose game data** (Polish: **Wybierz dane gry**).
-5. In the system file picker, open **Downloads** and select `game-data.zip`. Wait for the import; the game starts automatically.
-6. Future launches do not require importing the data again.
+1. On the phone, open **Files** (or the phone's file manager), then **Downloads**.
+2. Tap the file whose name ends in **`.apk`**.
+3. If Android blocks installation, follow its **Settings** link and allow this file manager to **install unknown apps**. Return to the installer and tap **Install**. Older Android versions use different wording. You can turn the permission off afterwards.
+4. Tap **Open**, or find **Kapitan Pazur** in the app list.
 
-You do not need USB debugging, ADB, Android Studio or a GitHub account. To update, install the newer APK over the existing application. Its signing key must match. A signature conflict does not mean your phone is damaged. Uninstalling removes application data and game saves: back up saves first.
+## 4. Import your game data
 
-## I own the PC game but do not have the ZIP
+1. If you want English interface text, choose **Language / Język → English** on the first screen.
+2. Tap **Choose game data**. In Polish this is **Wybierz dane gry**.
+3. In Android's file chooser, open **Downloads** and tap `CLAW.REZ` or `game-data.zip`. Select the file itself, not a file inside the ZIP.
+4. Wait for the import to finish. The game starts automatically. Leave enough free storage for the app's imported copy as well as the file you selected; ZIP size alone does not show its extracted size.
+5. On later launches the app uses its imported files; you do not import them every time.
 
-In 0.4.8 you can select the REZ directly as described above. The ZIP workflow below remains available for older APKs, installations with additional loose assets and reproducible packaging.
+Language can also be changed under **PAD → Language / Język**. Android screens change immediately; restart the game to apply in-game menu labels. English and Polish interface text are provided by the port. Voices, backgrounds and original score-screen pictures come from your game data. **Choosing English does not translate Polish voices.** See [language and voice limits](GAME-LANGUAGE.md).
 
-**Easier Windows option:** install Python 3.11+ with Tcl/Tk and Git, extract the sources, then double-click `Prepare-game-data.cmd`. Select EN and choose `CLAW.REZ`. The window shows the resulting ZIP location. The first run needs internet. This new wizard still needs a clean-computer usability test; use the terminal steps below if it does not open.
+## Updates and save backups
 
-1. Download and extract the port's source project. Install Python 3.11 or newer and Git. On Windows, enable Python's **Add to PATH** option.
-2. Open a terminal in the extracted project folder containing README.md. On Windows, open that folder in File Explorer, type `powershell` in its address bar and press Enter.
-3. Run `python tools/bootstrap.py` and wait. Internet access is required to download open-source dependencies. This does not download the commercial game.
-4. Run `python tools/pack_assets.py --game-root "C:\Games\Claw"`. Replace the example path with your own game folder containing `CLAW.REZ`. Keep the quotation marks, particularly for paths containing spaces.
-5. Find the resulting `build/game-data.zip` inside the project folder. Copy it to the phone and follow the steps above. The original PC installation is not modified.
+To update, install the newer APK over the existing app. Its signing key must match the installed version. If Android reports a signature conflict, keep the existing app and ask for a compatible APK; this does not mean your phone is damaged.
 
-You do not need to build an APK if you already have the installer. [Building from source](BUILDING.en.md) is a separate developer workflow.
+**Uninstalling can delete progress and imported data.** Before uninstalling, open **PAD → Save backups and vibration → Export progress to file** and save the backup somewhere you can find it outside the app's private storage. Keep a separate copy if possible.
 
-## Troubleshooting
+Save import accepts this port's XML backups, not Windows saves or Claw Web JSON. After importing, quit through the game's menu and launch again. The previous save is retained in app storage as `SAVES.before-import.xml`; exporting your own external backup is still recommended. Vibration is optional and off by default; controller rumble depends on the controller mode and Android driver.
 
-- **Cannot find the ZIP:** open Download in the system picker; select the archive itself.
-- **Invalid or incomplete package:** create it with the port's packaging tool. Zipping the entire PC game folder does not produce the required structure.
-- **Invalid configuration in the game-data package:** rebuild `game-data.zip` with the port tool. If you own a complete original `CLAW.REZ`, select it directly instead; the app generates its own configuration. Do not delete game saves.
-- **App not installed:** record the exact message, Android version and APK filename. Do not delete your saves without a backup.
-- **Crashes or slow gameplay:** report the phone model, Android version, level and action immediately before the problem. Android 5+ is the build minimum, not confirmed compatibility with every device.
+## Prepare a game-data ZIP, if needed
 
-The port's code is open source. Original Claw game data has separate copyright and is excluded from public source distributions. Owning files does not automatically grant permission to redistribute them. See [credits and licenses](../NOTICE.md).
+Skip this section if your complete `CLAW.REZ` imports directly.
+
+### Windows: preparation window
+
+1. Install **Python 3.11 or newer with Tcl/Tk**, and **Git**. Enable Python's **Add to PATH** option during installation.
+2. Download and extract this repository's source files on your computer. Open the extracted folder containing `README.md` and `Prepare-game-data.cmd`.
+3. Double-click **Prepare-game-data.cmd**. Choose **EN** in its language selector.
+4. Select `CLAW.REZ` inside your own PC game installation. For a placeholder REZ, select it in the folder beside its `Assets` directory.
+5. Wait. The first preparation needs internet to obtain open-source dependencies; it does not download Claw.
+6. The window shows the output path for **`build/game-data.zip`**. Copy that ZIP to the phone and use step 4 above to import it.
+
+The tool leaves the original PC installation unchanged. This preparation window still needs a clean-computer usability test. If it fails to open, use the terminal method below and include its error text in a report.
+
+### Terminal method
+
+1. Install Python 3.11+ and Git, then extract the source files.
+2. Open a terminal in the project folder containing `README.md`. On Windows, open the folder in File Explorer, type `powershell` in the address bar and press Enter.
+3. Run:
+
+   ```sh
+   python tools/bootstrap.py
+   python tools/pack_assets.py --game-root "C:\Games\Claw"
+   ```
+
+4. Replace `C:\Games\Claw` with your own PC game folder containing `CLAW.REZ`. Keep the quotation marks, especially if the path contains spaces. On Linux/macOS use your installation's path and `python3` if needed.
+5. Copy the resulting **`build/game-data.zip`** to the phone and import it.
+
+You do not need to build the APK to prepare this ZIP if you already have an installer.
+
+## If something goes wrong
+
+| Problem | Next step |
+| --- | --- |
+| Cannot find the data file | Open Downloads in Android's file chooser. Select the archive itself. |
+| Invalid or incomplete package | Prepare the ZIP with this project's tool. A ZIP of the entire game folder has the wrong structure. |
+| Invalid configuration in the package | Rebuild the ZIP. With a complete original `CLAW.REZ`, you can select it directly and let the app create its configuration. Do not delete saves. |
+| Not enough storage | Free space outside the game's storage and retry. Keep any interrupted-import recovery backup; the app needs space to restore it. Do not uninstall as an import repair. |
+| App not installed | Record the exact Android message, APK filename and Android version. Check for a signing-key conflict before uninstalling anything. |
+| Crash or slow gameplay | Report the APK version, phone model, Android version, level and action just before the problem. |
+
+Android 5/API 21 is the build minimum, not verified compatibility with every device. See the [compatibility matrix](validation/ANDROID-COMPATIBILITY.md).
+
+The port's code is open source. Original Claw data has separate copyright and is excluded from public sources. Possessing a copy does not automatically grant permission to publish its files. See [credits and licenses](../NOTICE.md). Direct REZ import and save workflows are inspired by Claw Web (Arthur Boss and contributors), with an Android implementation and validation in this project.
