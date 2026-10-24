@@ -1,4 +1,4 @@
-# Redmi follow-up / Ponowne próby Redmi — 0.4.29
+# Redmi follow-up — 0.4.29
 
 OpenAI Codex (LLM), 2026-10-24. The human explicitly made Redmi available again
 for regression checks and removal of this project's obsolete test files. No
@@ -23,7 +23,7 @@ Original config/progress were restored and verified after fixtures. The final
 cleanup also checked config/save/language against pre-update bytes. No signed
 release, ARMv7 or emulator retest was performed in this batch.
 
-## Bounded cleanup / Ograniczone sprzątanie
+## Bounded cleanup
 
 Removed only the obsolete Download installation ZIP and two old test screenshots,
 **61,442,833 bytes of known files**, after copying them to ignored private reports
@@ -44,12 +44,3 @@ starts using it; no further phone interaction is needed for this completed batch
 Private report prefixes: redmi-maintenance-2026-10-24, pause-powerup-redmi-0.4.29,
 game-over-pad-focus-redmi-0.4.29, melee-recovery-redmi-0.4.29-{side},
 game-over-powerup-rapid-redmi-0.4.29. Backups and raw evidence stay outside Git.
-
-## Polski
-
-Po ponownym udostępnieniu Redmi zaktualizowano grę do 0.4.29 i sprawdzono ostatnie
-poprawki. Pauza, przełączenia bonusu, powrót po końcu gry oraz kontratak poniżej
-żołnierza przeszły próby techniczne. Nie jest to test fizycznego pada ani kampanii.
-Usunięto wyłącznie około 61 MB starych plików naszego projektu i pomocnika testów,
-po zachowaniu sprawdzonych kopii na komputerze. Dane i postęp gry pozostały
-nienaruszone. Plików innych projektów nie sprzątano.

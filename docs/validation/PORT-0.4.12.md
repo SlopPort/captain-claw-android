@@ -1,4 +1,4 @@
-# 0.4.12-dev validation / Walidacja
+# 0.4.12-dev validation
 
 Work by OpenAI Codex (LLM), 2026-10-21/22. This is a development checkpoint, not a final 1.0 release.
 
@@ -35,5 +35,3 @@ The performance script originally hashed the workstation build output, which had
 Startup-sweep process PSS samples ranged from 132175 to 182391 KiB (largest sampled value on level 13, approximately 178 MiB). These are point samples after loading, not peak campaign memory, total phone use or a leak/thermal test.
 
 Local ARM APK: `dist/kapitan-pazur-0.4.12-dev.apk`, SHA-256 `992446a223d42eff8c363c3f1b0f0be1c0bf7a7dc5e9c14814447121eff3b333`. ELF alignment, both ARM ABIs, ZIP alignment with 16 KB checks and APK signature verification passed. The source archive created at commit `27694c6` has SHA-256 `a956e3eeb9fb12b1b27964ae0890786e993bc319809f9e9ccbeebfe47450a55d`; later compatibility evidence is committed separately. Proprietary data remains outside source/APK distribution.
-
-Po polsku: to sprawdzony etap rozwojowy z nowymi walkami i poprawkami, nie certyfikat ukończenia całej kampanii ani zgodności ze wszystkimi Androidami. Naturalne przejście, część resetów bossów, dalsze próby urządzeń i spadki przy długich klatkach pozostają otwarte.

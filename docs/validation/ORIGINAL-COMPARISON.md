@@ -1,4 +1,4 @@
-# Original-game comparison / Porównanie z oryginałem
+# Original-game comparison
 
 Scope checked by OpenAI Codex (LLM), 2026-10-22. Detailed behavioral comparison remains future work after the current release-gate tests.
 
@@ -18,5 +18,3 @@ A further targeted search on 2026-10-22 again found the OpenClaw README explicit
 Compare the same version, map location, difficulty, action and relative geometry. Record jump tap/hold trajectories, ladder attach/leave/top behavior, platform edges, vertical-offset attacks, damage/recovery/invulnerability, enemy reach and boss sequences. Keep original-game observations separate from OpenClaw source behavior and this adaptation's changes. Timing comparisons need controlled frame rate; a video or a design paragraph alone is not exact timing proof.
 
 Track each finding as confirmed match, measured difference, intentional adaptation or unknown. Preserve original recordings/art outside public source and APK; report measurements and source references instead. Never claim the entire port matches the original from a few successful encounter tests.
-
-Po polsku: porównamy zachowanie oryginalnej gry z portem i osobno sprawdzimy różnice względem OpenClaw. Nie mamy potwierdzonego dostępu do oryginalnego kodu Monolith, więc nie obiecujemy porównania linia po linii z tym kodem.

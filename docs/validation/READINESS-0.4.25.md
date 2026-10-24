@@ -1,10 +1,10 @@
-# 0.4.25-dev readiness / Przygotowanie wydania
+# 0.4.25-dev readiness
 
 OpenAI Codex (LLM), 2026-10-23. Human owns campaign playtesting. No physical-pad
 tests. Redmi was initially offline; the later [physical Redmi results](REDMI-0.4.25.md)
 are recorded separately. Huawei USB tethering/settings were left unchanged.
 
-## Changes / Zmiany
+## Changes
 
 - Original GPL-3.0 geometric vector icon, with no commercial game artwork.
 - Save-tool attribution translated into PL/EN, preserving upstream authors/LLM credit.
@@ -63,7 +63,7 @@ The emulator is unstable; limited successful cases do not establish general
 Android-15 stability or physical ARM 16 KB compatibility. Its size, density and
 font scale were restored and that instance was closed.
 
-## Open checks / Otwarte próby
+## Open checks
 
 The [full sustained Huawei observation](SUSTAINED-HUAWEI-0.4.25.md) completed:
 approximately 58.99 FPS, minimum batch 57 FPS, single longest interval 31 ms.
@@ -101,12 +101,6 @@ the human. No claim of 1.0 readiness or all-level minimum FPS.
 [Active Officer step evidence](ACTIVE-OFFICER-0.4.25.md) adds sixteen mixed
 outcomes, four confirmed-after-hit escape cases and a diagnostic parser follow-up.
 It does not close complete enemy/terrain coverage or original-game parity.
-
-Po polsku: poprawiono brak dostępu do przycisku Wstecz przy dużej czcionce,
-dodano własną ikonę i polski opis autorstwa narzędzi zapisów oraz jawne reguły
-kopii danych dla nowych Androidów. Próby Huawei, Androida 5 i ograniczony test
-16 KB mają przypisane dokładne APK. Błędy emulatora i nieudane próby pozostają
-udokumentowane; nie udajemy, że wszystkie warunki wydania są spełnione.
 
 Final ARM candidate also passed Huawei's explicit ARMv7 native/menu/jump/exit/score/
 next-map fixture (`compat-huawei-armv7-0.4.25`); ARM64 was restored afterwards.

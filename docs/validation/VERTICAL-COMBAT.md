@@ -1,10 +1,8 @@
-# Vertical melee audit / Walka na różnych wysokościach
+# Vertical melee audit
 
 Initial measurements by OpenAI Codex (LLM), 2026-10-22. Investigation in progress; this is not a passed fairness audit or original-game comparison.
 
 Fixture clarification from source review: `combatstage/combatdummy` initializes hero health to 100, disables protection and supplies pistol ammo 99 **before** the initial sample. Damage is then ordinary, with no health edits during the observed action; no shots are fired in these melee trials. The earlier tool header's broad wording “no health edits” was inaccurate and has been corrected. `VScaleActor(...,2.0)` in setup restores standing fixture collision masks in this engine; it does not multiply the hero's geometry dimensions. These trials remain controlled setups, not evidence of conserving normal campaign health/ammo.
-
-Po polsku: przed pomiarem scena ustawia zdrowie bohatera na 100 i amunicję pistoletu na 99, bez ochrony. Podczas obserwowanej akcji nie podmieniamy zdrowia. Poprzednie ogólne sformułowanie o braku edycji HP było zbyt szerokie; nie traktujemy tych prób jako normalnego przejścia gry z zachowaniem zasobów.
 
 ## Active officer, 48 px step
 

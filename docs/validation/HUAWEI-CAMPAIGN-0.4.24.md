@@ -1,6 +1,6 @@
-# Huawei campaign continuation and log recovery / Kampania na Huawei i odzyskiwanie logów
+# Huawei campaign continuation and log recovery
 
-## English
+> Historical validation record. Results apply to the builds and scenarios named here, not automatically to the latest APK. See the [README](../../README.md) for current project status.
 
 OpenAI Codex (LLM), 2026-10-23. Device: Huawei P9 Lite, Android 10,
 2 GB RAM. Redmi was reserved for another task and was not operated in this run.
@@ -49,44 +49,8 @@ with the same game process. This improves test reliability; it is not an APK
 performance or gameplay fix. Timestamp overlap can repeat the last log line;
 observers must continue to consume sample ticks only once.
 
-## Polski
 
-Pracę wykonał OpenAI Codex (LLM), 23 października 2026. Próba dotyczy Huawei
-P9 Lite z Androidem 10 i 2 GB RAM. Redmi pozostawiono drugiemu zadaniu.
-Nie zlecano restartu współdzielonego serwera ADB ani połączenia USB z internetem.
-APK i parametry rozgrywki nie zmieniły się; suma pliku jest podana wyżej.
-
-Przez zwykłe menu wczytano dokładną kopię zapisu zdobytego wcześniej w naturalnej
-próbie: poziom 1, checkpoint 1, zdrowie 100, zero zapasowych żyć, pistolet 6,
-magia 2, dynamit 3. Własne pliki użytkownika Huawei zabezpieczono oddzielnie.
-Dalej używano zwykłych przycisków i odczytów stanu. Nie teleportowano bohatera,
-nie odnawiano zasobów poleceniami ani nie dodawano odporności lub terenu.
-
-Przeszły kruche podesty, ruchome platformy i przesiadki na drabiny. Pionowa
-winda i górna drabina również przeszły; wcześniejszy zbyt krótki skok zakończył
-się bezpiecznym powrotem. Szybkie wyjście z drabiny, skok na pomost i kucnięcie
-pozwoliły pokonać żołnierza normalnym strzałem, ze zdrowiem 30. Osiągnięto dalszą
-półkę z flagą i drabinę. Pierwsza para cyklicznych podestów przeszła bez
-kocimiętki; mikstury zwiększyły zdrowie do 60.
-
-Następna grupa nadal nie jest zaliczona. Po wejściu na jeden podest kolejny
-skok zakończył się upadkiem na dolną podłogę. Oficer został normalnie pokonany,
-a dalszy przedmiot zwiększył zdrowie do 85. Zachowano nieudane powroty windą.
-Nie jest to ukończenie pierwszego poziomu, całej kampanii, pomiar minimum FPS
-ani potwierdzenie gotowości 1.0. Dowody lokalne są w wymienionym wyżej raporcie;
-mapy i komercyjne dane pozostają poza Gitem.
-
-Przerwał się klient odczytujący logi, chociaż gra nadal działała. Nie ustalono
-przyczyny przerwania. Kilka komunikatów o braku fazy windy wynikało z braku
-świeżych próbek, a nie z potwierdzonej awarii gry lub nieudanego skoku.
-Nowe narzędzie odzyskuje wyłącznie własny czytnik, wznawia od ostatniego czasu
-logu i dopisuje dowody. Nie restartuje ADB, gry, USB ani drugiego telefonu.
-Rzeczywista próba zatrzymania własnego czytnika na Huawei potwierdziła odzyskanie
-świeżego stanu bez zmiany procesu gry. To poprawka wiarygodności testów,
-nie poprawka APK ani optymalizacja FPS. Graniczny wpis logu może się powtórzyć;
-obserwatory nadal muszą odczytywać każdy znacznik próbki tylko raz.
-
-## Final tool verification / Końcowe sprawdzenie narzędzia
+## Final tool verification
 
 The owner-idle integration test (`log-recovery-huawei-0.4.24-owner`) also passed:
 its own logcat client was terminated, the idle loop reconnected, and an ordinary
@@ -94,9 +58,3 @@ status-query step completed with the same game process. No ADB-server restart
 was requested. After cleanup, configuration and save pulled from Huawei were
 byte-identical both to the integration-test backups and to the natural-run
 original backups (`restoration.json`). The natural campaign remains incomplete.
-
-Test głównej pętli również przeszedł: zatrzymano jej własny czytnik, pętla
-odtworzyła odczyt i wykonała kolejny zwykły krok, bez zmiany procesu gry i bez
-zlecania restartu ADB. Po zakończeniu ponownie pobrano konfigurację i zapis z
-Huawei. Oba pliki były identyczne bajt w bajt z kopiami sprzed testu narzędzia
-oraz sprzed naturalnej próby. Kampania nadal nie jest ukończona.

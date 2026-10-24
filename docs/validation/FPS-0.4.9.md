@@ -1,78 +1,128 @@
-# Optymalizacja FPS — 0.4.9
+# FPS optimization — 0.4.9
 
-Prace i pomiary wykonał Codex (LLM), 2026-10-21. Sprzęt: Huawei P9 Lite VNS-L21, LineageOS Android 10, około 2 GB RAM, ekran 1920×1080. Zachowano rozdzielczość, proporcje, filtrowanie nearest, widoczność dotyku, muzykę i efekty 22050 Hz oraz reguły aktualizacji i fizyki z 0.4.8.
+> Historical validation record. Results apply to the builds and scenarios named here, not automatically to the latest APK. See the [README](../../README.md) for current project status.
 
-## Punkt wyjścia
+Codex (LLM), 2026-10-21. Huawei P9 Lite VNS-L21, LineageOS Android 10, about
+2 GB RAM, 1920×1080 display. Resolution, aspect ratio, nearest filtering, visible
+touch controls, music/effects at 22050 Hz and 0.4.8 update/physics rules were kept.
 
-Ponowiony pomiar 0.4.8 (`reports/fps-baseline-0.4.9`, po 35 sekund na początek mapy, bez ochrony gracza), z pominięciem pierwszej partii 300 aktywnych klatek:
+## Baseline
 
-| Poziom | FPS |
+Repeated 0.4.8 measurement: `reports/fps-baseline-0.4.9`, 35 seconds per map start,
+no protection, excluding the first 300-active-frame batch:
+
+| Level | FPS |
 |---|---|
-| 8 | 56,4–57,9 |
-| 9 | 52,6–56,1 |
-| 13 | 56,1–59,5 |
+| 8 | 56.4–57.9 |
+| 9 | 52.6–56.1 |
+| 13 | 56.1–59.5 |
 
-Na poziomie 9 aktualizacja zajmowała około 10 ms, a faza renderowania wraz z prezentacją około 8 ms. Profil komponentów wskazał animacje jako największy koszt aktualizacji, ale sam profiler zwiększa narzut; jego wyników nie traktujemy jako benchmarku FPS. Box2D zachowuje 10/8 iteracji solvera.
+Level 9 update took about 10 ms and render/present about 8 ms. Component profiling
+identified animation as the largest update cost, but profiler overhead means it
+is not itself an FPS benchmark. Box2D retains 10/8 solver iterations.
 
-## Przyczyna i zmiana
+## Cause and change
 
-Androidowy punkt wejścia wybiera `opengles2` przez `SDL_HINT_RENDER_DRIVER`. W przypiętym SDL taki jawny wybór ustawia domyślnie `batching = SDL_FALSE`. To oznacza wykonywanie kolejki po poszczególnych poleceniach zamiast wspólnego przekazania poleceń do sterownika. Ustawienie `SDL_HINT_RENDER_BATCHING=1` jawnie włącza kolejkę. Źródło: [SDL_render.c, przypięta rewizja](https://github.com/libsdl-org/SDL/blob/5d249570393f7a37e037abf22cd6012a4cc56a71/src/render/SDL_render.c#L1008), w szczególności wybór sterownika i nadpisanie polityki batching około linii 1069.
+The Android entry point selects `opengles2` via `SDL_HINT_RENDER_DRIVER`. In the
+pinned SDL, explicit selection defaults to `batching = SDL_FALSE`, executing the
+queue per command rather than submitting commands together. Setting
+`SDL_HINT_RENDER_BATCHING=1` enables the existing queue.
+[Source: pinned SDL_render.c](https://github.com/libsdl-org/SDL/blob/5d249570393f7a37e037abf22cd6012a4cc56a71/src/render/SDL_render.c#L1008),
+especially driver selection/batching override around line 1069.
 
-To użycie istniejącej funkcji SDL, nie nasz nowy renderer. Integracja Androida zachowuje kolejność rysowania i stany tekstur; kod gry nie przeplata SDL z bezpośrednimi wywołaniami OpenGL. Nie zmniejszamy obrazu, liczby przeciwników, tempa animacji ani częstotliwości logiki.
+This integrates SDL functionality, not a new renderer. Draw order/texture state
+remain; game code does not interleave SDL with direct OpenGL calls. No reduction
+in image size, enemies, animation speed or logic frequency.
 
-Diagnostyczny plik `render-batching-off` w katalogu danych aplikacji wyłącza tę zmianę przy następnym starcie. Pozwala porównać identyczny APK i stanowi lokalną drogę powrotu przy problemie sterownika. Nie usuwa danych gry ani zapisów.
+`render-batching-off` in app data disables batching at next launch, allowing
+same-APK comparison and a local fallback for driver problems. Saves/data remain.
 
-## Metoda porównania
+## Comparison method
 
-`python tools/render_batch_smoke.py --levels 8 9 13 --hold-seconds 35 --report fps-batching-ab` uruchamia kolejno grupowanie wyłączone, włączone i ponownie wyłączone. Każdy przebieg korzysta z tego samego APK i identycznych ustawień oraz tymczasowego odblokowania map. Skrypt wymaga właściwego komunikatu o trybie w logu i zachowuje poprzedni plik opt-out; podskrypt przywraca konfigurację oraz postęp. Zapisujemy również stan baterii przed każdym przebiegiem. Nie wymuszamy częstotliwości CPU/GPU, temperatury ani trybu wydajności telefonu.
+`python tools/render_batch_smoke.py --levels 8 9 13 --hold-seconds 35 --report fps-batching-ab`
+runs off/on/off. Each uses the same APK/settings and temporary level unlocks.
+The script requires the expected mode log and preserves an existing opt-out;
+its child restores config/progress. Battery state is recorded before each pass.
+CPU/GPU frequency, temperature and performance mode are not forced.
 
-Zakres testu to nieruchomy początek mapy. Wynik nie obejmuje całej trasy, wszystkich walk, temperatury po długiej grze ani innych sterowników GPU. FPS liczymy tylko podczas aktywnej symulacji, a faza renderowania zawiera oczekiwanie na prezentację; nie jest to czysty pomiar czasu GPU.
+Only stationary starts are measured, not whole routes, all fights, long-play
+heat or other GPU drivers. FPS counts active simulation only. Render time includes
+presentation wait, not pure GPU time.
 
-Wykryto też istniejącą zmienność startu trybu pełnoekranowego: czasem silnik odczytuje powierzchnię 1800×1020 przed schowaniem pasków systemowych i wybiera 847×480, a czasem 1920×1080 → 853×480. Fizyczny ekran i zrzuty pozostają 1920×1080; pierwszy wariant ma niewielki margines. W pierwszej parze poziomu 8 i 9 warianty te się różniły, więc te porównania mają dodatkowe ograniczenie. Poziom 9 z batching miał szersze 853×480 wobec 847×480 bez batching; poziom 13 miał identyczne 847×480. To osobny błąd ustalania wymiarów przy starcie, nie celowe obniżenie jakości na potrzeby benchmarku. Narzędzie zapisuje teraz również faktycznie wybrane wymiary logiczne.
+An existing immersive-start race sometimes reads 1800×1020 before system bars
+hide, selecting 847×480, or 1920×1080 → 853×480. Physical screen/screenshots stay
+1920×1080; the first case has a small margin. Initial level-8/9 pairs differed,
+limiting comparison. Level 9 with batching was wider (853×480 versus 847×480);
+level 13 matched at 847×480. This is a separate startup-size bug, not a deliberate
+benchmark quality reduction. The tool now logs actual logical dimensions.
 
-## Wynik off/on/off
+## Off/on/off results
 
-Ten sam APK w `reports/fps-batching-ab`, średnia kolejnych sześciu partii po 300 aktywnych klatek, po pominięciu pierwszej partii:
+Same APK, `reports/fps-batching-ab`: mean of six successive 300-active-frame
+batches after excluding the first:
 
-| Poziom | Wyłączone | Włączone | Ponownie wyłączone |
+| Level | Off | On | Off again |
 |---|---:|---:|---:|
-| 8 | 56,90 | 60,20 | 56,42 |
-| 9 | 54,22 | 60,20 | 54,98 |
-| 13 | 57,93 | 60,17 | 57,05 |
+| 8 | 56.90 | 60.20 | 56.42 |
+| 9 | 54.22 | 60.20 | 54.98 |
+| 13 | 57.93 | 60.17 | 57.05 |
 
-Przy włączonej kolejce p95 wynosiło 17–18 ms; bez niej 19–22 ms. Raportowane 60,2 oznacza około 60 FPS (rozdzielczość i sposób pomiaru zegara), nie podwyższenie częstotliwości ekranu. Temperatura baterii przed kolejnymi seriami: 31 / 32 / 32°C; to nie temperatura CPU/GPU ani gwarancja braku throttlingu. Spadek po powrotnym wyłączeniu przy zbliżonej temperaturze wspiera przypisanie zysku batchingowi. Zastrzeżenie dotyczące wymiarów startowych opisano powyżej.
+With batching, p95 was 17–18 ms; without it 19–22 ms. Reported 60.2 means roughly
+60 FPS due to clock precision/measurement, not an increased refresh rate.
+Battery temperatures before runs: 31 / 32 / 32°C, not CPU/GPU temperatures or
+proof of no throttling. Lower FPS after disabling again at similar temperature
+supports a batching benefit, subject to the viewport limits above.
 
-Zrzuty poziomu 8 obejrzano dla obu trybów: plansza, sprite'y, przezroczystości, HUD i kontrolki są renderowane. Animacje zostały uchwycone w różnych fazach, a margines wynika z różnego wymiaru startowego; nie twierdzimy, że klatki są identyczne piksel w piksel.
+Level-8 screenshots in both modes were inspected: world, sprites, transparency,
+HUD and controls render. Animation phases differ and the margin reflects startup
+size; pixel-identical frames are not claimed.
 
-## Końcowy APK: wszystkie mapy i dotyk
+## Final APK: all maps and touch
 
-`reports/all-levels-0.4.9`: po 25 sekund po potwierdzeniu ładowania i dźwięku na każdej mapie; bohater stoi, bez ochrony, zwykli przeciwnicy pozostają aktywni. Pierwszą partię 300 klatek pominięto. Wszystkie 14 map załadowało się z dźwiękiem, bez wykrytej awarii procesu. Poniżej zakresy średnich FPS kolejnych partii oraz najgorsze p95 czasu klatki w tych partiach. To pomiar pętli silnika, nie pomiar fizycznej prezentacji każdej klatki na ekranie.
+`reports/all-levels-0.4.9`: 25 seconds after confirmed load/audio on each map;
+stationary unprotected hero, ordinary enemies active. First 300-frame batch
+excluded. All 14 loaded with audio and no detected process crash. Below are batch
+mean ranges and worst p95, measuring the engine loop rather than physical display
+presentation of every frame.
 
-| Poziom | FPS | p95 maks. (ms) | Partie po rozgrzaniu | Widok logiczny |
+| Level | FPS | Maximum p95 (ms) | Warmed batches | Logical view |
 |---|---|---:|---:|---|
-| 1 | 60,2 | 18 | 4 | 847×480 |
-| 2 | 60,2 | 18 | 4 | 853×480 |
-| 3 | 60,2–60,4 | 18 | 3 | 853×480 |
-| 4 | 60,2 | 18 | 4 | 853×480 |
-| 5 | 60,1–60,2 | 20 | 4 | 847×480 |
-| 6 | 60,2–60,4 | 18 | 3 | 847×480 |
-| 7 | 60,2 | 18 | 4 | 847×480 |
-| 8 | 60,2 | 18 | 4 | 847×480 |
-| 9 | 60,2 | 18 | 4 | 847×480 |
-| 10 | 60,2 | 18 | 4 | 847×480 |
-| 11 | 60,2 | 18 | 4 | 847×480 |
-| 12 | 60,2–60,3 | 18 | 4 | 847×480 |
-| 13 | 60,2 | 18 | 4 | 847×480 |
-| 14 | 60,1–60,2 | 21 | 4 | 853×480 |
+| 1 | 60.2 | 18 | 4 | 847×480 |
+| 2 | 60.2 | 18 | 4 | 853×480 |
+| 3 | 60.2–60.4 | 18 | 3 | 853×480 |
+| 4 | 60.2 | 18 | 4 | 853×480 |
+| 5 | 60.1–60.2 | 20 | 4 | 847×480 |
+| 6 | 60.2–60.4 | 18 | 3 | 847×480 |
+| 7 | 60.2 | 18 | 4 | 847×480 |
+| 8 | 60.2 | 18 | 4 | 847×480 |
+| 9 | 60.2 | 18 | 4 | 847×480 |
+| 10 | 60.2 | 18 | 4 | 847×480 |
+| 11 | 60.2 | 18 | 4 | 847×480 |
+| 12 | 60.2–60.3 | 18 | 4 | 847×480 |
+| 13 | 60.2 | 18 | 4 | 847×480 |
+| 14 | 60.1–60.2 | 21 | 4 | 853×480 |
 
-Na poziomach 5 i 14 czas klatki jest mniej równy mimo średniej około 60 FPS. Pierwsze partie zawierały pojedyncze większe przestoje, np. 113 ms na poziomie 6 i 129 ms na poziomie 10; rozgrzanie nie oznacza usunięcia wszystkich przycięć. Migawki PSS procesu wynosiły około 132–187 MiB, nie są pomiarem szczytowej pamięci ani całego kosztu GPU.
+Levels 5/14 have less even frame timing despite about 60 FPS. Initial batches
+included hitches such as 113 ms on level 6 and 129 ms on level 10. Warmup does not
+remove every hitch. PSS snapshots about 132–187 MiB are neither peak memory nor
+full GPU cost.
 
-`reports/jump-touch-0.4.9`: sześć pomiarów zaliczonych, wysokość krótkiego skoku około 74 px, długiego 155 px. Zdarzenie w aplikacji → wybicie: 18–22 ms (wcześniejsza próba 0.4.8: 29–31 ms). To nie pełne opóźnienie ekranu dotykowego. Przesuwanie palca nie uruchamia obcej akcji; scenariusze ruchu ze skokiem, pauzy i powrotu z tła zakończone.
+`reports/jump-touch-0.4.9`: six passes, short rise about 74 px, held 155 px;
+app-event-to-takeoff 18–22 ms (earlier 0.4.8: 29–31 ms), not full hardware latency.
+Finger slides do not trigger neighboring actions. Movement+jump, pause and
+background-return cases passed.
 
-`reports/gameplay-perf-9-0.4.9`: 45 sekund powtarzanej sekwencji ruchu w obie strony, szabli, skoku, strzału i kucania na prawdziwym początku poziomu 9. Wykonano 54 komendy wejścia; odczytane położenie zmieniło się z x=1594 do x=1733 i z powrotem, więc nie polegamy wyłącznie na potwierdzeniach komend. Bez teleportów, ochrony lub dodanej amunicji; HP przed i po wynosiło 100. Pierwsza partia: 58,3 FPS, p95 20 ms, maksimum 67 ms; następne osiem: 60,0–60,3 FPS, p95 18 ms, maksima 18–23 ms. Test zaliczony, a oryginalny zapis i konfigurację przywrócono. To krótki fragment z ruchem i działaniami, nie pomiar całej mapy ani walki ze wszystkimi przeciwnikami.
+`reports/gameplay-perf-9-0.4.9`: 45 seconds of repeated left/right movement, sword,
+jump, shooting and crouch at the real level-9 start. There were 54 input commands;
+observed x moved from 1594 to 1733 and back, rather than relying only on command
+acks. No teleport/protection/extra ammo; HP100 before/after. First batch:
+58.3 FPS, p95 20 ms, maximum 67 ms. Next eight: 60.0–60.3 FPS, p95 18 ms,
+maxima 18–23 ms. Passed, original config/save restored. This short section is
+neither a whole-map benchmark nor every-enemy combat coverage.
 
-APK: `dist/kapitan-pazur-0.4.9-debug-universal.apk`, wersja 0.4.9-dev (21), ARM64 i ARMv7. SHA-256: `60283884da15886c70844b20e35c9dd894166d79d83b4133be48173dedbb7812`. Kontrole obu ABI, segmentów 16 KiB ARM64, zipalign i podpisów v1/v2 zaliczone. Standardowa uwaga apksigner o metadanych Gradle w META-INF pozostaje. Brak danych komercyjnej gry w APK i paczce źródeł.
-
-## English summary
-
-The Android entry point explicitly selects GLES2, which disables batching by default in the pinned SDL version. Off/on/off runs on one APK measured map starts 8/9/13 at about 57/54/58 FPS without batching and about 60 FPS with batching; disabling it again reduced performance. The final APK reached about 60 FPS in warmed starts of all 14 maps, with sound and no detected crash. A 45-second level 9 movement/jump/attack sequence also reached 60.0–60.3 FPS after its first batch, without protection, teleporting or extra ammunition. Map 5/14 loop frame times remain less even and initial hitches remain. Touch tests passed. Image resolution, filtering, draw order, audio, simulation cadence and physics solver iterations are unchanged. This integrates SDL's existing queue, not a new renderer. Startup immersive-mode timing sometimes chooses a slightly different logical width, documented above; level 13 used matching dimensions. Short map-start measurements are separate from sustained whole-level performance.
+APK: `dist/kapitan-pazur-0.4.9-debug-universal.apk`, 0.4.9-dev (21), ARM64/ARMv7.
+SHA-256: `60283884da15886c70844b20e35c9dd894166d79d83b4133be48173dedbb7812`.
+Both ABIs, ARM64 16 KiB segments, zipalign and v1/v2 signatures passed. The usual
+apksigner warning about Gradle META-INF metadata remains. Commercial game data
+is absent from the APK/source package. These short samples do not establish
+sustained whole-level performance or 60 FPS throughout the campaign.

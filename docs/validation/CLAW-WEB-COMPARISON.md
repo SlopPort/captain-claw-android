@@ -1,64 +1,94 @@
-# Porównanie z Claw Web
+# Claw Web source comparison
 
-Późniejsza integracja wybranych funkcji, przypisanie autorstwa i wyniki Androida: [0.4.8](PORT-0.4.8.md). Poniższy audyt zachowuje stan porównania sprzed tej integracji.
+> Historical validation record. Results apply to the builds and scenarios named here, not automatically to the latest APK. See the [README](../../README.md) for current project status.
 
-Data: 2026-10-20. Audyt źródeł wykonany przez LLM (Codex). Nasz stan: `f376b10` / 0.4.7-dev. Claw Web: [`e723d3d48b5ba2cc723751209954cfc46c82d202`](https://github.com/arthurboss/claw-web/tree/e723d3d48b5ba2cc723751209954cfc46c82d202). Wspólny punkt odniesienia: OpenClaw `5ee5740ca98377c76b13b50c84f610b0066a4717`, obecny w historii obu drzew.
+Later integration, attribution and Android results: [0.4.8](PORT-0.4.8.md).
+This audit preserves the state before that integration.
 
-## Wniosek
+Date: 2026-10-20. Static audit by Codex (LLM). Our revision: `f376b10` /
+0.4.7-dev. Claw Web:
+[`e723d3d48b5ba2cc723751209954cfc46c82d202`](https://github.com/arthurboss/claw-web/tree/e723d3d48b5ba2cc723751209954cfc46c82d202).
+Shared OpenClaw ancestor: `5ee5740ca98377c76b13b50c84f610b0066a4717`,
+present in both histories.
 
-Nie znaleziono w tej rewizji gotowej implementacji finałowego poziomu, która zastępowałaby nasze uzupełnienia. Deklaracja README „Full Game: All 14 levels” nie ma pokrycia w sprawdzonych źródłach. Claw Web ma natomiast wartościową, rozbudowaną integrację przeglądarkową, wygodniejszy import oryginalnego REZ i funkcje zapisu oraz wibracji, których u nas nie ma. Część funkcji powstała równolegle: szeroki ekran, gałka dotykowa, pad. To wspólne cele, nie dowód identycznej implementacji lub zbędności całej pracy Androidowej.
+## Findings and limits
 
-Przegląd obejmuje kod i różnice względem wspólnej bazy. Nie uruchomiono ich buildu, nie zmierzono go na Huawei i nie przeprowadzono pełnego przejścia. Nie twierdzimy, że nasza wersja jest już w pełni ukończona ani że jest szybsza od Claw Web.
+The checked revision did not contain a finished finale implementation replacing
+our additions. Its README's “Full Game: All 14 levels” claim was not supported
+by the inspected sources. It does contain valuable browser integration, direct
+REZ import, save tools and haptics missing from our then-current port. Widescreen,
+joystick and controller support developed in parallel: shared goals do not prove
+identical implementation or that all Android work was unnecessary.
 
-## Sprawdzone różnice
+This compares source against the shared base. Its build was not run or benchmarked
+on Huawei, and no full playthrough was performed. Neither completeness of our
+version nor a performance advantage over Claw Web is claimed.
 
-| Obszar | Claw Web w sprawdzonej rewizji | Nasz port 0.4.7 |
+## Differences at these revisions
+
+| Area | Checked Claw Web revision | Our 0.4.7 port |
 |---|---|---|
-| Platforma | WebAssembly, HTML/JS, instalowalna PWA, service worker i obsługa offline | Natywny APK, Gradle/NDK, ARM64 + ARMv7, importer systemowy Androida |
-| Poziom 14 | Brak `LEVEL_METADATA/LEVEL14.XML`; jedyny śledzony zasób ścieżki LEVEL14 to ekran ładowania. Brak komponentu Omara i naszych nowych prototypów | Metadane, platformy i pułapki, gejzery, LavaHand/LavaMouth, TigerGuard i Chameleon, własny Omar oraz inscenizacja finału. Zgodność z oryginałem i pełne przejście nadal niepotwierdzone |
-| Poziom 13 | `Chameleon` mapowany na `ActorPrototype_Null` | Przywrócone 54 rozmieszczenia kameleonów, obsługa zanikania |
-| Trafienia i zdrowie | Zmiany względem bazy w HealthComponent i ProjectileAIComponent dodają głównie wibracje. ClawPhysics ma implementację SetVelocity; brak naszych poprawek kontaktów i aktywnego ciała kucania | Poprawki HP/śmierci, jednokrotnego kontaktu pocisku, czujnika stóp i granic kucania; 13 prób regresji na Huawei zaliczonych |
-| Drabiny | PhysicsComponent różni się od bazy tylko progiem lądowania `>2` → `>0`; brak naszej blokady ponownego wspinania na szczycie | Zakończenie wspinania, blokada ponownego zaczepienia; test pierwszej drabiny poziomu 1 zaliczony |
-| Gałka i przyciski | HTML/CSS, Pointer Events, przechwytywanie palca, gałka lub krzyżak, wibracje, dopasowanie do ekranu; JS wysyła KeyboardEvents | SDL, gałka 8 kierunków, wielodotyk, niezależna własność klawiszy z padem, minimalny impuls skoku 110 ms, cache tekstur |
-| Krótki skok | `setupHoldButton` puszcza klawisz po pointerup/cancel; w tej ścieżce nie znaleziono minimalnego podtrzymania jak u nas | Przystosowanie krótkiego tapnięcia; na Huawei około 74 px i jeden skok na przytrzymanie, pomiar silnika 28–30 ms |
-| Pad | Browser Gamepad API, obsługa połączeń, stałe przypisania w C++/JS, wibracje zdarzeń rozgrywki | SDL_GameControllerDB, natywne kody Androida, własne przypisania i ekran ich przechwytywania, focus/hotplug; fizyczny GameSir sprawdzany z użytkownikiem |
-| Wibracje | Osobna warstwa HapticFeedback, zdarzenia obrażeń, eksplozji, kroków i lądowania | Brak własnej implementacji wibracji — przewaga funkcjonalna Claw Web |
-| Szeroki ekran | Obsługa widescreen, ustawienia wyświetlania i układ przeglądarki | Więcej świata bez deformacji sprite'ów, kotwiczenie HUD i menu; rozwiązywane równolegle |
-| Dane gry | Użytkownik wskazuje bezpośrednio `CLAW.REZ`, przechowywany w IndexedDB | Użytkownik wskazuje przygotowany `game-data.zip`; wygoda przygotowania danych słabsza niż bezpośredni REZ |
-| Zapisy | Postęp w localStorage, import/eksport JSON i reset z menu | Plik SAVES.XML w katalogu aplikacji; brak równie wygodnego interfejsu eksportu/importu postępu |
-| Zapis ustawień dźwięku | C++ SaveGameOptions nadal zawiera stub; nie jest to dowód, że każda konfiguracja przeglądarki jest tracona | Android zapisuje aktywność i głośności w tle/przy zamykaniu; test ponownego uruchomienia i zachowania innych pól zaliczony |
-| Ładowanie | Węższy preload menu/fontów, metadane ładowane na żądanie, infrastruktura cache/offline przeglądarki | Nadal szerszy preload CLAW/GAME/STATES i wcześniejsze ładowanie metadanych; kandydat do dalszej optymalizacji startu |
-| FPS | Nie mierzono na tym samym telefonie; liczba zmian renderera nie stanowi dowodu przewagi wydajności | Krótkie stacjonarne próby Huawei: poziom 1 około 60 FPS, poziom 13 około 43 FPS; brak pełnego benchmarku gry |
+| Platform | WebAssembly, HTML/JS, installable PWA, service worker, offline support | Native Gradle/NDK APK, ARM64 + ARMv7, Android system importer |
+| Level 14 | No `LEVEL_METADATA/LEVEL14.XML`; its only tracked LEVEL14 path asset is the loading screen. No Omar component or our new prototypes | Metadata, platforms/traps, geysers, LavaHand/LavaMouth, TigerGuard/Chameleon, custom Omar and finale staging. Original parity/full traversal unconfirmed |
+| Level 13 | `Chameleon` maps to `ActorPrototype_Null` | 54 placements restored; fade behavior |
+| Hits and health | HealthComponent/ProjectileAIComponent differences mainly add haptics; ClawPhysics implements SetVelocity, without our contact/active-crouch fixes | HP/death, single projectile contact, foot sensor and crouch-bounds fixes; 13 Huawei regressions passed |
+| Ladders | PhysicsComponent changes only landing threshold `>2` → `>0`; no top-reattachment guard | Climb completion/reattachment guard; actual level-one first-ladder test passed |
+| Joystick/buttons | HTML/CSS Pointer Events, pointer capture, joystick/D-pad, vibration and responsive layout; JS KeyboardEvents | SDL eight-direction joystick, multitouch, independent key ownership alongside controller, 110 ms minimum jump pulse, texture cache |
+| Short jump | `setupHoldButton` releases on pointerup/cancel; no analogous minimum hold found in this path | Touch adaptation: about 74 px on Huawei, one jump per hold, engine timing 28–30 ms |
+| Controller | Browser Gamepad API, hotplug, fixed C++/JS mappings, gameplay vibration | SDL_GameControllerDB, native Android codes, capture/remapping UI, focus/hotplug; human-assisted physical GameSir tests |
+| Haptics | HapticFeedback layer with damage/explosion/footstep/landing events | No custom vibration implementation; functional advantage for Claw Web |
+| Widescreen | Widescreen/display settings and browser layout | More world without sprite distortion, anchored HUD/menus; parallel work |
+| Game data | Direct user `CLAW.REZ`, stored in IndexedDB | Prepared `game-data.zip`; preparation less convenient than direct REZ |
+| Progress | localStorage, JSON import/export/reset from menu | App-directory SAVES.XML; no equally convenient progress import/export UI |
+| Audio settings | C++ SaveGameOptions still a stub; this alone does not prove every browser setting is lost | Android persists enabled states/volumes on background/exit; restart and unrelated-field preservation passed |
+| Loading | Narrower menu/font preload, on-demand metadata, browser cache/offline infrastructure | Broader CLAW/GAME/STATES preload and early metadata loading; optimization candidate |
+| FPS | No same-phone measurement; renderer change count is not performance proof | Short stationary Huawei samples: level 1 about 60 FPS, level 13 about 43 FPS; no whole-game benchmark |
 
-## Dlaczego „14 poziomów” nie wystarcza
+## Why “14 levels” alone is insufficient
 
-1. [README](https://github.com/arthurboss/claw-web/blob/e723d3d48b5ba2cc723751209954cfc46c82d202/README.md) deklaruje wszystkie 14 poziomów.
-2. [Katalog metadanych](https://github.com/arthurboss/claw-web/tree/e723d3d48b5ba2cc723751209954cfc46c82d202/Build_Release/ASSETS/LEVEL_METADATA) zawiera poziomy 1–13, bez 14.
-3. [BaseGameApp.cpp](https://github.com/arthurboss/claw-web/blob/e723d3d48b5ba2cc723751209954cfc46c82d202/OpenClaw/Engine/GameApp/BaseGameApp.cpp#L1423) buduje ścieżkę `/LEVEL_METADATA/LEVEL<n>.XML`; brak pliku kończy się `false`, a GetLevelMetadata zwraca NULL. Nie znaleziono zastępczej ścieżki generującej dane poziomu 14.
-4. [build_wasm.sh](https://github.com/arthurboss/claw-web/blob/e723d3d48b5ba2cc723751209954cfc46c82d202/build_wasm.sh#L31) odbudowuje ASSETS.ZIP z tego katalogu źródłowego. Nie znaleziono śledzonego alternatywnego ZIP z pełnym poziomem.
-5. [LEVEL13.XML](https://github.com/arthurboss/claw-web/blob/e723d3d48b5ba2cc723751209954cfc46c82d202/Build_Release/ASSETS/LEVEL_METADATA/LEVEL13.XML#L34) wyłącza kameleona przez ActorPrototype_Null.
+1. [README](https://github.com/arthurboss/claw-web/blob/e723d3d48b5ba2cc723751209954cfc46c82d202/README.md) claims all 14 levels.
+2. [Metadata directory](https://github.com/arthurboss/claw-web/tree/e723d3d48b5ba2cc723751209954cfc46c82d202/Build_Release/ASSETS/LEVEL_METADATA) contains levels 1–13, without 14.
+3. [BaseGameApp.cpp](https://github.com/arthurboss/claw-web/blob/e723d3d48b5ba2cc723751209954cfc46c82d202/OpenClaw/Engine/GameApp/BaseGameApp.cpp#L1423) builds `/LEVEL_METADATA/LEVEL<n>.XML`; a missing file returns `false`, and GetLevelMetadata returns NULL. No fallback generating level-14 metadata was found.
+4. [build_wasm.sh](https://github.com/arthurboss/claw-web/blob/e723d3d48b5ba2cc723751209954cfc46c82d202/build_wasm.sh#L31) rebuilds ASSETS.ZIP from that source directory. No tracked alternative ZIP with the complete level was found.
+5. [LEVEL13.XML](https://github.com/arthurboss/claw-web/blob/e723d3d48b5ba2cc723751209954cfc46c82d202/Build_Release/ASSETS/LEVEL_METADATA/LEVEL13.XML#L34) disables Chameleon through ActorPrototype_Null.
 
-Menu wyboru poziomu i grafika jego ładowania nie są implementacją jego przeciwników, pułapek i finału. Nie wykluczamy innego, nieopublikowanego stanu lub różnicy między wdrożoną stroną i tą rewizją źródeł.
 
-## Co warto wykorzystać dalej
+A level-selector entry/loading image does not implement enemies, traps or finale.
+An unpublished revision or differences between deployed site and these sources
+remain possible.
 
-1. **Import samego CLAW.REZ.** Największe uproszczenie dla użytkownika. U nas wymagałoby zbudowania redystrybuowalnego pakietu wsparcia z pewnymi licencjami oraz zachowania polskich wariantów danych. Nie wolno po prostu dołączyć cudzego ASSETS.ZIP lub grafik gry bez sprawdzenia pochodzenia.
-2. **Eksport/import postępu przez systemowy wybór pliku.** Dobry wzorzec funkcjonalny, ale kod EM_ASM/localStorage trzeba zastąpić mechanizmem Androida. Nie wymaga porzucania istniejących SAVES.XML.
-3. **Węższy preload.** Porównać czasy zimnego startu, pamięć i przycięcia przy pierwszym użyciu zasobu. Ich BaseGameApp jest sensownym punktem odniesienia; opis „lazy loading” częściowo wykorzystuje już istniejący cache OpenClaw.
-4. **Opcjonalne wibracje pada/telefonu.** Można wykorzystać organizację zdarzeń/presetów, a wyjście podłączyć przez SDL/Android. Domyślne ustawienie i koszt na słabym telefonie wymagają prób.
-5. **Drobne poprawki rozgrywki do osobnego odtworzenia:** pozostawienie bohatera w pozycji śmierci po utracie ostatniego życia, SetVelocity zamiast assert oraz walidacja pustych akcji ataku. Nasza walidacja AI już istnieje i korzysta z pierwszego sensora, więc nie zastępujemy jej mechanicznie ich kontrolą indeksu.
+## Useful integration candidates
 
-Nie przeniesiono jeszcze żadnego z tych rozwiązań do produkcyjnego kodu w ramach tego porównania. Najpierw zidentyfikowano różnice; nie ma uzasadnienia dla automatycznej podmiany całego silnika.
+1. **Direct CLAW.REZ import.** The biggest installation simplification. We need a
+   redistributable support package with known licenses and Polish-data variants.
+   Do not copy another ASSETS.ZIP/game art without checking provenance.
+2. **Progress import/export through the system picker.** A useful functional
+   model; Android must replace EM_ASM/localStorage. Existing SAVES.XML can remain.
+3. **Narrower preload.** Compare cold-start time, memory and first-use hitches.
+   Their BaseGameApp is useful reference; some “lazy loading” already uses
+   OpenClaw's existing cache.
+4. **Optional controller/phone vibration.** Event/preset organization could be
+   adapted to SDL/Android output. Defaults and low-end cost need testing.
+5. **Small gameplay fixes to reproduce separately:** preserve final-death pose,
+   SetVelocity instead of assert, and empty attack-action validation. Our AI
+   validation already uses the first sensor; do not mechanically replace it
+   with their index check.
 
-## Co było wspólne, a co dodatkowe
+No candidate was integrated into production code during this comparison. Source
+inspection preceded changes; wholesale engine replacement was not justified.
 
-- Oba projekty dziedziczą zdecydowaną większość silnika i rozgrywki z OpenClaw. Nie zaliczamy tego jako własnego dorobku.
-- Widescreen, dotyk i pad mają odpowiedniki w obu projektach. Wcześniejsze porównanie mogło ograniczyć część równoległego projektowania i testów pomysłów; nie da się uczciwie wyliczyć zaoszczędzonego czasu bez wcześniejszej integracji.
-- Nasz APK, obsługa cyklu życia Androida, import danych, przypisania GameSira, poprawki drabiny i walki, uzupełnienia poziomu 14 oraz testy na Huawei pozostają konkretną dodatkową pracą. Nie znaleziono ich odpowiedników w tej rewizji Claw Web.
-- Ich PWA/offline, warstwa dźwięku przeglądarkowego, eksport zapisów, wibracje i wygoda bezpośredniego REZ są konkretną dodatkową pracą po ich stronie.
+## Shared base and additional work
 
-GPLv3 umożliwia współpracę kodu przy zachowaniu warunków licencji, informacji o autorach i zmianach. Nie daje automatycznie praw do oryginalnych zasobów gry. Ta notatka nie jest kompletnym audytem prawnym lub audytem wszystkich plików Claw Web.
+- Both projects inherit most engine/gameplay from OpenClaw; we do not claim it.
+- Widescreen, touch and controllers exist in both. Earlier comparison might have
+  reduced parallel design/testing, but saved time cannot be honestly quantified
+  without earlier integration.
+- Our APK, Android lifecycle/import, GameSir remapping, ladder/combat fixes,
+  level-14 additions and Huawei tests remain concrete additional work. No
+  equivalents were found in this Claw Web revision.
+- Their PWA/offline, browser audio, progress export, haptics and direct-REZ
+  convenience are concrete additional work in their project.
 
-## English summary
-
-Static comparison against Claw Web commit e723d3d and our f376b10 found complementary work, not a finished Android replacement. Its README claims all 14 levels, but the checked source lacks level 14 metadata/Omar implementation and still disables level 13 chameleons. Our Android lifecycle, remapping, collision/ladder fixes and level 14 additions remain distinct; exact original-game equivalence and a complete playthrough remain unverified. Claw Web offers useful browser/PWA infrastructure, direct REZ import, save export/import, haptics and narrower startup preloading. Shared feature goals include touch controls, widescreen and gamepads. No same-device performance comparison or upstream code integration was performed during this audit.
+GPLv3 permits code collaboration subject to license, attribution and change-notice
+requirements. It does not automatically grant rights to original game assets.
+This is not a complete legal or file-by-file licensing audit of Claw Web.

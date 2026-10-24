@@ -1,14 +1,16 @@
-# Campaign validation toward 1.0 / Kampania przed 1.0
+# Campaign validation toward 1.0
+
+> Historical validation record. Results apply to the builds and scenarios named here, not automatically to the latest APK. See the [README](../../README.md) for current project status.
 
 Work and testing by OpenAI Codex (LLM), 2026-10-21/22. Human reports and hardware are acknowledged without personal identifying information. This is a work log, not a declaration that version 1.0 is ready.
 
-## Reproduced blockers / Odtworzone blokady
+## Reproduced blockers
 
 - Collecting the real level-one end pickup reached the score screen, then a missing regional voice file (`/states/booty/sounds/claw/1110004.wav`) caused an assertion in HumanView. Optional missing WAV playback now logs and returns instead of aborting the game. This does not add copyrighted recordings to the project.
 - The score screen handled keyboard confirmation only. Android left mouse presses, including SDL-translated screen taps, now call the existing score-state progression. Desktop controls are unchanged.
 - `omar-campaign-current1` defeated Omar and completed the finale/score, then returning to the menu exposed missing credit PNGs in our new XML support bundle. Menu initialization loads every page, so this was a packaging regression, not merely an unavailable optional credit screen. Generated original credit cards now supply both paths; packaging checks all support-PNG references and uses stable metadata. `omar-campaign-credits-fixed` passed on 0.4.12-dev: both combat phases, finale, score, return to menu and no level-15 save. Fixtures include teleports, elemental powerups, infinite ammo and protection; no boss-health edits.
 
-## Controlled transition tests / Kontrolowane przejścia
+## Controlled transition tests
 
 `tools/campaign_score_smoke.py` uses `CampaignSession` to back up and restore the phone's configuration and saves. It starts an isolated save, teleports to an **existing** end pickup, lets normal collision collect it, confirms the score screen using app-local SDL mouse events, checks that the next map loads and inspects its saved checkpoint. No global Android input or USB/network configuration changes are used.
 
@@ -20,7 +22,7 @@ Further tests of 3 → 4, 5 → 6, 7 → 8, 9 → 10 and 11 → 12 passed with n
 
 Android window touch confirmation also passed: `reports/score-android-window1`. Instrumentation dispatches finger MotionEvents only to this game's focused window, after collecting the real level-one end pickup. Three taps advance the score screen and level 2 loads. This closes the input-delivery gap in the earlier SDL-only tests.
 
-## Encounter audit finding / Wynik przeglądu bossów
+## Encounter audit finding
 
 The inherited converter skipped `AquatisCrack`, `AquatisDynamite` and `Tentacle` on level 12. `AquatisEncounter.cpp` contains empty active update/animation behavior and a commented-out state activation. The added Android arena component now connects original WWD tentacles, crack, dynamite resupply and five stalactites to the existing boss health/death/gem flow. Normal generic boss melee remains in OpenClaw.
 
@@ -34,7 +36,7 @@ Further source review found empty Marrow parrot/floor behavior. The new implemen
 
 `gabriel-button-fight6-atomic-input` passed the inherited real button/raised-cannon mechanic, four 25 HP hits, boss defeat, real gem, score and level 9. The fixture uses teleports/protection and ordinary sword events. Its development failures and the inherited missing vertical projectile visual are documented in [Gabriel encounter notes](GABRIEL-ENCOUNTER.md).
 
-## Remaining release gates / Warunki wydania
+## Remaining release gates
 
 - Technical exits for all fourteen levels now have controlled evidence across the reports above, including the finale/menu/no-level-15 regression. Preserve those results while completing the remaining natural-playthrough and reset gates.
 - Verify every boss with actual damage and encounter mechanics; record any assistance or fixtures explicitly.
@@ -46,5 +48,3 @@ Further source review found empty Marrow parrot/floor behavior. The new implemen
 - User-requested follow-up, 2026-10-22: expand vertical-offset combat tests in both directions (hero above/below enemy), including stairs, ledges, airborne and crouching attacks; distinguish attack areas from hurt bodies and verify possible counterattacks/escape.
 - Compare behavior with the original game and available source evidence. Do not call OpenClaw original Monolith source, and do not claim access to original game source without finding and establishing its provenance. Identify observations, design-document descriptions and reconstruction choices separately.
 - Add English application/control UI in addition to the existing English documentation. Inventory native touch/menu labels, Android screens, errors and help; document any game-data language dependency instead of claiming all original recordings/text are translated.
-
-Po polsku: przejście końca mapy przez teleport jest próbą techniczną. Nie oznacza ukończenia kampanii zwykłą rozgrywką. Dopóki powyższe próby nie zostaną zakończone, nie oznaczamy wydania jako gotowej wersji 1.0.

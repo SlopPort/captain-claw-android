@@ -1,26 +1,7 @@
-# Release signing / Podpis wydania
+# Release signing
 
 Prepared by OpenAI Codex (LLM), 2026-10-23. Source authorship and game-data rights
 remain as described in NOTICE. A signed development candidate is not release 1.0.
-
-## Co to znaczy dla właściciela projektu?
-
-Android wymaga podpisu APK. Podpis pozwala mu sprawdzić, czy aktualizacja pochodzi
-od posiadacza tego samego klucza co zainstalowana aplikacja. To nie jest klucz do
-GitHuba, konto Google, licencja gry ani zabezpieczenie kodu przed kopiowaniem.
-Otwarte źródła pozostają otwarte; każdy może zbudować i podpisać własny wariant.
-
-Lokalnie utworzono dwa pliki: `private-signing/pazur-release.keystore` zawiera
-prywatny klucz podpisujący, a `private-signing/password.txt` zawiera jego hasło.
-Nie trzeba ich wysyłać ani podawać hasła w rozmowie. Zachowaj kopię obu w prywatnym,
-bezpiecznym miejscu poza projektem, najlepiej jako zaszyfrowaną kopię zapasową.
-Nie umieszczaj ich w repozytorium — także prywatnym. Publiczny certyfikat i jego
-odcisk mogą być jawne; prywatny klucz i hasło nie.
-
-Oba telefony nadal używają podpisu testowego debug. Nowy klucz wykorzystano tylko
-do kandydata i osobnego testu; nie zastąpiono nim Twojej instalacji. Na razie nic
-nie musisz odinstalowywać ani zmieniać na telefonie. Publikacja samych źródeł nie
-wymaga udostępniania żadnego z tych plików.
 
 ## Plain-English explanation
 
@@ -30,9 +11,9 @@ game. Open source does not require publishing the private signing key: other
 people can build and sign their own variants. The local keystore contains the
 private key; password.txt contains its password. Privately back up both outside
 the checkout, preferably encrypted. Do not upload either file or share its contents.
-The phones still use debug signing; no uninstall or migration is needed now.
+The main test installations retain debug signing; signing preparation did not require uninstalling or migrating them. See the [current handoff](HANDOFF.md) for device allocation.
 
-## English
+## Create and use a signing identity
 
 A first release identity was generated locally with subject `CN=SlopPort`, RSA
 3072, PKCS12. Its files are **private**:
@@ -78,24 +59,6 @@ retain the original REZ/ZIP, and verify the exported save. Only then explicitly
 plan removal/reinstallation and restore the save. Uninstalling removes app-private
 files; a signature failure is not a reason to uninstall without a verified backup.
 Do not distribute an unsigned APK or publish the test companion as the game.
-
-## Polski
-
-Przygotowano lokalny klucz wydania bez imienia człowieka: `CN=SlopPort`, RSA 3072.
-Plik klucza i plik hasła znajdują się w prywatnym katalogu `private-signing/`.
-**Zachowaj prywatną kopię obu plików poza katalogiem projektu przed dystrybucją.**
-Nie wrzucaj ich na GitHub ani do zgłoszeń. Utrata klucza uniemożliwia podpisanie
-kolejnej aktualizacji tą samą tożsamością. Nie generuj nowego klucza co wydanie.
-
-Polecenie powyżej tworzy klucz tylko wtedy, gdy katalog jeszcze nie istnieje.
-Zmienne środowiskowe wskazują pliki; hasła nie wpisuje się do polecenia ani źródeł.
-Kompilacja release bez klucza jest blokowana, a debug działa jak wcześniej.
-
-Obecne instalacje na telefonach mają podpis testowy SDK. Nowy podpis nie pozwoli
-nadpisać ich aktualizacją. Nie odinstalowano gry z żadnego telefonu. Przed przyszłą
-zmianą kanału trzeba wyeksportować i sprawdzić zapis, zachować własne dane gry,
-a dopiero potem świadomie przeprowadzić reinstalację i przywrócenie postępu.
-Podpisany kandydat nadal wymaga własnych prób; nie nazywamy go wersją 1.0.
 
 [0.4.26 candidate verification and isolated runtime scope](validation/RELEASE-0.4.26.md).
 

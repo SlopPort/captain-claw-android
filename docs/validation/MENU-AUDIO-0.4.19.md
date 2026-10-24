@@ -1,4 +1,6 @@
-# Touch audio controls / Dotykowe suwaki dźwięku
+# Touch audio controls
+
+> Historical validation record. Results apply to the builds and scenarios named here, not automatically to the latest APK. See the [README](../../README.md) for current project status.
 
 OpenAI Codex (LLM), 2026-10-22. Completed scoped touch tests; controller testing excluded.
 
@@ -17,7 +19,3 @@ Candidate x86_64 APK SHA-256 `eb66d2fdc382a33d723e7c92d61226b48b26fc1cece4acb128
 The additional `audio-toggle-baseline-api21-0.4.19-en` test failed on that same APK: mute/unmute XML events re-enabled independent voice/ambient controls, although their backend shares the master Sound switch. Initialization-only disabling was insufficient. The baseline failure is retained. Android SetState now preserves the disabled invariant for those controls.
 
 Corrected x86_64 APK SHA-256 `162d76864337cb3427ae83895274e055eb993af02a5cc5522aafdc01ee66ab94`: `audio-fixed-api21-0.4.19-en/pl` passed all 17 navigation transitions, six slider gestures, mute/unmute attempts and the disabled-state invariant for every logged voice/ambient item. Actual-APK translation coverage passed 109/109 named elements in both languages. The separately compiled ARM64 + ARMv7 candidate SHA-256 is `8809cd2c01a9b6b6bd6f9fedabad96516387c669549426a98b51b6381a1b1c2b`; its ELF coverage/alignment checks passed. This exact ARM APK subsequently passed `audio-fixed-huawei-0.4.19-en/pl` on the physical Huawei Android 10: all 17 navigation transitions, six slider gestures, mute/unmute and disabled voice/ambient states. Actual-APK label coverage passed 109/109 in each language. Configuration, progress and language were restored after each run. This establishes the tested menu workflows, not a campaign or FPS result.
-
-## Polski
-
-Dodano przeciąganie suwaków dotykiem, zachowanie wybranego kanału przy przesunięciu palca na drugi wiersz i zapis po puszczeniu/anulowaniu. Próby suwaków w PL/EN na emulatorze Androida 5 przeszły. Dodatkowy test potwierdził ponowne włączanie niedziałających osobnych kontrolek głosów i otoczenia po wyciszeniu; poprawiona kompilacja przeszła ponownie tę próbę w obu językach. Następnie ten sam kandydat ARM `8809cd2c…` przeszedł wszystkie wymienione próby na Huawei z Androidem 10 w PL i EN, w tym pokrycie 109/109 nazwanych etykiet. Konfiguracja i postęp zostały przywrócone. To dowód działania sprawdzonych ekranów, nie przejścia kampanii ani osiągnięcia 60 FPS.

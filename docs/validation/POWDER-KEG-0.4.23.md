@@ -1,7 +1,5 @@
 # Powder-keg regression and campaign status — 0.4.23
 
-## English
-
 OpenAI Codex (LLM) performed this work. The port remains based on OpenClaw;
 this is a correction to diagnostic code added by this adaptation.
 
@@ -50,38 +48,7 @@ ordinary jump/movement/sword input. Read-only map queries and local WWD inventor
 help plan routes; they do not move the hero or modify terrain. All commercial
 map data, dumps, screenshots and private device identifiers remain outside Git.
 
-## Polski
-
-Pracę wykonał OpenAI Codex (LLM). Port korzysta z OpenClaw; poprawka dotyczy
-kodu diagnostycznego dodanego w naszej adaptacji.
-
-Podczas zwykłej próby pierwszego poziomu strzał w beczkę prochu zamknął 0.4.22
-na Redmi. Diagnostyka próbowała odczytać kolizję nowego wybuchu podczas trwającej
-obsługi kontaktu Box2D. Silnik odkłada wtedy utworzenie obiektu fizycznego do
-odblokowania świata. Odczyt następował za wcześnie i wywoływał asercję.
-
-0.4.23 zapisuje żądaną geometrię wybuchu bez przedwczesnego pytania o fizykę.
-Rzeczywiste obszary kontaktów nadal są logowane przy trafieniu. Nie zmieniono
-obrażeń, rozmiaru wybuchu, kolejności fizyki ani zachowania przeciwników.
-
-Na tym samym APK wskazanym wyżej test strzału z przykucnięcia przeszedł na
-Redmi (Android 16) i Huawei (Android 10): beczka otrzymała obrażenia, wybuch
-wywołał rzeczywiste kontakty, gra nie zamknęła się. Stara wersja odtwarza
-asercję w identycznej próbie. Dwie wcześniejsze próby testowe chybiły w beczkę;
-nie są zaliczone jako poprawne odtworzenie. Dane użytkownika przywrócono po
-każdym teście. Zbudowano oba warianty ARM i sprawdzono zgodność łatek.
-
-Test regresji ustawia pozycję na początku, więc **nie jest przejściem kampanii**.
-Przerwana naturalna próba zachowywała zwykłe zasoby, śmierć, odrodzenie i bonusy
-z mapy. Dotarła do dolnej części pierwszego poziomu (około x4308/y4864), ale nie
-ukończyła poziomu. Możliwość powrotu z jednej dolnej odnogi wymaga dalszego
-sprawdzenia; nie uznano tego automatycznie za błąd względem oryginału. Flaga
-odradzania nie zapisała postępu na dysku przed awarią. Nowa próba na 0.4.23
-zaczyna się od początku, bez odtwarzania pozycji poleceniami.
-
-Narzędzie sterowania czeka teraz pełny czas przytrzymania i potrafi wysłać
-jednoczesny zwykły skok, ruch i cios. Odczyty map pomagają wybrać drogę, ale nie
-zmieniają pozycji ani terenu. Dane komercyjnej gry i identyfikatory telefonów
-pozostają poza repozytorium. Cała kampania nadal wymaga ukończenia i oceny.
-
-Follow-up / Uzupełnienie: the first 0.4.23 natural attempt also exposed a driver timeout during the normal death fade. This was a test-tool failure, not an established game bug. The driver now retries only the explicit transition rejection for at most 30 seconds and pauses before screenshot transfer. Pierwsza próba 0.4.23 ujawniła także zbyt krótki czas oczekiwania narzędzia na odrodzenie. Poprawiono narzędzie; nie uznano tego za błąd gry.
+Follow-up: the first 0.4.23 natural attempt also exposed a driver timeout during
+the normal death fade. This was a test-tool failure, not an established game bug.
+The driver now retries only the explicit transition rejection for at most
+30 seconds and pauses before screenshot transfer.

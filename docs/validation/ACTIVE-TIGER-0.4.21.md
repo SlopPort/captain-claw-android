@@ -1,4 +1,6 @@
-# Active Tiger Guard follow-up / Aktywny Tiger Guard
+# Active Tiger Guard follow-up
+
+> Historical validation record. Results apply to the builds and scenarios named here, not automatically to the latest APK. See the [README](../../README.md) for current project status.
 
 OpenAI Codex (LLM), 2026-10-22. Physical Huawei Android 10, ARM64 APK SHA-256 `cfc586439527bb6e4f063d4d6b7b526aa8fa64e2c9f44d6fccc7e7889c7672cf`. Report prefix `active-tiger-0.4.21`.
 
@@ -18,7 +20,3 @@ Escape inputs hold jump/direction for 1000 ms and schedule sword at 450 ms. Trac
 The next hero-above/left standing case failed the initial geometry gate before executing its measured action: the acrobatic enemy had already jumped above the hero during the status round-trip. The run aborted, preserving this failure and all four completed cases. No eight-case success or hero-above coverage is claimed. The test tool now additionally writes a structured `invalid-fixture.json` for future occurrences without weakening its assertion; this older failed case retains its original raw logs.
 
 This records a sword command without an observed accepted attack animation in one case, and available away movement in the two escape cases. The missing animation requires further input/hurt-state analysis; its cause is not proved by this trace alone. It does not establish original-game parity, natural stair fairness or a general fix for stunlock. No AI, hitbox or damage change was made based on these incomplete observations.
-
-## Polski
-
-Z aktywnym Tiger Guardem dwie próby ucieczki dały około 219 px ruchu w bok, przy utracie 10/20 HP; bohater przeżył obserwację. Próby stania zakończyły się utratą 30/40 HP, a po jednej stronie nie zaobserwowano przyjętej animacji ataku. Skok nie osiągnął pełnej wysokości. Kolejny scenariusz przerwano, ponieważ przeciwnik zdążył wyskoczyć i nie zachował się żądany układ wysokości. To jawne ograniczenie próby, nie potwierdzenie błędu hitboxa ani zaliczenie całego audytu walki.

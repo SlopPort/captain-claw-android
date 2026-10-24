@@ -1,5 +1,7 @@
 # Menu PL/EN checkpoint 0.4.16-dev
 
+> Historical validation record. Results apply to the builds and scenarios named here, not automatically to the latest APK. See the [README](../../README.md) for current project status.
+
 OpenAI Codex (LLM), 2026-10-22. Development checkpoint, not a completed 1.0 campaign certification.
 
 ## Implementation
@@ -42,9 +44,3 @@ On this exact ARM APK, `menu-font-batch-score-0.4.16` passed score-to-level-two 
 Separate x86_64 candidate `891da6d0348f447c00f8cb2e9f98d6fdb9285c3c9eb20cad21ef267c1bf73951` passed PL/EN menu navigation in `menu-api35-16k-0.4.16-r3-en/pl` on the official API-35 Google APIs 16 KB emulator. Runtime `getconf PAGE_SIZE` returned 16384. It predates the final font-batch change and is not the ARM distribution. The preceding r2 harness rejected an unrelated Google search-process crash; original raw failure is retained. Crash attribution now requires our process markers or an explicit process name, and fails closed for unidentified fatal lines.
 
 The test harness also refuses pending save restores/import recovery before replacing fixture files, so it cannot consume a player's queued restore and then overwrite it during cleanup. Controller testing remains excluded.
-
-## Polski — zakres
-
-Nasze napisy menu, nazwy poziomów/punktów kontrolnych, pomoc dotykowa i plansze autorstwa mają wersje PL/EN. Zostają informacje o pracy LLM i autorach projektów bazowych. Oryginalne tła, grafiki podsumowań i głosy nadal zależą od danych gracza. Nie dołączamy komercyjnych angielskich grafik ani dubbingu.
-
-Na Huawei przeszła nawigacja w obu językach i 30 powtórzeń wyboru poziomu. Pokrycie sprawdzono na podstawie rzeczywistego APK: 109 nazwanych elementów, bez braków. Jedna wcześniejsza próba pominęła dotknięcie; nie została przemianowana na sukces ani uznana za naprawioną samym dodaniem logowania. Wydajność, pełne przejście kampanii i pozostałe warunki 1.0 nadal wymagają swoich dowodów.

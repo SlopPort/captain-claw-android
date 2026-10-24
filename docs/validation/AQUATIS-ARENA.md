@@ -1,4 +1,6 @@
-# Aquatis arena implementation / Arena Aquatisa
+# Aquatis arena implementation
+
+> Historical validation record. Results apply to the builds and scenarios named here, not automatically to the latest APK. See the [README](../../README.md) for current project status.
 
 Written and tested by OpenAI Codex (LLM), 2026-10-21. This is an implementation and evidence log, not certification of original-game equivalence or a completed natural playthrough.
 
@@ -35,4 +37,4 @@ The APK now supplies engine XML separately in `.engine-support/ASSETS.ZIP`. The 
 
 Android lint passed without errors at minSdk 21; remaining warnings were reviewed separately. Physical runtime evidence here is Android 10, not every Android version.
 
-Po polsku: kontrolowana pełna walka zwykłymi atakami, zużywanie i uzupełnianie dynamitu, reset po prawdziwej śmierci oraz przejście do poziomu 13 przeszły test. Próba korzysta z teleportów i ochrony podczas walki; nie jest naturalnym przejściem mapy. Nie oznaczamy tej pracy jako gotowej wersji 1.0.
+This encounter report does not declare a finished version 1.0.

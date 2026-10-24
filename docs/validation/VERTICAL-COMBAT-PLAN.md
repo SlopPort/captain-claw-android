@@ -1,4 +1,4 @@
-# Vertical combat follow-up / Walka na różnych wysokościach
+# Vertical combat follow-up
 
 Requested 2026-10-22, after the current campaign/compatibility work. Prepared by OpenAI Codex (LLM). This is a test plan, not completed evidence.
 

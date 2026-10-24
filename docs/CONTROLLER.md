@@ -1,23 +1,9 @@
-# Przypisanie przycisków / Controller bindings
+# Controller setup
 
-Od 0.4.29 fizyczny Start (Android BUTTON_START) pozostaje przyciskiem pauzy/menu także przy własnym mapowaniu. Nie przypisuj mu innej akcji w grze. Fizyczne nadruki zależą od trybu pada. / Since 0.4.29 Android BUTTON_START remains a pause/menu fallback alongside custom bindings; reserve it for menu use. Printed labels depend on controller mode. [Regression evidence](validation/USER-REGRESSIONS-0.4.29.md).
-
-## Polski
-
-1. Połącz pada w ustawieniach Androida i otwórz grę. GameSir Nova 2 Lite został sparowany na testowym Huawei w czerwonym trybie jako Pro Controller. Inne tryby i telefony mogą zgłaszać inne nazwy przycisków.
-2. Dotknij **PAD** na dole, pośrodku ekranu gry. Od wersji 0.4.6 przycisk nie zasłania licznika życia.
-3. Wybierz np. **Atak szablą**. Puść przyciski, potem naciśnij ten, którym chcesz atakować. Możesz wybrać także spust.
-4. Przypisanie zapisuje się automatycznie. Jeżeli przycisk zajmuje inna czynność w tej samej grupie, obie zamieniają się przyciskami. Czynności w grze i czynności w menu są osobnymi grupami.
-5. Wybierz **Wróć do gry**. Puść pada na chwilę przed testem: powrót z ustawień wymaga neutralnego położenia, żeby przytrzymany przycisk nie wywołał niechcianej akcji.
-
-**Przywróć domyślne** przywraca ustawienia wyjściowe. Ruch pozostaje na lewej gałce i krzyżaku. Domyślne nazwy Androida: BUTTON_A skok, BUTTON_X szabla, BUTTON_B strzał, BUTTON_Y broń, BUTTON_START pauza. Menu: BUTTON_A zatwierdza, BUTTON_B cofa. Nadruki na padzie nie muszą odpowiadać tym nazwom — wybieraj przycisk przez naciśnięcie, a nie po literze.
-
-Przypisania są wspólne dla padów na danej instalacji aplikacji, zapisane w jej pliku `controller-bindings.txt`; nie są osobnymi profilami modeli. Zmiana trybu pada może wymagać ponownego przypisania. Samo sparowanie nie dowodzi poprawnego działania wszystkich przycisków. Jeśli pad generuje oba spusty jako jeden nierozróżnialny sygnał, aplikacja nie może rozpoznać ich jako dwóch różnych przycisków.
-
-## English
+Since 0.4.29, Android **BUTTON_START** remains a pause/menu fallback alongside custom bindings. Reserve it for menu use rather than assigning it another gameplay action. Printed labels depend on controller mode. [Regression evidence](validation/USER-REGRESSIONS-0.4.29.md).
 
 1. Pair the controller in Android Settings and open the game. The test Huawei paired a GameSir Nova 2 Lite in red Switch mode as Pro Controller; names can differ by controller mode/device.
-2. Tap **PAD** at the bottom centre of the game. Since 0.4.6 it no longer covers the health display.
+2. Tap **PAD** in the game to open controller settings. Its current placement can be checked against the [UI notes](GAME-OVER-UI.md).
 3. Choose an action such as **Sword attack**, release the controls, then press the desired button or trigger.
 4. Changes save automatically. If that button already belongs to another action in the same group, their assignments swap. Gameplay and menu actions are separate groups.
 5. Tap **Return to game** and release all controls briefly. Returning from settings requires neutral controls to prevent unintended actions.
@@ -25,3 +11,5 @@ Przypisania są wspólne dla padów na danej instalacji aplikacji, zapisane w je
 **Restore defaults** resets bindings. Movement stays on the left stick and D-pad. Default Android names: BUTTON_A jump, BUTTON_X sword, BUTTON_B shoot, BUTTON_Y weapon, BUTTON_START pause. Menu: BUTTON_A confirm, BUTTON_B back. Printed controller labels can differ; bind by pressing the physical button.
 
 Bindings are shared by controllers on this installation, stored in the application's `controller-bindings.txt`, rather than separate per-model profiles. Changing controller mode may require rebinding. Pairing alone does not verify gameplay. If the controller reports two triggers as the same indistinguishable input, the application cannot bind them separately.
+
+Physical controller testing is limited to the modes and actions named in each [test report](validation/GAMEPAD.md). Pairing history above is not a current device allocation. See [the handoff](HANDOFF.md) before operating shared phones.

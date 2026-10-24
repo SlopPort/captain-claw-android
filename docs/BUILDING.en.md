@@ -1,6 +1,6 @@
 # Build from source
 
-[Polski](BUILDING.md). To play, use an APK and the [installation guide](INSTALL-EN.md); compiling is only necessary if you want to build or modify the app yourself.
+To play, use an APK and the [installation guide](INSTALL-EN.md); compiling is only necessary if you want to build or modify the app yourself.
 
 ## Required tools
 
@@ -17,7 +17,9 @@ python tools/bootstrap.py
 
 On Linux/macOS, use `./gradlew` instead of `./gradlew.bat`; set the environment paths for your installation. If Python is named `python3`, use that command and set the `PYTHON` environment variable to it. On Windows, `tools/build.ps1 -Abis 'arm64-v8a,armeabi-v7a'` also invokes the build with default Android Studio paths when those environment variables are unset.
 
-The first setup needs internet for pinned dependencies, Gradle plugins and any missing Android tools. Bootstrap applies this project's OpenClaw and SDL patches to the exact dependency revisions. The Gradle wrapper checks the distribution SHA-256. Build preparation generates support XML/art and obtains the pinned FreePats music bank; it does not download commercial Claw game data.
+The first setup needs internet for pinned dependencies, Gradle plugins and any missing Android tools. Bootstrap also prepares the pinned FreeType submodule and applies this project's OpenClaw and SDL patches to the exact dependency revisions. The Gradle wrapper checks the distribution SHA-256. Bootstrap preserves unexpected local edits instead of resetting a mismatched checkout. An ignored `local.properties` can supply the SDK path. Build preparation generates support XML/art and obtains the pinned FreePats music bank; it does not download commercial Claw game data.
+
+ThinLTO/O3 are enabled by default; `-PnativeLto=OFF` selects the comparison build without LTO. Assertions remain enabled. `tools/export_patch.py` exports and checks both the engine and SDL patches.
 
 The resulting file is `app/build/outputs/apk/debug/app-debug.apk`. It supports ARM64 and ARMv7 and is signed with a local SDK debug key. It is a development package, not a production-key-signed release. Keep a consistent signing key for updates: Android rejects an update signed with a different key. Do not uninstall an existing app merely to bypass that failure; uninstalling can remove its data. No signing key belongs in the public source archive.
 
@@ -29,7 +31,7 @@ After building, follow the player installation guide and select your own full CL
 python tools/pack_assets.py --game-root '/path/to/your/own/installation'
 ```
 
-This creates `build/game-data.zip` for the app's file picker without modifying the source game installation. Commercial assets are not included in this source project or its APK.
+With a loose `Assets/` directory, the packer builds its REZ; otherwise it copies the supplied REZ. It adds OpenClaw/override support XML, the profile and helper files. This creates `build/game-data.zip` for the app's file picker without modifying the source game installation. Commercial assets are not included in this source project or its APK.
 
 ## Validation and its limits
 
@@ -47,4 +49,4 @@ For device tests, install Android platform-tools, enable USB debugging and put `
 
 Source changes, documentation and automated testing in this adaptation were performed by OpenAI Codex (LLM), guided by human requirements and feedback. Upstream code retains its authorship and licenses.
 
-Release signing / Podpis wydania: [local key and safe migration](RELEASE-SIGNING.md).
+Release signing: [local key and safe migration](RELEASE-SIGNING.md).

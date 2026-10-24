@@ -1,62 +1,116 @@
-> Surowe dowody i konfiguracje przywołane niżej są lokalnie w ignorowanym `reports/`; nie są dołączone do repozytorium.
+# Normal-enemy audit — 0.4.2
 
-# Audyt zwykłych przeciwników — 0.4.2
+> Historical validation record. Results apply to the builds and scenarios named here, not automatically to the latest APK. See the [README](../../README.md) for current project status.
 
-Zakończono kontrolowane próby 20 października 2026. Wyniki nie oznaczają pełnego przejścia wszystkich map. Podsumowanie maszynowe: `combat-audit/final-validation.json`.
+Controlled trials completed 20 October 2026. This is not a full map playthrough.
+Machine summary: `combat-audit/final-validation.json`. Raw evidence/configurations
+remain local in ignored `reports/`, outside the repository.
 
-## Zakres i dane
+## Scope and assets
 
-Inwentaryzacja obejmuje 45 wariantów zwykłych przeciwników i 1415 obiektów WWD na 14 mapach. Nie obejmuje bossów ani dodatkowych przeciwników tworzonych dopiero w trakcie gry. Zbadano efektywne prototypy po dziedziczeniu XML z dokładnie tego archiwum ASSETS.ZIP, które trafiło na telefon.
+Inventory: 45 normal-enemy variants and 1415 WWD objects across 14 maps, excluding
+bosses and enemies created later during play. Effective inherited XML prototypes
+were inspected from the exact ASSETS.ZIP delivered to the phone.
 
-Sprawdzono istnienie 73 animacji i 71 indeksów klatek wywołujących ataki, w tym armaty szczurów. Wszystkie indeksy mieszczą się w oryginalnych animacjach. Początkowe HP i rozmiary ciał wszystkich 45 prototypów są dodatnie i poprawne strukturalnie. Wyniki: `combat-audit/asset-validation.json`, `inventory.json`, `map-coverage.json`. Powtarzalna weryfikacja: `tools/audit_combat.py`, ekstrakcja przez `tests/combat_assets_probe.cpp`, następnie `tools/verify_combat_assets.py`.
+All 73 animations and 71 attack-frame indices, including Rat cannons, exist and
+fit within the original animations. Initial HP/body dimensions are positive and
+structurally valid for all 45 prototypes. Evidence:
+`combat-audit/asset-validation.json`, `inventory.json`, `map-coverage.json`.
+Repeat using `tools/audit_combat.py`, `tests/combat_assets_probe.cpp` extraction,
+then `tools/verify_combat_assets.py`.
 
-## Zmiany w grze
+## Gameplay changes
 
-- Przywrócono 54 kameleony poziomu 13. Wcześniej logika Chameleon była przypisana do pustego prototypu. Nowy prototyp korzysta z grafik i animacji poziomu 13 oraz wspólnego zachowania kameleona.
-- Czujnik podparcia stóp nie przyjmuje już trafień od pocisków i obszarów obrażeń. Ten czujnik sięga poniżej rzeczywistego ciała i służy do wykrywania podłoża; wcześniej strzał poniżej stóp zabierał zdrowie.
-- Jeden pocisk zadaje danemu aktorowi obrażenia najwyżej raz, także przy kilku zgłoszeniach kontaktu i pociskach przebijających. Oddzielne pociski nadal mogą trafiać niezależnie.
-- Granice aktywnego ciała kucającego bohatera pomijają wyłączone części głowy i tułowia. Kucanie miało już wyłączone kolizje tych części, ale zapytanie o granice zwracało rozmiar postaci stojącej.
-- Patrol zwykłego przeciwnika respektuje początkowy kierunek grafiki. Wcześniej zmienna kierunku zawsze startowała w prawo.
-- Uporządkowano obsługę zdrowia: poprawny identyfikator źródła inicjalizacji, brak powtórnego wejścia w śmierć, brak reakcji na otrzymanie obrażeń podczas leczenia oraz odrzucanie dalszych obrażeń po śmierci.
-- Punkt trafienia pocisku jest wyznaczany symetrycznie na lewej lub prawej krawędzi aktywnego ciała.
-- Obsługa kontaktu pocisku sprawdza zgodność obu rejestrów ciała fizycznego i identyfikatora jego aktora. Kontakt niezarejestrowanego lub zastąpionego ciała jest pomijany przed zapytaniem o jego granice i przed naliczeniem obrażeń.
+- Restored 54 level-13 Chameleons previously mapped to a null prototype, using
+  level-13 images/animations and the shared Chameleon behavior.
+- The support sensor no longer takes projectile/damage-area hits. It extends
+  below the real body to detect ground; shots below the feet previously lost HP.
+- A projectile damages a given actor at most once, including repeated contacts
+  and piercing projectiles. Separate projectiles can still hit independently.
+- Crouched active-body bounds exclude disabled head/torso pieces. Their collisions
+  already disabled, but the bounds query previously returned standing dimensions.
+- Patrol starts with the image's facing direction, instead of always right.
+- Health handling uses the correct initialization source, avoids duplicate death,
+  does not react to healing as damage, and ignores further damage after death.
+- Projectile hit points use the active body's left/right edges symmetrically.
+- Projectile contacts require matching physical-body/actor registrations. An
+  unregistered/replaced body is skipped before bounds queries or damage.
 
-## Metoda prób na telefonie
+## Phone method
 
-Urządzenie: Redmi Note 8, Android 16, ARM64. Polecenia sterujące są odczytywane wyłącznie przez działającą grę, a klawisze trafiają bezpośrednio do SDL. Skrypt kontroluje proces i aktywne okno; przerywa po ich utracie. Nie wysyła globalnych naciśnięć klawiszy Androida. Konfiguracja i zapis są przywracane po każdej serii.
+Redmi Note 8, Android 16, ARM64. Only the running app reads test commands; keys go
+directly to SDL. The script checks process/foreground window and aborts on loss.
+No global Android keys. Configuration/save restored after each batch.
 
-Próby przyjmowania ataków używają rzeczywistej AI, bez ochrony bohatera, z przeciwnikiem po obu stronach. Próby szabli i pistoletu mają nieruchomy cel z wyłączonymi atakami i chronionego bohatera; służą do sprawdzania trafień, HP i śmierci, a nie trudności naturalnej walki. Wyjątkiem jest krab: jego osłona w spoczynku ma 100% parowania, dlatego do próby trafień pozostawiono jego ataki i trafiano podczas otwarcia osłony. Wcześniejszy nieruchomy krab słusznie nie otrzymywał obrażeń. Niskie cele są ostrzeliwane z kucania. Syrena jest oceniana także po efekcie zamrożenia, ponieważ jej pocisk nie musi odejmować zdrowia. Mewy i armaty używają innych mechanizmów niż wspólna klatka ataku wręcz.
+Incoming-attack tests use real AI, no hero protection and enemies on both sides.
+Sword/pistol tests use passive stationary targets and a protected hero, measuring
+hits/HP/death rather than natural difficulty. Crab is the exception: its idle
+shield has 100% parry, so offense remained enabled and hits used shield openings.
+The earlier passive Crab correctly took no damage. Low targets are shot from a
+crouch. Siren checks also inspect freeze, as its projectile need not remove HP.
+Seagulls/cannons use other mechanisms than the shared melee attack frame.
 
-Każda grupa jest ładowana na własnej mapie źródłowej. Wczesna próba wstawienia Mercata do poziomu 1 zakończyła się asercją podczas tworzenia efektu trójzębu: zestaw LEVEL_* poziomu 1 nie zawiera takiego efektu. To ograniczenie niewłaściwej konfiguracji próby, nie potwierdzona awaria naturalnej walki poziomu 11. Inne wczesne błędy pomocnika testowego dotyczyły usuwania obiektów bez powiadomienia sceny i próby wznowienia umierającej postaci; poprawiono pomocnik, a nie zaliczono tych prób jako udanych.
+Each group runs on its source map. An early Mercat fixture on level 1 asserted
+when creating the trident effect, absent from level 1's LEVEL_* assets. That is
+an invalid fixture limitation, not proof of a natural level-11 crash. Other early
+helper failures removed actors without scene notification or tried to resume a
+dying hero. Helpers were corrected; those trials were not relabeled successful.
 
-## Wyniki i ograniczenia
+## Results and limits
 
-Przed poprawką potwierdzono trafienie 10 HP poniżej stóp oraz dwukrotne odebranie 1 HP przez ten sam pocisk. Wstępna regresja po poprawce przeszła 12 kombinacji wysokości/kierunku/kucania oraz próbę powtórzonego kontaktu: 13/13. Końcowe powtórzenie przez wejście lokalne aplikacji także przeszło 13/13: `combat-final-regression-0.4.2/results.json`.
+Before the fix, a shot below the feet removed 10 HP, and one projectile removed
+1 HP twice. Initial regression passed 12 height/direction/crouch combinations
+plus repeated-contact coverage: 13/13. Final app-local input repeat also passed
+13/13: `combat-final-regression-0.4.2/results.json`.
 
-Pełna macierz 45 wariantów przeszła po dopasowaniu próby kraba do jego rzeczywistej podatności. Przy pierwszej próbie BearSailora na poziomie 7 wystąpiła jednorazowa asercja podczas odczytu granic pocisku bez zarejestrowanego ciała: `combat-level7-failed-0.4.2/crash.log`. Ponowienie w świeżym procesie przeszło. Nie ustalono jednoznacznie źródła rozbieżności; dodano kontrolę rejestracji kontaktu, ale nie przedstawiamy jej jako dowodu usunięcia przyczyny. Końcowy pakiet przeszedł dodatkowe regresje po tej zmianie: 16 wariantów atakujących pociskami z odległości 250 pikseli, ponowienie czterech typów poziomu 7 i 13 prób hitboxów. Każdy z 16 wariantów potwierdził kontakt pocisku z bohaterem po obu stronach. Log `Pazur ignored unregistered projectile contact` obejmuje także zwykłe kontakty już usuniętych pocisków z wyczyszczonym wskaźnikiem aktora; sam nie dowodzi odtworzenia wcześniejszej rozbieżności rejestrów.
+The 45-variant matrix passed after adapting the Crab fixture to its actual
+vulnerability. The first level-7 BearSailor trial asserted while reading an
+unregistered projectile body's bounds: `combat-level7-failed-0.4.2/crash.log`.
+A fresh-process retry passed. The mismatch's cause remains unconfirmed. A
+registration guard was added without claiming it proves the cause fixed. The
+final package then passed 16 ranged variants at 250 pixels, four level-7 types
+and 13 hitbox checks. Each ranged variant contacted Claw from both sides.
+`Pazur ignored unregistered projectile contact` also includes ordinary contacts
+from removed projectiles with cleared actor pointers; alone it does not reproduce
+the earlier registry mismatch.
 
-Nie potwierdzono zgodności balansu z wydaniem Windows. Oryginalne WWD zawierają 84 obiekty z niezerowym polem zdrowia lub obrażeń; nie zmieniono globalnie ich interpretacji bez potwierdzenia semantyki oryginalnej gry. Są zapisane w `map-coverage.json`. Kontrola plików, odczyt obiektów przy ładowaniu i kontrolowane walki nie zastępują przejścia wszystkich map, obserwacji każdego ataku w naturalnym terenie ani porównania klatka po klatce z Windows. Obsługa innych Androidów i telefonów z 1–2 GB RAM nadal wymaga osobnych urządzeń.
+Windows balance parity is unconfirmed. Original WWDs contain 84 objects with
+nonzero health/damage fields; interpretation was not changed globally without
+proof of semantics. They are recorded in `map-coverage.json`. Asset validation,
+load inspection and controlled combat do not replace every-map traversal,
+natural-terrain attack observations or frame-by-frame Windows comparison.
+Other Android versions and 1–2 GB phones still needed separate devices at this
+checkpoint.
 
+A final level-7 Pirate trial initially parried three bullets (HP 25→25); the
+prototype has 50% bullet parry and 33% sword parry. Retry confirmed damage
+(25→5). Original: `combat-level7-final-0.4.2/results-before-parry-retry.json`;
+retry: `combat-pirate-final-0.4.2/`. Parry probabilities were unchanged.
 
-Końcowa próba pirata poziomu 7 początkowo odbiła trzy kolejne kule (HP 25→25); prototyp ma 50% parowania kul i 33% parowania szabli. Powtórzenie potwierdziło obrażenia (25→5). Zachowano wcześniejszy wynik w `combat-level7-final-0.4.2/results-before-parry-retry.json`, a ponowienie w `combat-pirate-final-0.4.2/`. Nie zmieniono szans parowania.
+The complete 45-variant matrix preceded the final body-registration guard.
+Afterward, the final APK passed the contact regressions, four level-7 variants
+and all-map inspection. Evidence: `combat-matrix-0.4.2-level*/`,
+`combat-ranged-final-0.4.2-level*/`, `combat-level7-final-0.4.2/`,
+`combat-all-maps-0.4.2/`. [HP/body table](enemy-health.csv).
 
-Pełną macierz 45 wariantów wykonano przed ostatnim zabezpieczeniem rejestracji ciał. Po tej zmianie końcowa APK przeszła powyższe regresje kontaktów, cztery warianty poziomu 7 oraz kontrolę wszystkich map. Dowody: `combat-matrix-0.4.2-level*/`, `combat-ranged-final-0.4.2-level*/`, `combat-level7-final-0.4.2/`, `combat-all-maps-0.4.2/`. Tabela wartości HP i ciał: [enemy-health.csv](enemy-health.csv).
+Loaded-map inspection confirmed 1415/1415 expected actors, positive initial HP,
+valid body dimensions and 54 level-13 Chameleons. All 14 processes stayed alive
+in short music/effects trials. Post-load PSS: 191.0–345.4 MiB; not long-play memory
+or evidence of low-memory-device smoothness.
 
-Kontrola uruchomionych map potwierdziła 1415/1415 oczekiwanych obiektów, dodatnie początkowe HP, poprawne rozmiary ciał i 54 kameleony poziomu 13. Wszystkie 14 procesów pozostało aktywnych w krótkiej próbie z muzyką i efektami. PSS po ładowaniu: 191,0–345,4 MiB; nie jest to pomiar długiej rozgrywki ani potwierdzenie płynności na urządzeniu z małą pamięcią.
-
-| Poziom | Liczba zwyklych przeciwnikow | Poprawne HP i ciala |
+| Level | Normal enemies | Valid HP and bodies |
 |---|---:|---|
-| 1 | 54 | tak |
-| 2 | 72 | tak |
-| 3 | 90 | tak |
-| 4 | 88 | tak |
-| 5 | 132 | tak |
-| 6 | 140 | tak |
-| 7 | 124 | tak |
-| 8 | 174 | tak |
-| 9 | 118 | tak |
-| 10 | 90 | tak |
-| 11 | 75 | tak |
-| 12 | 102 | tak |
-| 13 | 113 | tak |
-| 14 | 43 | tak |
+| 1 | 54 | yes |
+| 2 | 72 | yes |
+| 3 | 90 | yes |
+| 4 | 88 | yes |
+| 5 | 132 | yes |
+| 6 | 140 | yes |
+| 7 | 124 | yes |
+| 8 | 174 | yes |
+| 9 | 118 | yes |
+| 10 | 90 | yes |
+| 11 | 75 | yes |
+| 12 | 102 | yes |
+| 13 | 113 | yes |
+| 14 | 43 | yes |

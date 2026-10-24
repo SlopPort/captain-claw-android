@@ -1,9 +1,9 @@
-# Natural campaign retries / Ponowienia kampanii
+# Natural campaign retries
+
+> Historical validation record. Results apply to the builds and scenarios named here, not automatically to the latest APK. See the [README](../../README.md) for current project status.
 
 OpenAI Codex (LLM), 2026-10-23. Huawei Android 10, existing 0.4.24-dev APK:
 `583ec1d605527ba812e7da3da510a52dc4e08a2cc94f84c4733592051f2cc0a2`.
-
-## English
 
 Six further attempts (`natural-campaign-huawei-0.4.24-resume2` through `resume7`
 in ignored local reports) resumed the same unmodified game-written L1 checkpoint
@@ -44,26 +44,3 @@ All owners ended. The final save and configuration pulled from Huawei matched
 the last owner's original backups byte for byte (`resume7/restoration.json`).
 No Redmi operation, ADB-server restart or USB/network change was requested.
 No APK, gameplay balance, physics or FPS optimization changed in this batch.
-
-## Polski
-
-Sześć kolejnych prób wczytało ten sam, niezmieniony zapis zdobyty w grze:
-poziom 1, checkpoint 1. Nie teleportowano, nie dodawano zasobów ani odporności.
-Kruche podesty ponownie przechodziły ze zdrowiem 100. Nie zdobyto następnego
-punktu zapisu ani wyjścia; wcześniejsza próba nadal dotarła najdalej.
-
-Nieudane ruchy zachowano w raportach: schodzenie zamiast kucania na drabinie,
-czekanie pod ostrzałem, chybienie ruchomej platformy oraz brak uwzględnienia
-odrzutu poza oś drabiny. W ostatniej próbie normalny ruch doprowadził na szczyt
-ze zdrowiem 90, ale pocisk trafił tuż po poleceniu skoku. Pazur wrócił na dolną
-podłogę; ponowne wejście na drabinę i kolejne trafienia zakończyły próbę.
-
-Widać również opóźnienie między odczytem fazy platformy a wykonaniem polecenia.
-Nowe narzędzie ma wcześniejsze okno i kontrolę lądowania, lecz sprawdzono dotąd
-tylko składnię; jego skuteczności na telefonie jeszcze nie potwierdzono.
-Nie należy na tej podstawie zmieniać fizyki ani zaliczać całej sekcji.
-
-Nie znaleziono wskazanych wyżej sygnałów awarii aplikacji. Odrzucone polecenia
-po końcu gry są problemem raportowania narzędzia. Wszystkie sesje zakończono;
-sumy pobranych na końcu ustawień i zapisu zgadzały się z kopiami sprzed próby.
-Nie zmieniano APK, parametrów rozgrywki, połączenia internetowego Huawei ani Redmi.

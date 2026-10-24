@@ -8,9 +8,7 @@ Setup uses an isolated configured 48 px step, initializes hero HP to 100 and pis
 
 The 13 contact-without-HP cases occur on CrazyHook variants (levels 9/10), RedTailPirate variants (7/8/13), TigerGuard and HermitCrab. Parry/resistance is retained, so these must not be relabeled as hitbox misses. Source review found a 33% melee-parry setting for the selected RedTailPirate/TigerGuard/CrazyHook variants; the old logs do not directly identify every resistance decision. New diagnostic tracing is being used in separate follow-up cases without changing those chances or RNG calls. Directional HP asymmetry in four prototype rows remains an observation, not a confirmed direction bug.
 
-Po polsku: ukończono 180 prób obejmujących wszystkie 45 wariantów, po obu stronach i przy obu relacjach wysokości. Kontakt szabli wystąpił w 130 próbach, spadek HP w 117. Trzynaście kontaktów bez obrażeń wymaga rozróżnienia parowania/odporności, a nie powiększania hitboxów. Scena ustawia przed pomiarem 100 HP i 99 nabojów; nie zmienia HP podczas akcji. Ofensywne stany AI są wyłączone, parowanie i obrażenia kontaktowe pozostają. To nie pełne aktywne walki ani przejście kampanii.
-
-Legend / legenda: **damage** = target HP decrease or defeat observed; **no damage** = no decrease observed, including possible parry. Left/right refers to the enemy's position relative to the hero. Actual body-bottom gaps are measured from recorded AABBs.
+Legend: **damage** = target HP decrease or defeat observed; **no damage** = no decrease observed, including possible parry. Left/right refers to the enemy's position relative to the hero. Actual body-bottom gaps are measured from recorded AABBs.
 
 | Variant | Initial max HP | HP loss, enemy above: left/right | HP loss, hero above: left/right | Actual body-bottom gap px |
 | --- | ---: | --- | --- | ---: |
@@ -60,4 +58,4 @@ Legend / legenda: **damage** = target HP decrease or defeat observed; **no damag
 | Level9_PegLeg | 20 | no damage / no damage | damage / damage | 48–48 |
 | Level9_Seagull | 5 | no damage / no damage | damage / damage | 21–75 |
 
-Follow-up / Dalsze próby: [actual parry decisions on 0.4.20](PARRY-PERF-0.4.20.md). New traces explain their own cases; earlier observations remain unchanged.
+Follow-up: [actual parry decisions on 0.4.20](PARRY-PERF-0.4.20.md). New traces explain their own cases; earlier observations remain unchanged.

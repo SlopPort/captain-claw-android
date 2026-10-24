@@ -6,6 +6,8 @@ You do not need a GitHub account, USB debugging, ADB or Android Studio to instal
 
 ## 1. Get the two files ready
 
+**Test APK publication is being prepared.** Planned release: [v0.4.31-test](https://github.com/SlopPort/captain-claw-android/releases/tag/v0.4.31-test), with installer **`captain-claw-android-0.4.31-test.apk`** under **Assets**. Until publication is confirmed, this link may not exist. Do not mistake GitHub's source-code archives for the APK. This is a test release, not version 1.0.
+
 - **App installer:** a test APK supplied for this project. If none has been supplied, a developer must [build an APK](BUILDING.en.md). GitHub's **Code → Download ZIP** downloads source code; it cannot be installed on a phone.
 - **Game data:** `CLAW.REZ` from your own PC game folder, or a `game-data.zip` prepared with this project's tools. Do not unpack or rename it.
 
@@ -46,7 +48,19 @@ You can use another file-transfer method if you prefer. The goal is to have both
 
 Language can also be changed under **PAD → Language / Język**. Android screens change immediately; restart the game to apply in-game menu labels. English and Polish interface text are provided by the port. Voices, backgrounds and original score-screen pictures come from your game data. **Choosing English does not translate Polish voices.** See [language and voice limits](GAME-LANGUAGE.md).
 
+### What the first screen looks like
+
+These examples show this port's own screens on Huawei/Android 10, debug 0.4.31, with English selected. Android's installation and file-selection screens vary by phone. They are not screenshots of every supported Android version.
+
+<img src="images/importer-en.png" alt="English game-data importer with Choose game data and Language buttons" width="280">
+
+<img src="images/language-en.png" alt="The port language chooser offering Polish and English" width="320">
+
+[Image provenance and limits](images/README.md).
+
 ## Updates and save backups
+
+The planned public test APK uses the project's release signing identity. Existing locally built debug installations use a different key and cannot be updated in place with that APK. Keep the current debug app until you have exported and checked a save backup and retained your original game-data file; then follow a deliberate migration plan. Do not uninstall just to dismiss an installation error. Future updates must retain the same signing identity.
 
 To update, install the newer APK over the existing app. Its signing key must match the installed version. If Android reports a signature conflict, keep the existing app and ask for a compatible APK; this does not mean your phone is damaged.
 

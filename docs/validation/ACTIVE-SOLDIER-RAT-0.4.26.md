@@ -1,4 +1,6 @@
-# Active Soldier/Rat / Aktywny żołnierz i szczur
+# Active Soldier/Rat
+
+> Historical validation record. Results apply to the builds and scenarios named here, not automatically to the latest APK. See the [README](../../README.md) for current project status.
 
 OpenAI Codex (LLM), 2026-10-23. Exact debug APK SHA-256:
 `f32e9e96e64b91dd12ea7eff0303a97ea3c7abf1d9b16fbe08f6fa4023a3cb1f`.
@@ -39,16 +41,3 @@ Private evidence prefixes: `active-soldier32-redmi-0.4.26`,
 `active-rat32-huawei-0.4.26`, `soldier-after-hit-huawei-0.4.26`, and
 `rat-source-attribution-huawei-0.4.26`. Original config/save restored per case.
 These37 cases do not certify all enemies/heights, natural stairs or original parity.
-
-## Polski
-
-Przeprowadzono 32 próby aktywnego żołnierza i szczura. Wszystkie osiem zwykłych
-odskoków oderwało Pazura od ziemi. Osobne cztery próby żołnierza rozpoczęły odskok
-dopiero po przyjętym ciosie; postać odskoczyła, ale nadal mogła otrzymywać obrażenia.
-
-W jedenastu próbach szczur otrzymał obrażenia od źródła o własnym identyfikatorze.
-Nie liczymy tych śmierci jako dowodu trafienia szablą. Nowa diagnostyka zachowuje
-źródło obrażeń; dodatkowa próba potwierdziła jej działanie. U żołnierza wystąpiła
-jedna śmierć Pazura w szerszym oknie obserwacji, po wcześniejszym odczycie HP20.
-Nie ukrywamy tego wyniku. Brak zmian fizyki i balansu; pełny audyt pozostaje szerszy
-niż te kontrolowane próby. Naturalną kampanię sprawdza człowiek.

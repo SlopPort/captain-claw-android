@@ -1,147 +1,117 @@
-# Historia adaptacji
+# Adaptation changelog
 
-## 0.4.29 — pauza, bonus, koniec gry i krótkie ataki
+Entries describe changes in their recorded builds. Linked reports define the exact tested APK, hardware, methods and limitations. Historical results do not automatically certify the current source or release 1.0. Adaptation work was performed by OpenAI Codex (LLM), guided by human requirements and feedback; upstream authorship is preserved.
 
-Start działa także przy własnym przypisaniu pauzy. Przygotowanie muzyki poziomu
-oraz bonusu odbywa się przy wczytywaniu, z pamięcią do trzech utworów. Usunięto
-odtworzoną asercję po ruchu pada na tekstowym ekranie końca gry; komunikat opisuje
-powrót do menu. Jeden krótki atak podczas trafienia może czekać do 400 ms na
-zakończenie animacji. To udogodnienie portu, bez zmiany hitboxów i odporności,
-nie deklaracja zgodności z oryginałem. [Dokładne próby Huawei](validation/USER-REGRESSIONS-0.4.29.md).
-0.4.28 był lokalną paczką pośrednią do odtworzeń; Redmi nie był używany.
+## 0.4.31 — clearer Game Over screen
 
-Raw Start remains a pause/menu fallback, music prewarming removes measured pickup
-loading work, and text-only menu navigation no longer aborts or searches forever.
-One melee tap during hurt is buffered for at most 400 ms and cleared on death.
-Exact final APK evidence is Huawei-only; no campaign or physical-pad certification.
+Separates the Game Over heading from its instruction so the title does not resemble a second action. The instruction describes returning to the main menu by touching the screen. [UI behavior and verification](GAME-OVER-UI.md). Public documentation is being consolidated in English; Polish game UI remains supported.
 
-## 0.4.27 — cykl życia eksportu i walidacja zapisów
+## 0.4.30 — stable platform-edge collision
 
-Naprawiono odtworzoną BadTokenException po zamknięciu ekranu eksportu oraz
-przyjmowanie niezamkniętego XML, drugiego korzenia i zdublowanych metadanych.
-Poprawne zapisy pozostają obsługiwane. Testy Androida 5/10/15/16 i podpisanych
-ARM64/ARMv7: [dowody i ograniczenia](validation/READINESS-0.4.27.md).
-Bez zmian natywnej fizyki i balansu. Uzupełniono aktywny audyt 45 wariantów,
-rzeczywisty wybór pliku na obu telefonach i diagnostykę uruchamiania testów.
+An Android player flat-foot fixture replaces the rounded lower contact while retaining the head and other body/sensor behavior. Controlled ledge/crouch and ladder checks are scoped in the [REA/terrain report](ORIGINAL-BEHAVIOR-REA.md). This is not proof of pixel-exact original behavior or a natural campaign clear.
 
-Fixed a reproduced late-export BadTokenException and malformed save acceptance.
-Added lifecycle/framing tests, isolated signed controls checks and honest active
-combat evidence, preserving failed fixtures. Human campaign QA remains open.
+## 0.4.29 — pause, bonus music, Game Over and short attacks
 
-## 0.4.26 — import i podpis wydania / Import and signing
+Raw Start remains a pause/menu fallback even with custom pause binding. Level and bonus music preparation moves to loading, with a cache bounded to three tracks. Text-only Game Over navigation no longer triggers the reproduced assertion or an unbounded focus search; its message describes returning to the menu. One melee tap during hurt can wait up to 400 ms for the animation to finish and is cleared on death. This is an intentional accommodation, without changing hitboxes or immunity, not verified original behavior.
 
-Przewijany ekran instalacji. Próby rzeczywistego anulowania selektora i pełnego
-REZ na Androidzie 10/16, z przywracaniem danych. [Zakres](validation/IMPORT-FLOW-0.4.26.md).
-Oddzielny, lokalny klucz wydania i blokowanie release bez konfiguracji podpisu;
-klucz i hasło nigdy nie są częścią źródeł. [Podpis](RELEASE-SIGNING.md).
-Audyt [drabin, krawędzi i wysokości](validation/TERRAIN-HEIGHTS-0.4.25.md) dotyczy
-0.4.25. Sześć bibliotek debug pozostaje identycznych; nie zmieniano fizyki/balansu.
+[Huawei reproductions and final APK checks](validation/USER-REGRESSIONS-0.4.29.md); [later Redmi follow-up](validation/REDMI-0.4.29.md). The original final-APK batch was Huawei-only. Version 0.4.28 was a local intermediate reproduction package; Redmi was not used for that batch. These technical checks do not certify the campaign or every physical controller.
 
-Scrollable installer; actual picker cancellation plus full-REZ stream tests on
-Android 10/16. Separate local signing identity; release builds require explicit
-signing files. This remains development work, not 1.0 or a complete campaign clear.
+## 0.4.27 — export lifecycle and save validation
 
-## 0.4.25 — dostępność ekranów i przygotowanie wydania
+Fixed the reproduced late-export `BadTokenException` and acceptance of unclosed XML, a second root or duplicate metadata. Valid saves remain supported. Added lifecycle/framing checks, isolated signed ARM64/ARMv7 controls tests, actual file-picker checks on both phones and test-launch diagnostics. The active audit of 45 variants retains failed fixtures. No native physics/balance changes. [Android 5/10/15/16 evidence and limits](validation/READINESS-0.4.27.md). Human campaign QA remains open.
 
-Własna ikona bez grafik oryginalnej gry, informacja o autorach narzędzi zapisów
-w PL/EN oraz przewijanie tego ekranu. Brak dostępu do dolnego przycisku odtworzono
-na małym emulatorze z czcionką 200%; po poprawce próba obu języków przeszła.
-Jawne wyłączenie automatycznych kopii i transferu danych również dla nowszych
-Androidów; ręczny eksport zapisów pozostaje dostępny. Diagnostyka dotyku odczytuje
-sumę APK z urządzenia. Bounded retries of explicit exit teleports remain technical
-fixtures, with the count recorded; they are not campaign evidence. Bez zmian
-fizyki i balansu. Dokładne paczki, próby i ograniczenia: [raport](validation/READINESS-0.4.25.md).
+## 0.4.26 — import and release signing
 
-Original icon, localized save-tool credits and scrollable save tools. The clipped
-Back button was reproduced with large fonts on a small emulator and checked in
-PL/EN after the fix. Explicit modern Android backup/transfer exclusions retain
-the existing automatic-backup opt-out; manual save export remains. No gameplay
-or native-engine changes. Runtime coverage and retained failures are in the report.
+Scrollable installer. Actual picker cancellation and full-REZ stream checks on Android 10/16 restore test data afterwards. [Scope](validation/IMPORT-FLOW-0.4.26.md). A separate local release identity was prepared; release builds require signing configuration. Keys/passwords never belong in public sources. [Signing guide](RELEASE-SIGNING.md).
 
-## 0.4.24 — pomiary platform i naturalny checkpoint
+The [terrain/active-height audit](validation/TERRAIN-HEIGHTS-0.4.25.md) applies to 0.4.25. Six debug native libraries remain identical; physics/balance did not change. This is not a complete campaign or release 1.0.
 
-Opcjonalny odczyt ruchu platform i jednoczesny zwykły skok bez dodatkowego ciosu. Próby wejścia i przenoszenia na Redmi/Huawei. Naturalne dotarcie do pierwszego trwałego checkpointu i jego wczytanie przez menu z zachowaniem wyniku, żyć oraz amunicji. Cała kampania nadal nieukończona. [Pomiary](validation/PLATFORM-0.4.24.md), [naturalny zapis i wczytanie](validation/NATURAL-CHECKPOINT-0.4.24.md).
+## 0.4.25 — accessible screens and release preparation
 
-Opt-in platform observations and ordinary input scheduling; no physics changes. Real platform boarding passed on Redmi/Huawei. The first persistent checkpoint was reached naturally and reloaded through the normal menu with matching resources. The campaign remains incomplete.
+Original app icon without commercial game art, localized save-tool credits and scrollable save tools. An inaccessible Back button was reproduced on a small emulator with 200% font scaling; both languages passed after the fix. Explicit modern Android backup/transfer exclusions retain the automatic-backup opt-out; manual save export remains. Touch diagnostics read the installed APK's checksum. Bounded retries of explicit exit teleports are counted technical fixtures, not campaign evidence. No native-engine, physics or balance changes. [Packages, results and retained failures](validation/READINESS-0.4.25.md).
 
-## 0.4.23 — awaria wybuchu beczki
+## 0.4.24 — platform measurements and a natural checkpoint
 
-Naprawiono przedwczesny odczyt obszaru kolizji nowego wybuchu w diagnostyce. Awaria znaleziona w naturalnej próbie kampanii, odtworzona na starej wersji i sprawdzona po poprawce na obu telefonach. Obrażenia i rozmiar wybuchu bez zmian. [Raport](validation/POWDER-KEG-0.4.23.md).
+Opt-in platform movement observations and ordinary jump scheduling without an extra hit. Real boarding/carrying checks passed on Redmi/Huawei; physics was unchanged. The first persistent level-1 checkpoint was reached naturally and loaded through the normal menu with matching score, lives and ammo. The full campaign remains incomplete. [Platform observations](validation/PLATFORM-0.4.24.md), [natural checkpoint/reload](validation/NATURAL-CHECKPOINT-0.4.24.md).
 
-Fixed a premature explosion-body bounds query in adaptation diagnostics, found during natural gameplay. Old-version reproduction and fixed-version checks are documented; damage and blast size are unchanged.
+## 0.4.23 — powder-keg explosion crash
 
-## 0.4.22 — kontrola konfiguracji przed importem
+Fixed a premature explosion-body bounds query in adaptation diagnostics. The crash was found during a natural campaign attempt, reproduced on the old version and checked after the fix on both phones. Damage and blast size were unchanged. [Evidence](validation/POWDER-KEG-0.4.23.md).
 
-Przed podmianą danych sprawdzany jest XML konfiguracji: korzeń, zamknięcia znaczników, encje i limit rozmiaru. Komunikat PL/EN i zachowanie istniejących danych po odrzuceniu. Jedenaście błędnych przypadków odrzuconych na Huawei, Redmi z Androidem 16 i emulatorze Androida 5; dwie nieudane iteracje parsera zachowane w raportach. Czysta kompilacja obu ARM, próba jej parsera oraz skok i wyjścia na telefonach. [Wyniki](validation/CONFIG-IMPORT-0.4.22.md). Osobny długi pomiar 0.4.21 na Redmi dał 59,998 FPS w jednej ciężkiej scenie przez 20 minut; [ograniczenia i przycięcia](validation/SUSTAINED-REDMI-0.4.21.md).
+## 0.4.22 — configuration validation before import
 
-## 0.4.21 — sprzątanie importu i Android 16
+Configuration XML is validated before replacing data: root, closing tags, entities and size bound. Rejection shows a PL/EN message and preserves existing data. Eleven malformed cases were rejected on Huawei, Redmi Android 16 and an Android-5 emulator; two failed parser iterations remain in local reports. Both ARM builds passed clean compilation; the resulting parser, phone jumps and exits were checked. [Results](validation/CONFIG-IMPORT-0.4.22.md).
 
-Porzucone pliki robocze importu są usuwane po poprawnym odzyskaniu danych przy starcie i po błędzie importu. Zachowanie kopii przy uszkodzonym dzienniku, 64 próby granic operacji oraz testy Huawei/Android 5. Aktualizacja Redmi z 0.4.3 zachowała zapisy i konfigurację; skok, wielodotyk i wyjścia dotykowe przeszły na Androidzie 16. [Import](validation/IMPORT-CLEANUP-0.4.21.md), [Redmi](validation/REDMI-0.4.21.md).
+A separate twenty-minute Redmi 0.4.21 observation averaged 59.998 FPS in one dense scene. [Limits and stalls](validation/SUSTAINED-REDMI-0.4.21.md).
 
-## 0.4.20 — rozdzielenie parowania od błędu trafienia
+## 0.4.21 — import cleanup and Android 16
 
-Diagnostyka zapisuje istniejący wynik losowania parowania i opór zdrowia, bez zmiany obrażeń ani dodatkowego losowania. Opcjonalne cichsze pomiary nie są reklamowane jako optymalizacja. Wszystkie 14 map wystartowało na Huawei bez flagi podglądu. [Wyniki i ograniczenia](validation/PARRY-PERF-0.4.20.md).
+Abandoned import staging files are removed after successful startup recovery or an import failure. Backups are preserved with a malformed journal. Sixty-four boundary cases and Huawei/Android-5 tests were recorded. Updating Redmi from 0.4.3 retained saves/configuration; jump, multitouch and touch exits passed on Android 16. [Import](validation/IMPORT-CLEANUP-0.4.21.md), [Redmi](validation/REDMI-0.4.21.md).
 
-## 0.4.19 — dotykowe ustawienia dźwięku
+## 0.4.20 — distinguish parry from missed contact
 
-Suwaki głośności obsługują przeciąganie i anulowanie dotyku, zapisują ustawienia atomowo i zachowują wybrany kanał po przesunięciu palca między wierszami. Wyciszenie nie włącza ponownie nieobsługiwanych osobnych kontrolek głosów i otoczenia. Próby PL/EN na Huawei Android 10 i emulatorze Androida 5, po 109 etykiet w każdym języku. [Zakres i sumy APK](validation/MENU-AUDIO-0.4.19.md).
+Diagnostics record the existing parry roll and health result without changing damage or drawing another random value. Optional quieter measurements are not advertised as an optimization. All fourteen maps started on Huawei without the preview flag. [Results and limits](validation/PARRY-PERF-0.4.20.md).
 
-## 0.4.18 — atomowy zapis postępu
+## 0.4.19 — touch audio settings
 
-Zapis punktu kontrolnego i ukończenia poziomu nie obcina starego pliku przed ukończeniem nowego. Wspólny pomocnik sprawdza zapis, synchronizację i podmianę; błąd pokazuje komunikat PL/EN. Serializacja importu zapisu między wątkami. Przeszły rzeczywisty punkt kontrolny/restart/wczytanie, przejście podsumowania oraz starty wszystkich 14 map. Mały eksperyment FPS odrzucono; nie jest reklamowany jako optymalizacja. [Dokładne APK, wyniki i ograniczenia](validation/ATOMIC-PROGRESS-0.4.18.md).
+Volume sliders support drag/cancellation, save atomically and retain the selected channel when a finger crosses rows. Muting no longer re-enables unsupported separate voice/ambient controls. PL/EN checks on Huawei Android 10 and an Android-5 emulator covered 109 named labels per language. [Scope and APK hashes](validation/MENU-AUDIO-0.4.19.md).
 
-## 0.4.17 — przygotowanie każdego startu
+## 0.4.18 — atomic progress saves
 
-Również bezpośrednio wznowiony ekran gry przygotowuje wsparcie silnika, język, odzyskiwanie importu i postęp poza wątkiem interfejsu. Atomowy pierwszy zapis i zachowanie kopii poprzedniego postępu przy powtórzeniu przerwanego importu. Czysta kompilacja obu architektur i próba jej APK na Huawei. [Wyniki](validation/STARTUP-0.4.17.md).
+Checkpoint and level-completion saves no longer truncate the old file before the new file is complete. A shared helper checks writing, synchronization and replacement, with a PL/EN failure message. Save imports are serialized across threads. Real checkpoint/restart/reload, score transition and all fourteen map starts passed. A small FPS experiment was rejected rather than advertised as an optimization. [Exact APKs, results and limits](validation/ATOMIC-PROGRESS-0.4.18.md).
 
-## 0.4.16 — menu PL/EN i zgodność 16 KB
+## 0.4.17 — preparation on every launch path
 
-Własne napisy menu, pomoc i autorstwo PL/EN, bez dołączania komercyjnych angielskich grafik. Wyłączenie odziedziczonych przycisków bez działającej funkcji, czytelne pola dotyku i przenoszenie ustawień ponad menu. Czcionki współdzielone podczas jednego wczytywania. Huawei: nawigacja PL/EN, skok, podsumowanie i powrót z końca gry. Osobny emulator Androida 15 ze stronami 16 KB: menu PL/EN, natywna biblioteka, skok i przejście poziomu. To nie pełna kampania ani potwierdzenie 60 FPS. [Dokładne APK i ograniczenia](validation/MENU-LANGUAGE-0.4.16.md).
+A directly restored game activity also prepares engine support, language, import recovery and progress off the UI thread. The first save is atomic; replaying interrupted import preserves the previous-progress backup. Both architectures passed a clean build and the APK was checked on Huawei. [Evidence](validation/STARTUP-0.4.17.md).
 
-## 0.4.9 — grupowanie rysowania SDL
+## 0.4.16 — PL/EN menus and 16 KB pages
 
-Jawne włączenie kolejki rysowania, domyślnie wyłączanej przez SDL po wybraniu sterownika GLES2. W porównaniu wyłączone/włączone/wyłączone na jednym APK początki poziomów 8/9/13 osiągnęły około 60 FPS zamiast około 57/54/58 FPS. Bez zmian rozdzielczości, filtrowania, fizyki i tempa logiki. Lokalny opt-out pozwala wrócić do poprzedniej ścieżki przy problemie sterownika. [Metoda, wyniki i ograniczenia](validation/FPS-0.4.9.md).
+Locally rendered PL/EN menus, help and attribution avoid bundling commercial English menu art. Unsupported inherited buttons are disabled, touch regions are readable, Android settings overlay menus, and fonts are shared during a load. Huawei checks covered both languages, jump, score and Game Over return. A separate Android-15 emulator with real 16 KB pages passed PL/EN menus, native-library loading, jump and a level exit. This was not a natural campaign or 60 FPS certification. [Exact APK and limits](validation/MENU-LANGUAGE-0.4.16.md).
 
-## 0.4.8 — funkcje Claw Web, optymalizacja i audyt
+## 0.4.9 — SDL draw batching
 
-Bezpośredni REZ, eksport/import zapisów z kopią poprzedniego postępu, opcjonalne wibracje oraz węższy preload, z przypisaniem inspiracji/adaptacji Claw Web (Arthur Boss i współtwórcy). ThinLTO/O3, cache wyszukiwania komponentów i pominięcie odziedziczonych pustych aktualizacji; bez obniżenia obrazu i solvera. Reset zegara po ładowaniu, pomiary tylko aktywnej gry. Audyt dołu drabiny i czasu życia kontaktu, poprawka diagnostycznego zegara Box2D oraz zgodności odbiornika USB nowszych Androidów. [Raport i pozostałe ograniczenia](validation/PORT-0.4.8.md); pełne naturalne przejście nadal niepotwierdzone.
+Explicit batching restores a queue disabled by SDL's default after selecting GLES2. Same-APK off/on/off samples at levels 8/9/13 approached 60 FPS from approximately 57/54/58 FPS. Resolution, filtering, physics and logic speed were unchanged. A local opt-out restores the previous path for driver problems. [Method, results and limits](validation/FPS-0.4.9.md).
 
-## 0.4.7 — zapis dźwięku i FPS
+## 0.4.8 — Claw Web workflows, optimization and audit
 
-Naprawa pustego zapisu ustawień dźwięku na Androidzie, z zachowaniem pozostałej konfiguracji. Optymalizacja bibliotek natywnych w debug i cache grafiki gałki. Na Huawei P9 Lite w krótkiej stacjonarnej próbie poziom 1: około 23 → 60 FPS, poziom 13: około 18 → 43 FPS. Bez obniżania rozdzielczości. Zakres audytu komentarzy, nierozwiązane problemy i ograniczenia pomiaru: `validation/TODO-AUDIT.md`.
+Direct REZ import, validated save export/import with a previous-progress backup, optional vibration and narrower preloading credit inspiration/adaptation from Claw Web (Arthur Boss and contributors). ThinLTO/O3, component-lookup caching and skipped inherited empty updates preserve image quality and solver settings. Frame timing resets after loading and samples only active gameplay. Audited ladder bottoms/contact lifetime; fixed the Box2D diagnostic clock and newer-Android USB receiver compatibility. [Results and remaining limits](validation/PORT-0.4.8.md). Natural campaign completion remains unverified.
 
-## 0.4.6 — drabiny i dostęp do ustawień pada
+## 0.4.7 — saved audio and FPS
 
-Zakończenie wspinania, gdy drabina nie sięga już ponad stopy; blokada ponownego zaczepiania przy trzymaniu góry na szczycie. PAD przeniesiony z licznika życia na dół ekranu. Menu Androida przyjmuje powtarzane kierunki góra/dół z pada, nadal bez powtarzania zatwierdzania. Szczegóły i granice porównania z oryginałem: `validation/LADDERS.md`.
+Fixed empty audio-option writes on Android while preserving unrelated configuration. Optimized native dependencies in debug and cached stick rendering. Short stationary Huawei P9 Lite samples changed from approximately 23 to 60 FPS at level 1, and 18 to 43 FPS at level 13, without lowering resolution. [Comment audit, remaining issues and measurement limits](validation/TODO-AUDIT.md).
 
-## 0.4.5 — własne przypisania pada
+## 0.4.6 — ladders and controller settings access
 
-Ekran przechwytywania fizycznych przycisków/spustów, zapis i przywracanie przypisań, osobne czynności w menu. Kolejka Java/JNI/SDL omija niejednoznaczne tłumaczenie przycisków urządzenia. Test potwierdził obrażenia szabli po przypisaniu L1; użytkownik następnie potwierdził dobre działanie.
+Climbing ends when the ladder no longer extends above the feet; holding Up at the top no longer repeatedly attaches. At that version, PAD moved away from health to the bottom of the screen; this is historical layout, not its permanent location. Android menus accept repeated controller Up/Down without repeating confirmation. [Details and original-game comparison limits](validation/LADDERS.md).
 
-## 0.4.4 — obsługa padów i uporządkowanie źródeł
+## 0.4.5 — configurable controller bindings
 
-SDL_GameControllerDB, obsługa podłączania i odłączania, martwa strefa, poprawki wejścia w pauzie i zamykania Androida, instrukcje instalacji PL/EN oraz lokalny projekt Git bez komercyjnych danych gry.
+Physical button/trigger capture, saved/default bindings and separate menu actions. A Java/JNI/SDL queue avoids ambiguous device-button translation. A test confirmed sword damage after assigning L1; the user subsequently confirmed correct operation.
 
-## 0.4.3 — dotyk i skok
+## 0.4.4 — controllers and source organization
 
-Większe przyciski w łuku pod kciukiem, symbole akcji, utrzymanie palca na przypisanym przycisku, bezpośrednia obsługa zdarzeń, minimalne podtrzymanie krótkiego tapnięcia 110 ms oraz cache rysowania przycisków. Porównanie pomiarów jest w `validation/JUMP-TOUCH.md`.
+SDL_GameControllerDB, hotplug/disconnect handling, dead zones, pause input and Android shutdown fixes, installation guides and a local Git project excluding commercial game data. Guides originally existed in PL/EN; public explanatory documentation is now maintained in English.
 
-## 0.4.2 — walka
+## 0.4.3 — touch and jump
 
-Audyt 45 wariantów i 1415 rozmieszczeń. Przywrócenie 54 kameleonów poziomu 13; poprawki zdrowia, śmierci, kierunku patrolu, kontaktów pocisków i aktywnego ciała kucania. Zachowano informację o jednorazowej awarii kontaktu, której źródła nie ustalono.
+Larger thumb-oriented action buttons, action symbols, finger ownership until release, direct event dispatch, a minimum 110 ms short-tap hold and cached action drawing. [Measurements](validation/JUMP-TOUCH.md).
 
-## 0.4.1 — gałka i szeroki ekran
+## 0.4.2 — combat
 
-Gałka ośmiu kierunków z niezależnymi palcami; rozszerzanie widoku świata bez deformowania grafiki; kotwiczenie HUD i obsługa wyśrodkowanych menu.
+Audited 45 variants and 1,415 placements. Restored 54 level-13 chameleons; fixed health/death, patrol direction, projectile contacts and the active crouch body. A one-off contact failure with an undetermined root cause remains recorded.
 
-## 0.4.0 — Omar i zakończenie
+## 0.4.1 — stick and widescreen
 
-Dwufazowa walka, dialogi, kapitulacja, reset podejścia i własna inscenizacja końca gry; akrobatyka strażników i zanikanie kameleonów. To interpretacja w silniku, nie odtworzenie oryginalnego filmu.
+Eight-direction stick with independent fingers; wider world view without distorted graphics; HUD anchoring and centered-menu handling.
 
-## 0.3.x — uzupełnianie finału
+## 0.4.0 — Omar and ending
 
-Kolejne elementy poziomu 14: platformy, pułapki, wyrzutnie, gejzery, LavaHand i LavaMouth. Testy były kontrolowane i nie potwierdziły pełnego przejścia lub zgodności parametrów z Windows.
+Two-phase encounter, dialogue, surrender, retry reset and an engine-staged ending; guard acrobatics and chameleon disappearance. This is an engine interpretation, not reproduction of the original movie.
 
-## 0.1–0.3 — podstawa Androida
+## 0.3.x — finale components
 
-Gradle/CMake/NDK, SDLActivity, ARM64/ARMv7, import danych, polskie PCX, sterowanie dotykowe, poprawki przenośności i audio, muzyka TiMidity/FreePats oraz profil dla skromniejszych urządzeń.
+Further level-14 platforms, traps, launchers, geysers, LavaHand and LavaMouth. Controlled tests did not establish full completion or parameter parity with Windows.
+
+## 0.1–0.3 — Android foundation
+
+Gradle/CMake/NDK, SDLActivity, ARM64/ARMv7, data import, Polish PCX support, touch, portability/audio fixes, TiMidity/FreePats music and a lower-memory profile.

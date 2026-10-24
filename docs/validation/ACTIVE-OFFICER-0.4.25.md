@@ -1,10 +1,10 @@
-# Active Officer on a step / Aktywny oficer na stopniu
+# Active Officer on a step
+
+> Historical validation record. Results apply to the builds and scenarios named here, not automatically to the latest APK. See the [README](../../README.md) for current project status.
 
 OpenAI Codex (LLM), 2026-10-23. Huawei Android 10, ARM64 APK
 `6175b1b450ca7f46ede0910a884e3608d104e4a86251822aa6c6b4a57d6ca955`.
 Controlled fixtures; human owns natural campaign testing. No physical controller.
-
-## English
 
 Sixteen fresh-process trials: level-one Officer, 32 px solid step, both sides
 and both vertical relations, standing attack, jump attack, crouch attack and
@@ -73,19 +73,3 @@ cases + 1 parser follow-up, not complete enemy/height coverage.
 Ignored evidence prefixes: `active-officer32-huawei-0.4.25`,
 `active-officer32-after-hit-huawei-0.4.25`,
 `active-officer32-parser-huawei-0.4.25`. Each owned run restores config/progress.
-
-## Polski
-
-Ukończono 16 prób aktywnego oficera na stopniu 32 px: obie strony, bohater
-wyżej/niżej, cztery działania. Pięć prób wykazało obrażenia przeciwnika, trzy
-zakończyły się jego pokonaniem. Pazur otrzymywał obrażenia, lecz nie zginął.
-Nie są to same pozytywne wyniki walki — tabela pokazuje także nieudane działania.
-
-Osobne cztery próby rozpoczęły ucieczkę dopiero po potwierdzonym ciosie w Pazura.
-W każdej odskoczył o 241–343 px. Nie dowodzi to skuteczności dowolnego krótkiego
-tapnięcia ani pełnej zgodności z oryginałem. Nie zmieniano obrażeń i hitboxów.
-
-Naprawiono też odczyt diagnostyki: nowe żądania obszaru ataku nie są starym
-komunikatem o utworzonym ciele. Starych pustych pól nie uznajemy za dowód braku
-ataku. Zachowano pierwotne logi i wyniki. Nadal potrzebne są inne wysokości,
-przeciwnicy, naturalne schody i zgłoszenia z rozgrywki użytkownika.

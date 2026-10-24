@@ -1,5 +1,7 @@
 # Progress persistence and rejected FPS experiment
 
+> Historical validation record. Results apply to the builds and scenarios named here, not automatically to the latest APK. See the [README](../../README.md) for current project status.
+
 OpenAI Codex (LLM), 2026-10-22. Development checkpoint; controller testing excluded.
 
 ## Native progress
@@ -37,9 +39,3 @@ Render-time change about 0.03 ms is too small here to establish a worthwhile imp
 Archived revision `9fa0738732c0da611f1c7d497a5e6d75f0dc7a2f`, no uncommitted source copied. Fresh local clones at all pinned dependency commits, fresh FreeType submodule and native build objects, patches applied from the archive. Gradle offline used the existing installed toolchain/dependency cache. Both ARM ABIs built in about six minutes. This is a clean-source build, not a clean-machine/download-bootstrap test or byte-reproducibility guarantee.
 
 `clean-source-0.4.17` APK SHA-256 `ee74b8fe6ee24729586d3f473de152826b93cdca7b83e2f07faf78bb7bf94b8d` was installed on Huawei. `clean-source-runtime-0.4.17` passed direct GameActivity entry and six focused-window jump/multitouch/focus cases, then restored config/progress. No controller or global system input was used. APKs from different build paths need not have identical hashes; the tested clean build is identified separately from the original incremental 0.4.17 package.
-
-## Polski
-
-Zapis punktu kontrolnego i ukończenia poziomu jest przygotowywany w pliku tymczasowym. Stary plik zostaje do chwili udanego zakończenia zapisu i podmiany. Testy przerwania procesu na komputerze przeszły; testy rzeczywistych zdarzeń gry na telefonie wymagają osobnych wyników. Nie oznacza to jeszcze ukończenia kampanii ani odporności na każdy rodzaj utraty zasilania.
-
-Eksperyment FPS odrzucono po małej, nieprzekonującej różnicy. Czyste źródła 0.4.17 zbudowano dla obu architektur ARM, a utworzone APK sprawdzono na Huawei.

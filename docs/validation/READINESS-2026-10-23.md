@@ -1,9 +1,7 @@
-# Readiness checks / Kontrole przed wydaniem
+# Readiness checks
 
 OpenAI Codex (LLM), 2026-10-23. Human owns natural campaign playtesting.
 Ask before using Redmi. No physical-controller testing in this batch.
-
-## English
 
 `gradlew :app:lintDebug` completed successfully on the current 0.4.24-dev sources:
 **0 errors, 33 warnings**. This is static analysis, not a runtime compatibility
@@ -32,17 +30,3 @@ passed. Still open: full SAF picker/cancellation workflow, large real data impor
 ordinary app-UID full-storage behavior, final APK runtime matrix, sustained Huawei
 performance, touch/lifecycle regressions and signed release preparation. No claim
 that the whole installation or Android-compatibility gate is closed.
-
-## Polski
-
-Analiza Android Lint przeszła: **0 błędów i 33 ostrzeżenia**, bez wyciszania
-ostrzeżeń. To nie dowód działania na wszystkich Androidach. Ostrzeżenia obejmują
-kod SDL oraz nasze sprawy do dopracowania: ikonę aplikacji, zasady kopii/przenoszenia
-danych w nowszych Androidach, formatowanie napisów i nieużywane komunikaty.
-Nie uznajemy ostrzeżeń o wyciekach za zmierzony wyciek pamięci.
-
-Rzeczywisty brak miejsca sprawdzono dla transakcji importu, lecz cały scenariusz
-instalacji przez selektor plików pozostaje otwarty. Pozostałe punkty nadal obejmują
-duże dane, końcowe testy APK na Androidach, dłuższe pomiary Huawei, dotyk i cykl życia
-aplikacji oraz podpisanie wydania. Nie instalowano nic na telefonach. Kampanię
-testuje użytkownik; przed jakimkolwiek użyciem Redmi trzeba zapytać o dostępność.

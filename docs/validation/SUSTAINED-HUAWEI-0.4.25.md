@@ -1,4 +1,4 @@
-# Twenty-minute Huawei observation / 20 minut na Huawei
+# Twenty-minute Huawei observation
 
 OpenAI Codex (LLM), 2026-10-23. Huawei P9 Lite, LineageOS Android 10, 2 GB RAM,
 ARM64. Exact installed APK SHA-256:
@@ -6,8 +6,6 @@ ARM64. Exact installed APK SHA-256:
 This precedes the final save-screen scrolling change; all six shared native
 libraries match the later `6175b1…` ARM package byte for byte. Attribute this
 observation to the exact tested package, not every later APK.
-
-## English
 
 Controlled existing level-nine scene: setup teleport (11027,5500), settled hero
 (11027,5554.6), explicit protection, no shots/movement/ammo edits. Verbose traces
@@ -40,21 +38,3 @@ established in this run; battery temperature is not CPU temperature and one PSS
 sample does not establish a peak or memory-leak trend. All-map performance remains
 unverified. No native optimization was made in this release-preparation batch;
 do not attribute the difference from older observations to a new optimization.
-
-## Polski
-
-Pełna próba trwała 1200,112 s. W tej ciężkiej scenie zapisano 236 paczek po
-300 odstępów: średnio około **58,99 FPS**, najniższa paczka **57 FPS**. Każda
-przekroczyła zaakceptowane 55 FPS. Pojedynczy najdłuższy odstęp miał jednak
-31 ms, więc nie deklarujemy minimum 55 FPS dla każdej klatki ani wszystkich map.
-
-Nie wystąpiła obserwowana awaria ani trwały spadek średniej pod koniec próby.
-Temperatura baterii wzrosła z 31 do 35 C; nie jest to pomiar temperatury CPU.
-Końcowy PSS gry wyniósł 196810 KiB, co nie dowodzi braku wycieku pamięci.
-Przywrócenie konfiguracji i zapisu potwierdzono sumami plików.
-
-To obserwacja istniejącej sceny z ochroną postaci i wyłączoną diagnostyką,
-bez zmian amunicji, rozgrywki lub jakości obrazu. Nie jest przejściem kampanii.
-APK wskazane powyżej było testowane przed poprawką przewijania ekranu zapisów;
-biblioteki silnika w obu paczkach są identyczne. Nie przypisujemy tego wyniku
-nowej optymalizacji ani nie przenosimy go automatycznie na dowolną wersję.

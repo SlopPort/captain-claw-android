@@ -18,10 +18,6 @@ The first `redmi-0.4.21-jump` attempt used the tool's default Huawei viewport ex
 
 `redmi-0.4.21-score` and `redmi-0.4.21-game-over`: actual single-touch return from both end screens passed. These fixtures control the exit/death trigger; they are not natural campaign traversal. Configuration and progress restored after each trial. Huawei USB tethering/network settings were not changed.
 
-## Polski
-
-Fizyczny Redmi Note 8 z Androidem 16 uruchamia wersję ARM64. Aktualizacja z 0.4.3 zachowała zapisy i konfigurację. Próby skoku, wielodotyku, bezpośredniego wznowienia oraz wyjścia z podsumowania i końca gry przeszły. Szerszy ekran pokazuje więcej planszy przy zachowaniu proporcji. To potwierdzenie wymienionych scenariuszy na tym urządzeniu, nie wszystkich Androidów, pełnej kampanii ani stałych 60 FPS.
-
 ## Bilingual menus
 
 `redmi-menu-0.4.21-en/pl` passed 17 navigation transitions each, all six volume gestures, mute/unmute and disabled shared-sound controls. Exact-APK translation checks passed 109/109 names in both languages. English maximum-volume screenshot was visually inspected. These are app-window events; no controller was tested.
@@ -57,6 +53,4 @@ Startup FPS estimates slightly above 60 reflect finite measurement windows, not 
 
 `compat-redmi-armv7-0.4.21-menu/level` passed actual 32-bit library mapping, native menu, ordinary 100 ms jump, exit pickup, score and level two on this same ARM APK. ARM64 was reinstalled afterwards and confirmed through package metadata. After all menu, performance, map and ABI fixtures, the real save/config bytes were pulled again and compared with their pre-update 0.4.3 copies: both remained identical. This does not claim preservation of every possible preference or verification of untested upgrade paths.
 
-Na Redmi przeszły starty wszystkich 14 map bez diagnostyki oraz rzeczywista próba biblioteki 32-bitowej. Następnie przywrócono ARM64. Pomiary początków map były bliskie 60 FPS, ale wystąpiła pojedyncza klatka 89 ms. Ciężka scena poziomu 9 dała średnio 59,953 FPS przez 90 sekund z przycięciami do 69 ms; nie jest to zaliczenie stałych 60 FPS całej kampanii.
-
-[Twenty-minute follow-up / Próba 20-minutowa](SUSTAINED-REDMI-0.4.21.md): 59.998 harmonic FPS in the controlled dense scene, occasional 65 ms frame, no observed sustained decline.
+[Twenty-minute follow-up](SUSTAINED-REDMI-0.4.21.md): 59.998 harmonic FPS in the controlled dense scene, occasional 65 ms frame, no observed sustained decline.

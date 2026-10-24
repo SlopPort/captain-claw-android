@@ -1,11 +1,11 @@
-# Import on a full filesystem / Import przy braku miejsca
+# Import on a full filesystem
+
+> Historical validation record. Results apply to the builds and scenarios named here, not automatically to the latest APK. See the [README](../../README.md) for current project status.
 
 OpenAI Codex (LLM), 2026-10-23. Production `ImportTransaction.java` from
 0.4.24-dev was compiled unchanged together with
 `tools/java/pl/pazur/port/ImportFullDiskChecks.java`: JDK 21 `--release 8`,
 Android build-tools 35.0.0 D8 `--min-api 21`. No APK or production code changed.
-
-## English
 
 Actual runtime: task-owned Android 5.0.2/API 21 x86_64 emulator, root-shell
 `app_process`, dedicated **8 MiB tmpfs** at `/data/local/tmp/pazur-import-space`.
@@ -50,20 +50,3 @@ CLASSPATH=/data/local/tmp/pazur-import-checks.jar app_process /system/bin pl.paz
 Require both PASS lines; Android 5 remote exit status alone is insufficient.
 Unmount the fixed tmpfs, remove its empty directory and the test JAR, then close
 only your emulator. Never fill a phone or substitute its real game-data path.
-
-## Polski
-
-Obie próby rzeczywistego braku miejsca przeszły na osobnym dysku 8 MiB w RAM
-emulatora Androida 5. Nie zapełniano pamięci telefonu ani całego emulatora.
-Test używa niezmienionej klasy transakcji importu i sztucznych plików, bez gry.
-
-Przy braku miejsca na kopię import został odrzucony, a stare dane i zapis
-pozostały identyczne. Przy braku miejsca podczas odzyskiwania nie dało się od razu
-odtworzyć danych, ale kopia oraz zapis pozostały bezpieczne. Po zwolnieniu miejsca
-odzyskiwanie przywróciło wszystkie oryginały i posprzątało dane robocze. Istniejący
-komunikat PL/EN już prosi o zwolnienie miejsca i ponowienie.
-
-Nie jest to pełna próba przez selektor plików, dużego REZ, zwykłych uprawnień
-aplikacji ani utraty zasilania. Po testach emulator zamknięto. APK i kod produkcyjny
-pozostały bez zmian. Niepotwierdzonej próby odmowy bez zamontowanego dysku nie
-zaliczamy jako pozytywnego testu. Szczegóły oraz sposób powtórzenia są powyżej.

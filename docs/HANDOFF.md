@@ -1,107 +1,46 @@
-# Handoff / Przekazanie projektu
+# Project handoff
 
-**Allocation/result update, 2026-10-24 / Przydział i wyniki:** the human released Redmi for this task. [0.4.29 Redmi regressions and bounded cleanup](validation/REDMI-0.4.29.md) passed. Both main phone apps now retain ARM64 debug29. Redmi has no active fixture; its test companion was uninstalled after the checks and must be reinstalled for future instrumentation. Earlier exclusive-Huawei restrictions below describe the 2026-10-23 batch. Confirm allocation if another task resumes use; preserve Huawei USB tethering. / Redmi był dostępny, próby zakończono i usunięto wyłącznie zbędne pliki naszego portu.
+Current state: **2026-10-24**. Adaptation code, documentation, investigation and automated tests were performed by OpenAI Codex (LLM), guided by anonymous human requirements and feedback. OpenClaw and dependency authorship remain separate.
 
-**Latest / Najnowsze 0.4.29, 2026-10-23:** [user-regression report / zgłoszenia](validation/USER-REGRESSIONS-0.4.29.md). Huawei only; Redmi is allocated to another task and must not be queried/updated. Preserve Huawei USB internet and never restart the shared ADB server. Current user scope explicitly includes controller pause and reported combat/death bugs; earlier general pad deferral does not exclude these new reports. Main Huawei is ARM64 debug29; Redmi was left at its previous version. Human retains natural campaign QA. / Aktualny zakres obejmuje pauzę padem, walkę i zgłoszoną awarię, ale nie samodzielne przechodzenie kampanii.
+## Current state and boundaries
 
-**Earlier / Wcześniejsze 0.4.27:** [safety and compatibility / poprawki i zgodność](validation/READINESS-0.4.27.md), [signed runtime / podpisane APK](validation/RELEASE-0.4.27.md), [45 active variants / 45 aktywnych wariantów](validation/ACTIVE-NORMAL-0.4.26.md). Main apps remain ARM64 debug; isolated releasecheck apps were removed. Keys and password stay private. Natural campaign and physical pads remain outside this batch.
+- Main Huawei installation: **ARM64 debug 0.4.31-dev**. Only Huawei is allocated to this task now. **Do not query, install on or otherwise operate Redmi without a new allocation.** Earlier Redmi results below are historical, not permission to use it now.
+- Huawei supplies internet over USB. Do not reboot it, change USB/tethering/network settings, disconnect it or restart the shared ADB server to repair a test. Select the authorized device with a process-local `ANDROID_SERIAL`; never publish device serials.
+- The human owns natural campaign playtesting. Do not resume autonomous traversal. Technical reproductions of reported bugs are allowed, but teleports, invulnerability and resource edits must be labelled as fixtures, never natural campaign evidence.
+- This is not release 1.0. Full campaign completion, original-game parity and a universal FPS minimum are not established. Broad physical controller testing was deferred; later specific pause/input bug reports remain in scope.
+- Public explanatory documentation is English. Keep Polish game UI supported, and preserve actual Polish UI text when quoted in instructions or evidence. Keep the human anonymous, disclose the LLM contribution and preserve upstream notices.
 
-Updated / Aktualizacja: 2026-10-23. Adaptation work: OpenAI Codex (LLM), guided
-by human requirements and device feedback. Upstream OpenClaw authorship is separate.
+Start with [contributing](../CONTRIBUTING.en.md), [building](BUILDING.en.md), [installation](INSTALL-EN.md), [release gates](ROADMAP-1.0.md) and [upstream differences](UPSTREAM-DIFF.en.md).
 
-**Scope update, 2026-10-23:** the human takes over natural campaign playtesting.
-Redmi was authorized for this task on 2026-10-23. Its initially offline ADB
-connection recovered; final 0.4.25 tests now run on Android 16.
-See [current Redmi evidence](validation/REDMI-0.4.25.md). Respect current device allocation.
-Earlier candidate: [0.4.26 import checks](validation/IMPORT-FLOW-0.4.26.md) and
-[signed candidate evidence](validation/RELEASE-0.4.26.md). Both phones retain the debug signature.
-Preserve private-signing/ locally; never publish it. Earlier [0.4.25 checks and retained failures](validation/READINESS-0.4.25.md),
-[twenty-minute Huawei measurement](validation/SUSTAINED-HUAWEI-0.4.25.md), and
-[bounded ENOSPC](validation/IMPORT-FULL-DISK.md).
-Do not resume autonomous campaign traversal. Continue technical checks and fixes;
-use human campaign reports as evidence, recording APK, level and reproduction.
+## Latest verified behavior
 
-**Zmiana zakresu, 2026-10-23:** użytkownik przejmuje przechodzenie kampanii.
-Użytkownik udostępnił Redmi do tego zadania. Początkowy stan offline ustąpił;
-[bieżące próby 0.4.25](validation/REDMI-0.4.25.md) dotyczą Androida 16.
-Nie wznawiaj samodzielnego przechodzenia. Kontynuuj kontrole techniczne i poprawki;
-zgłoszenia użytkownika zapisuj z wersją APK, poziomem i sposobem odtworzenia.
+The 0.4.31 changes separate the Game Over title from its touch instruction. The Huawei last-life/touch return test passed. Native builds for ARM64 and ARMv7 passed; this is build coverage, not physical runtime coverage for every architecture. See [Game Over UI evidence](GAME-OVER-UI.md).
 
-## English
+The flat player foot in 0.4.30 passed the controlled ledge/crouch cases and full ladder matrix on Huawei. Melee recovery checks passed on 0.4.31. Static REA findings distinguish hurt-state attack suppression from attacks after recovery; the port's 400 ms melee buffer remains an intentional accommodation, not verified original behavior. Read [original-behavior evidence and limitations](ORIGINAL-BEHAVIOR-REA.md) before making collision or balance changes. Do not treat decompiled executable output as original source or publish proprietary code dumps.
 
-**0.4.29-dev is not release 1.0. No complete natural campaign clear exists.**
-Six further retries did not extend the natural route; see
-[retained failures and driver limitations](validation/CAMPAIGN-RETRIES-0.4.24.md).
-Do not replay the old route blindly after knockback or a missed landing.
-The experimental first-carrier helper has no device pass yet. All owners ended;
-the final Huawei configuration/save comparison passed. [Game-data language
-research and current limits](GAME-LANGUAGE.md) distinguish English UI from voices.
-Start with [contributing](../CONTRIBUTING.en.md), [build](BUILDING.en.md),
-[installation](INSTALL-EN.md), [release gates](ROADMAP-1.0.md), and
-[upstream differences](UPSTREAM-DIFF.md). The last document is currently Polish.
+Versioned reports keep their exact-build scope. Prior compatibility results do not automatically certify 0.4.31. Game audio language still depends on the player's own data; see [language research](GAME-LANGUAGE.md).
 
-The latest natural continuation used Huawei P9 Lite / Android 10 / 2 GB RAM.
-It loaded an unchanged checkpoint actually written by the earlier Redmi run:
-level 1, checkpoint 1, HP100, zero spare lives, pistol6, magic2, dynamite3.
-It passed carriers, ladder transfers, the upper shaft, the Soldier encounter,
-the next flag ledge and the first two cyclic pegs. A later group remains uncleared;
-missed jumps reach the lower floor, where normal combat/pickups left HP85.
-This is partial route coverage. The next persistent checkpoint and level exit
-have not been reached naturally. [Exact evidence and failures](validation/HUAWEI-CAMPAIGN-0.4.24.md).
+## Historical evidence, not current allocation
 
-The human owns further route/campaign testing. Do not resume this autonomous
-route. Continue technical installation, lifecycle, terrain/combat and compatibility
-checks, and use human bug reports to reproduce failures. Technical teleports must
-remain explicitly labelled; they are never natural progression evidence.
-The former live phone session has ended and original user files were restored
-byte for byte. Runtime position on the lower floor is not a new game save.
-Ignored local evidence is not available to a fresh clone; reproduce a route or
-use your own legitimate save and state its origin. Do not assume private reports exist.
+- **0.4.29:** [Huawei regressions](validation/USER-REGRESSIONS-0.4.29.md) and [Redmi follow-up/cleanup](validation/REDMI-0.4.29.md) passed. Redmi was explicitly allocated for that batch, then its test companion was removed. Reinstall it only if a future authorized test needs it. The main apps retained debug signing.
+- **0.4.27:** [lifecycle/import/compatibility checks](validation/READINESS-0.4.27.md), [isolated signed ARM64/ARMv7 checks](validation/RELEASE-0.4.27.md) and the [45-variant active audit](validation/ACTIVE-NORMAL-0.4.26.md). Isolated releasecheck apps were removed; production-key candidates did not replace the main debug installations.
+- **0.4.26:** [import/picker checks](validation/IMPORT-FLOW-0.4.26.md) and [signed candidate evidence](validation/RELEASE-0.4.26.md).
+- **0.4.25:** [readiness and retained failures](validation/READINESS-0.4.25.md), [Redmi Android 16 results](validation/REDMI-0.4.25.md), [twenty-minute Huawei observation](validation/SUSTAINED-HUAWEI-0.4.25.md) and [bounded full-disk tests](validation/IMPORT-FULL-DISK.md).
 
-`campaign_play.py` owns test backups and an app-local command mailbox.
-`campaign_session.py` now reconnects its dead logcat reader from the last recorded
-timestamp. The recovery was tested on Huawei without restarting the game or ADB
-server. `campaign_log_reader.py` can supervise logs for an older live owner; its
-stop marker terminates only that reader. Raw timestamp overlap can repeat a line;
-consume each observation tick once. A reader timeout is not automatically a game bug.
+The accepted performance target is at least 55 FPS in the measured heavy Huawei scene, with 60 FPS an optimization target. This is not a proved minimum for every frame or level. Preserve image quality and report stalls separately.
 
-55 FPS in a heavy Huawei scene is the human's accepted target, not an established
-minimum on every map. Preserve image quality. Do not call the adaptation complete
-because controlled map starts/boss fixtures passed. Physical controller tests are
-currently excluded at the user's request. Redmi is authorized and online;
-current work may also use Huawei and must preserve its
-USB internet tether. No phone serial belongs in this document.
+## Historical natural route and test ownership
 
-Remaining compatibility and release gates are maintained in the roadmap. New
-contributors must distinguish documented historical notes from current proof.
-Never describe this code as original Monolith source or assume game copyrights expired.
+The last autonomous continuation, before the human took over, used Huawei P9 Lite / Android 10 / 2 GB RAM and an unchanged checkpoint written by the earlier Redmi run: level 1, checkpoint 1, HP100, zero spare lives, pistol6, magic2, dynamite3. It passed carriers, ladder transfers, the upper shaft, the Soldier encounter, the next flag ledge and the first two cyclic pegs. A later group remained uncleared; missed jumps reached the lower floor, where normal combat/pickups left HP85. This was partial route coverage, not a level exit or a new persistent checkpoint. [Evidence and failures](validation/HUAWEI-CAMPAIGN-0.4.24.md).
 
-## Polski
+[Six subsequent retries](validation/CAMPAIGN-RETRIES-0.4.24.md) did not extend the natural route. Do not blindly replay those commands after knockback or a missed landing. The experimental first-carrier helper has no device pass. Those test owners ended, and user configuration/save files were restored byte for byte. The lower-floor runtime position was not a new save. Further natural route work belongs to the human.
 
-**0.4.24-dev nie jest wersją 1.0. Całej kampanii nie ukończono naturalnie.**
-Instrukcje: [współpraca](../CONTRIBUTING.md), [budowanie](BUILDING.md),
-[instalacja](INSTALL-PL.md), [droga do 1.0](ROADMAP-1.0.md).
+A fresh clone has no ignored private reports or user saves. Reproduce a technical scenario or use your own legitimately obtained save and document its origin. Never assume local reports are available to other contributors.
 
-Ostatnia kontynuacja na Huawei przeszła ruchome platformy, przesiadki na drabiny,
-górny szyb, żołnierza, dalszą półkę z flagą i pierwszą parę cyklicznych podestów.
-Następna grupa nadal nie jest zaliczona. Po upadkach można wrócić windą; zwykła
-walka i przedmioty pozostawiły zdrowie 85. Próba korzystała z niezmienionej kopii
-prawdziwego zapisu: poziom 1, checkpoint 1, zdrowie 100, zero zapasowych żyć,
-pistolet 6, magia 2, dynamit 3. [Wyniki i niepowodzenia](validation/HUAWEI-CAMPAIGN-0.4.24.md).
+`campaign_play.py` owns test backups and an app-local command mailbox. `campaign_session.py` reconnects a dead logcat reader from its last recorded timestamp; that recovery was tested on Huawei without restarting the game or ADB. `campaign_log_reader.py` can supervise an older live owner; its stop marker ends only that reader. Timestamp overlap can duplicate a line, so consume each observation tick once. Missing samples or a reader timeout do not by themselves prove a gameplay bug.
 
-Następny krok to przejście podestów ze świadomym doborem fazy, trwały checkpoint 2,
-koniec poziomu 1 i dalsza kampania. Pozycja z zakończonej próby nie jest nowym
-zapisem gry. Własne pliki użytkownika zostały przywrócone i porównane bajt w bajt.
-Nowa osoba nie ma prywatnego katalogu raportów: musi odtworzyć trasę lub jawnie
-opisać pochodzenie własnego zapisu. Teleport, odporność i kontrolowana scena nie
-zastępują naturalnego przejścia.
+## Publication and signing
 
-Odzyskiwanie przerwanego czytnika logów jest poprawką narzędzia, nie APK ani FPS.
-Sprawdzono je na Huawei bez restartu gry i serwera ADB. Powtórzony graniczny wpis
-należy odczytywać tylko raz. Brak próbek nie dowodzi błędu rozgrywki.
+Use this project's repository and task-local Git identity. Do not change another project's credentials, global identity or remote. Review [publication checks](PUBLISHING.md). Keep commercial data, raw reports, user saves, device identifiers, signing keys and passwords private. Preserve `private-signing/` locally; never upload it. Debug and release identities differ, so follow the [signing/migration guide](RELEASE-SIGNING.md) instead of uninstalling a user's game to bypass an update failure.
 
-55 FPS w ciężkiej scenie jest zaakceptowanym celem, nie potwierdzonym minimum.
-Testy fizycznych padów są wyłączone na życzenie użytkownika. Redmi jest obecnie
-udostępniony do tych prób; Huawei może być używany bez zmian połączenia USB z internetem.
-Nie publikuj numerów urządzeń, danych gry ani prywatnych raportów. Zachowaj autorów
-OpenClaw i bibliotek oraz informację o pracy LLM. Pozostałe bramki wydania są w planie 1.0.
+Remaining release gates are in the roadmap. Clearly distinguish current verified facts, historical results, intentional differences and unknowns. Do not call this original Monolith source or assume game copyrights have expired.

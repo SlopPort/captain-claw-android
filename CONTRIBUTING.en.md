@@ -1,6 +1,6 @@
 # Contributing
 
-[Polski](CONTRIBUTING.md) · [Current handoff](docs/HANDOFF.md) · [Build](docs/BUILDING.en.md)
+[Current handoff](docs/HANDOFF.md) · [Build](docs/BUILDING.en.md)
 
 This is a development adaptation of OpenClaw, not a completed 1.0. Read the handoff
 before changing gameplay. Adaptation code, investigation and documentation so far
@@ -28,7 +28,8 @@ Keep inherited authorship and dependency notices intact.
 | Reproducible dependency revisions | `sources.lock.json`, `patches/` |
 | Test tools and reviewed evidence | `tools/`, `docs/validation/` |
 
-Commit the exported patch, not the dependency checkout. Run
+Commit the exported patch, not the dependency checkout. Do not change the pinned
+engine revision without updating the patch and validating that dependency change. Run
 `python tools/check_patches.py` after engine edits. Do not reset the dependency
 checkout or change its pinned revision to hide a patch mismatch.
 
@@ -58,7 +59,9 @@ Read [testing scope](docs/TESTING.md). Current ordinary-input campaign driver:
 written by the game. `campaignposition`, `pegtrial`, `combatstage`, `campaignfinish`
 and similar fixture commands must not be used as natural-playthrough evidence.
 Legacy `checkpoint_smoke.py` uses global Android input and is not an approved
-current test. Owned sessions preserve user files; verify restoration after failure.
+current test. Owned sessions preserve user files; verify restoration after failure. Touch tests
+target the app window and stop on focus loss. Use `jump_touch_smoke.py` for the
+current touch interface; older scripts may use historical input methods.
 
 ## Publication boundary
 

@@ -1,4 +1,4 @@
-# User regressions 0.4.29 / Zgłoszenia użytkownika
+# User regressions 0.4.29
 
 **Follow-up, 2026-10-24:** the human later made Redmi available. [Separate exact-version checks and cleanup](REDMI-0.4.29.md) passed there. The Huawei-only scope below remains the record of the original 2026-10-23 batch.
 
@@ -113,12 +113,4 @@ stagger-soldier-below-huawei-0.4.28, melee-recovery-huawei-0.4.29,
 melee-recovery-huawei-0.4.29-r2, pause-powerup-huawei-0.4.29.
 Raw crash reports contain private paths/device metadata and stay outside Git.
 
-## Polski
-
-Naprawiono brak pauzy Startem przy własnym mapowaniu, koszt przełączenia muzyki
-złotej myszy oraz odtworzoną awarię kierunków pada na tekstowym ekranie końca gry.
-Komunikat jasno opisuje powrót do menu. Krótkie naciśnięcie szabli podczas trafienia
-jest teraz zapamiętywane do końca animacji, maksymalnie 400 ms. To udogodnienie
-portu, bez powiększania hitboxów i bez twierdzenia o identyczności z oryginałem.
-Próby dotyczą Huawei i izolowanych scen; naturalna kampania pozostaje zadaniem
-człowieka. Redmi nie był używany. Własny klucz podpisu nadal jest prywatny.
+The release signing key remains private.

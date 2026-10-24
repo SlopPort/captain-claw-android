@@ -1,4 +1,6 @@
-# English UI follow-up / Angielski interfejs
+# English UI follow-up
+
+> Historical validation record. Results apply to the builds and scenarios named here, not automatically to the latest APK. See the [README](../../README.md) for current project status.
 
 Requested 2026-10-22. Partial implementation in 0.4.13-dev by OpenAI Codex (LLM). Existing English README and installation instructions are not equivalent to English in-game UI.
 

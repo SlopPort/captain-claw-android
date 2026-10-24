@@ -1,4 +1,6 @@
-# Gabriel encounter / Walka z Gabrielem
+# Gabriel encounter
+
+> Historical validation record. Results apply to the builds and scenarios named here, not automatically to the latest APK. See the [README](../../README.md) for current project status.
 
 Audit and test tooling by OpenAI Codex (LLM), 2026-10-22.
 

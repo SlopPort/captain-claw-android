@@ -1,4 +1,6 @@
-# Marrow encounter / Walka z Marrowem
+# Marrow encounter
+
+> Historical validation record. Results apply to the builds and scenarios named here, not automatically to the latest APK. See the [README](../../README.md) for current project status.
 
 Experimental implementation by OpenAI Codex (LLM), 2026-10-21/22.
 
@@ -24,4 +26,4 @@ The diagnostic `combatjumpattack` schedules ordinary jump, direction and sword k
 
 `marrow-death-reset-0.4.12` subsequently passed the death/reset gate: after the first carry and boss health 100, protection was disabled and Claw placed in the existing arena pit. A real death reduced lives from three to two, restarted the encounter and restored Marrow to 150 HP on the initial side. Three new parrot hits reopened the bridge, and a complete three-phase rematch, boss gem and level 11 transition passed. No health edits or synthetic death/reset events were used. Protection was restored for the rematch; this remains a controlled test, not natural traversal. Negative phase gates and original timing/balance parity remain open.
 
-Po polsku: pełna kontrolowana walka, klejnot i przejście do poziomu 11 przeszły test, także po prawdziwej utracie życia i resecie bossa. Zgodność szczegółów z oryginałem nadal wymaga porównania. To nie jest jeszcze gotowa wersja 1.0.
+This encounter report does not declare a finished version 1.0.

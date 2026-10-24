@@ -1,144 +1,136 @@
-> Surowe dowody i konfiguracje przywołane niżej są lokalnie w ignorowanym `reports/`; nie są dołączone do repozytorium.
+# Finale and enemies — 0.4.0, 2026-10-20
 
-Aktualizacja 22.10.2026, 0.4.12-dev: `omar-campaign-current1` wykrył regresję naszego nowego pakietu pomocniczego — brak dwóch PNG autorów powodował awarię przy inicjalizacji menu po finale. Dodano własne plansze tekstowe, bez portretów i grafik gry, oraz kontrolę kompletności PNG podczas pakowania. `omar-campaign-credits-fixed` przeszedł obie fazy Omara, inscenizację, wyniki, powrót do menu i kontrolę braku poziomu 15 w zapisie. Próba używa teleportów, żywiołów, nieskończonej amunicji i ochrony; nie zmienia HP bossa. To nie jest naturalne przejście mapy.
+> Historical validation record. Results apply to the builds and scenarios named here, not automatically to the latest APK. See the [README](../../README.md) for current project status.
 
-# Finał i przeciwnicy, 0.4.0 — 20.10.2026
+Raw evidence/configurations are local in ignored `reports/`, outside this repository.
+This is a historical implementation/test record; later versions need their own evidence.
 
-Dodano Omara i BossStager do zwykłego ładowania poziomu 14. Limit wyboru
-poziomów oraz profil podniesiono do 14; konfiguracja poprzedniej wersji z
-limitem 13 jest aktualizowana podczas odczytu. Koniec poziomu 13 może teraz
-zapisać dostęp do 14. Podsumowanie finału wraca do menu, bez tworzenia
-zapisu lub próby wczytania poziomu 15.
+**2026-10-22 / 0.4.12-dev follow-up:** `omar-campaign-current1` found a regression
+in our new support bundle: two missing credits PNGs crashed menu initialization
+after the finale. Original text-only credits cards, without portraits/game art,
+and a packaging PNG-completeness check were added. `omar-campaign-credits-fixed`
+passed both Omar phases, staging, score, menu return and absence of a level-15
+save. It uses teleports, elements, infinite ammo and protection without changing
+boss HP. This is not a natural map clear.
 
-## Walka i inscenizacja
+Omar and BossStager were added to ordinary level-14 loading. Level selection and
+profile limits increased to 14; old limit-13 configuration is upgraded when read.
+Level 13 completion can unlock 14. Finale score returns to menu without creating
+a save for, or trying to load, level 15.
 
-Omar ma 200 zdrowia. Pierwsza połowa walki wymaga przeciwnego żywiołu,
-przepuszczonego przez lukę w obracającej się osłonie. Poprawny żywioł
-odbiera 25 zdrowia i zmienia osłonę, zgodny z osłoną przywraca 25.
-Zwykłe obrażenia są blokowane. Druga połowa wymaga trzech trafień kulą
-z pistoletu i ataku mieczem w kucki; trafienie odbiera 25 i przenosi bossa
-na drugą stronę górnej platformy. Nie wystarcza samo wysłanie klawisza:
-obrażenia przechodzą przez rzeczywiste kontakty pocisków i obszaru miecza.
+## Combat and staging
 
-Walka korzysta z oryginalnych grafik osłon, energii i animacji Omara.
-Pociski energii zadają 20 obrażeń. Osiem elementów osłony i maksymalnie
-12 pocisków ograniczają liczbę obiektów; pociski mają czas życia.
-Zmiany pozycji bossa są odkładane poza zablokowany krok fizyki.
-Po śmierci gracza zerowane są faza, osłona, liczniki, pociski i pozycja.
-Wejście na arenę ustawia tymczasowy punkt odrodzenia na jej górnej
-platformie; nie nadpisuje zapisu checkpointu w pliku.
+Omar has 200 HP. The first half requires the opposite element through a rotating
+shield gap. A correct hit removes 25 HP and changes the shield; matching the
+shield restores 25. Ordinary damage is blocked. The second half requires three
+pistol hits then a crouching sword attack; a hit removes 25 and moves Omar to
+the opposite side of the upper platform. Actual projectile/sword contacts apply
+damage; dispatching a key alone does not.
 
-Oryginalne miecze przy arenie odnawiają się sześć sekund po zebraniu,
-po jednym egzemplarzu każdego rodzaju. Na początku drugiej fazy port
-uzupełnia pistolet do co najmniej 24 kul. To jawne ustawienia portu.
-Okno po trzeciej kuli trwa 3,5 s, przerwa po poprawnym trafieniu 900 ms,
-a prędkość pocisków wynosi 230 pikseli/s. Wartości nie były odtwarzane
-z kodu maszynowego ani porównane klatka po klatce z Windows.
+The encounter uses the original shield/energy images and Omar animations.
+Energy projectiles deal 20 damage. Eight shield pieces and at most 12 expiring
+projectiles bound actor counts. Boss moves are deferred outside locked physics
+steps. Player death resets phase, shield, counters, projectiles and position.
+Arena entry sets a temporary upper-platform respawn without overwriting the
+checkpoint save file.
 
-Wprowadzenie używa oryginalnych dialogów STAGING, panoramy kamery w obu osiach,
-nazwy bossa i zapowiedzi. Kapitulacja odtwarza killfall, killfall2 oraz
-killfall3, zatrzymując ostatnią klatkę. Następnie pokazuje oryginalne grafiki
-klejnotu, Adory i amuletu z krótkim polskim tekstem, a potem podsumowanie.
-Jest to zakończenie odtworzone w silniku, nie oryginalny film końcowy.
-Kamera podczas zapowiedzi śledzi wysokość Omara, a zamrożona postać nie
-próbuje równocześnie zerować jej przesunięcia pionowego.
+Arena element swords respawn six seconds after collection, one of each type.
+Phase two replenishes pistol ammo to at least 24. These are explicit port choices.
+The post-third-bullet opening lasts 3.5 s, successful-hit delay 900 ms and
+projectile speed 230 pixels/s. These values were neither recovered from machine
+code nor compared frame-by-frame against Windows.
 
-Poprawiono odczyt dekoracji WALL, GONG, SIAMESE i AMULET, których pojedyncze
-pliki PID nie mają numeru klatki. Podsumowanie korzysta z dostępnego
-AMMAKE.WAV zamiast nieobecnego angielskiego nagrania Clawa. Brak pliku WAV
-nie powoduje już dereferencji pustego uchwytu przy odczycie jego długości.
+The introduction uses original STAGING dialogue, two-axis camera pans, boss name
+and announcement. Surrender plays killfall, killfall2 and killfall3, holding the
+last frame. Original gem, Adora and amulet images follow with brief Polish text,
+then score. This is an engine recreation, not the original ending movie.
+The announcement camera follows Omar's height; the frozen hero does not also
+try to zero its vertical offset.
 
-## Przeciwnicy
+WALL, GONG, SIAMESE and AMULET decoration loading now handles unnumbered single
+PID files. Score uses available AMMAKE.WAV rather than an absent English Claw
+recording. A missing WAV no longer dereferences a null handle for duration.
 
-TigerGuard korzysta z frontflip/backflip, prędkości poziomej 2,6 i skoku
-5 m/s. Zachowuje granice patrolowania; przerwa między unikami wynosi 2,4 s.
-Nie rozpoczyna kolejnego uniku w powietrzu. Pozostałe poziomy zachowują
-poprzednie parametry istniejącego komponentu RollEnemyAIStateComponent.
-Ataki wysokie, niskie, blokowanie, łup i śmierć pozostają aktywne.
+## Enemies
 
-Kameleon przechodzi od pełnej widoczności do alfa 32 i z powrotem w cyklu
-6 s. Atak językiem i reakcja na trafienie odsłaniają go, a śmierć przywraca
-pełną widoczność. Alfa jest ustawieniem pojedynczego obiektu. Nie dodawano
-wspinania kameleonów ani rekonstrukcji wszystkich ruchów strażnika.
+TigerGuard uses frontflip/backflip, horizontal speed 2.6 and a 5 m/s jump.
+Patrol limits remain; dodge interval is 2.4 s. It cannot start another dodge
+while airborne. Other levels keep existing RollEnemyAIStateComponent parameters.
+High/low attacks, blocking, loot and death remain active.
 
-Próba tiger-polish-0.4.0 ujawniła odczyt akcji ataku poza wektorem,
-gdy przerwa między unikami kończyła się przed zakończeniem animacji ataku.
-Sprawdzanie widoczności korzysta teraz ze stałego sensora pierwszej akcji,
-a martwy przeciwnik nie może ponownie wejść w stan walki. Wynik tej
-nieudanej próby zachowano wraz ze stosem awarii.
+Chameleon fades from full visibility to alpha 32 and back over 6 s. Tongue attack
+and hit reaction reveal it; death restores full visibility. Alpha is per actor.
+Chameleon climbing and all TigerGuard moves were not reconstructed.
 
-Próba ponowienia walki ujawniła też przerywanie animacji śmierci Clawa
-przez zwykłe callbacki zatrzymania ruchu i lądowania. Przez to gracz
-pozostawał z zerowym zdrowiem. Stan śmierci jest teraz zachowywany do
-końca animacji; dopiero wtedy uruchamia się istniejący mechanizm odrodzenia.
+`tiger-polish-0.4.0` exposed an out-of-vector attack-action read when the dodge
+interval ended before the attack animation. Visibility checks now use the first
+action's fixed sensor, and dead enemies cannot reenter combat. The failed result
+and crash stack remain retained.
 
-## Zakres dowodów
+A fight retry also exposed ordinary stop/landing callbacks interrupting Claw's
+death animation, leaving a zero-health hero. Death state is now preserved through
+the animation; only then does the existing respawn mechanism run.
 
-Test reguł tests/omar_battle_test.cpp uruchomiono jako program ARM64 na
-telefonie: PASS dla przeciwnych żywiołów, leczenia, obu faz, bramki trzech
-kul, śmierci i resetu. To uzupełnienie prób gry, nie ich zastępstwo.
+## Evidence scope
 
-Scenariusz --omar-fight używa zwykłych zdarzeń klawiszy Androida,
-tymczasowej ochrony wyłącznie gracza, deweloperskich teleportacji,
-mieczy żywiołów oraz nieskończonej amunicji. Nie zmienia bezpośrednio
-zdrowia Omara ani nie usuwa go poleceniem. Nie dowodzi naturalnego
-przejścia mapy, balansu walki ani dotarcia do areny ze startu.
+`tests/omar_battle_test.cpp` ran as an ARM64 phone program: PASS for opposite
+elements, healing, both phases, the three-bullet gate, death and reset. It
+supplements gameplay trials rather than replacing them.
 
-Wcześniejsza próba omar-input-0.4.0-final pokonała bossa, ale wykazała
-awarię brakującego nagrania przy otwieraniu podsumowania. Jej wynik
-crash_free=false zachowano; nie jest raportowana jako PASS.
+`--omar-fight` uses ordinary Android key events, temporary protection of the hero
+only, developer teleports, element swords and infinite ammo. It does not directly
+change Omar HP or delete him. It proves neither natural traversal, balance nor
+reaching the arena from the start.
 
-Redmi Note 8, Android 16, ARM64; muzyka i efekty włączone:
+Earlier `omar-input-0.4.0-final` defeated Omar but crashed on a missing recording
+when opening score. Its `crash_free=false` remains; it is not reported as PASS.
 
-| Próba | Wynik | PSS KiB | Znaczenie |
+Redmi Note 8, Android 16, ARM64; music/effects enabled:
+
+| Trial | Result | PSS KiB | Scope |
 |---|---|---:|---|
-| tiger-polish-0.4.0-final | PASS | 202455 | uniki, ataki i obrażenia gracza bez ochrony, 14 s |
-| chameleon-polish-0.4.0 | PASS | 202765 | alfa 32 i 255 bez ochrony, 12 s |
-| tiger-defeat-0.4.0 | PASS | 201383 | zwykłe ataki i śmierć strażnika z ochroną gracza |
-| sword-resupply-0.4.0 | PASS | 202916 | zebranie lodowego miecza i odnowienie, bez ochrony |
-| omar-reset-0.4.0-final | PASS | 200735 | trafienie 200→175, śmierć w lawie, odrodzenie i nowa walka |
-| finale-release-0.4.0 | PASS | 219801 | osiem trafień, kapitulacja, amulet, podsumowanie i menu |
-| normal-release-0.4.0: poziom 1 | PASS | 196070 | zwykły start, 6 s, bez ochrony |
-| normal-release-0.4.0: poziom 13 | PASS | 360435 | zwykły start, 6 s, bez ochrony |
-| normal-release-0.4.0: poziom 14 | PASS | 249820 | zwykły start bez trybu podglądu, 6 s, bez ochrony |
-| chameleon-defeat-0.4.0 | PASS | 200237 | zwykłe ataki i śmierć kameleona z ochroną gracza |
+| tiger-polish-0.4.0-final | PASS | 202455 | Dodges, attacks, unprotected hero damage, 14 s |
+| chameleon-polish-0.4.0 | PASS | 202765 | Alpha 32 and 255, unprotected hero, 12 s |
+| tiger-defeat-0.4.0 | PASS | 201383 | Ordinary attacks and guard death with hero protection |
+| sword-resupply-0.4.0 | PASS | 202916 | Ice sword pickup/respawn, no protection |
+| omar-reset-0.4.0-final | PASS | 200735 | Hit 200→175, lava death, respawn and fresh fight |
+| finale-release-0.4.0 | PASS | 219801 | Eight hits, surrender, amulet, score and menu |
+| normal-release-0.4.0: level 1 | PASS | 196070 | Ordinary start, 6 s, no protection |
+| normal-release-0.4.0: level 13 | PASS | 360435 | Ordinary start, 6 s, no protection |
+| normal-release-0.4.0: level 14 | PASS | 249820 | Ordinary non-preview start, 6 s, no protection |
+| chameleon-defeat-0.4.0 | PASS | 200237 | Ordinary attacks and Chameleon death with hero protection |
 
-W próbie resetu ochrona gracza została wyłączona przed rzeczywistą śmiercią
-w lawie. Odrodzona postać ma mniej żyć, pojawia się na arenie, a boss
-rozpoczyna nową walkę z pełnym zdrowiem. Nie użyto ręcznej zmiany jego HP.
+In the reset trial, protection was disabled before real lava death. Respawned
+Claw has fewer lives and appears in the arena; Omar restarts at full HP, without
+manual HP editing.
 
-finale-release-0.4.0 bada dokładnie APK z dist/ o SHA-256 zaczynającym się
-181402071ce6d346. Zrzuty finału, podsumowania i polskiego menu obejrzano.
-Próba potwierdza brak awarii i brak nieznalezionych zasobów podczas całego
-scenariusza. PSS 219801 zmierzono po powrocie do menu; osobny pomiar
-memory-during-battle.txt wyniósł 201882 KiB podczas walki. Stabilne próbki
-procesu miały około 60 FPS i p95 17–18 ms; rozgrzewanie, teleportacje
-i zrzuty dawały większe skoki. Nie jest to test długotrwałego obciążenia.
+`finale-release-0.4.0` tests the exact dist/ APK whose SHA-256 begins
+`181402071ce6d346`. Finale, score and Polish-menu screenshots were inspected.
+No crash or missing resource occurred during the scenario. PSS 219801 was taken
+after menu return; separate `memory-during-battle.txt` measured 201882 KiB in
+combat. Stable process samples were about 60 FPS, p95 17–18 ms; warmup,
+teleports and screenshots had larger spikes. This is not a sustained load test.
 
-Kontrola APK potwierdza ARM64 i ARM32, wyrównanie segmentów ARM64 i ZIP do
-16 KiB oraz poprawny podpis v1/v2. Łatka silnika przechodzi kontrolę
-odwrotnego zastosowania. Suma APK zainstalowanego na telefonie jest zgodna
-z dist/, podobnie jak suma ASSETS.ZIP w sparowanej paczce danych.
-Pełne sumy: distribution-0.4.0.json; pozostałe kontrole: apk-0.4.0.json,
-zipalign-0.4.0.txt i signature-0.4.0.txt. Konfiguracje i zapisy po testach
-zostały przywrócone.
+APK inspection confirmed ARM64/ARM32, ARM64 segment/ZIP 16 KiB alignment and v1/v2
+signature. The engine patch reverse-apply check passed. Installed APK matches
+dist/, as does ASSETS.ZIP in its paired data package. Full hashes:
+`distribution-0.4.0.json`; other checks: `apk-0.4.0.json`, `zipalign-0.4.0.txt`,
+`signature-0.4.0.txt`. Configuration/saves were restored.
 
-Raport omar-finale-0.4.0 potwierdził wszystkie osiem trafień, kapitulację,
-ekran amuletu, podsumowanie i przejście do menu, bez awarii i brakujących
-odwołań do zasobów. Skrypt wysłał wtedy kolejne potwierdzenia już w menu,
-uruchamiając poziom 1; jego końcowy pomiar PSS 260678 nie jest pamięcią
-samej walki. Scenariusz poprawiono, aby zatrzymywał wejście po powrocie do menu.
+`omar-finale-0.4.0` confirmed all eight hits, surrender, amulet, score and menu
+without a crash or missing resource references. Its script continued confirming
+in the menu and started level 1; final PSS 260678 is not combat memory. The
+scenario was corrected to stop input after menu return.
 
-## Źródła mechanik
+## Behavior sources
 
 - [Claw Design Bible](https://ics.uci.edu/~frost/GameDesign/ClawDesignDoc.pdf):
-  opisy przeciwników i ceremonii amuletu. Dokument projektu nie jest
-  identyczny z końcową grą.
-- [Relacja z przejścia Richiego Kleinhenza](https://captainclaw.net/en/walkthroughs.html):
-  naprzemienne żywioły oraz sekwencja trzech kul i ataku w kucki.
-- Oryginalny WORLD.WWD, PID, ANI, tekst ANIMATION.TXT i WAV lokalnej gry;
-  odczyt geometrii: asset-probe-14-omar.txt.
+  enemy/amulet-ceremony descriptions. A design document differs from the final game.
+- [Richie Kleinhenz's walkthrough](https://captainclaw.net/en/walkthroughs.html):
+  alternating elements and the three-bullet/crouching-attack sequence.
+- Original local WORLD.WWD, PID, ANI, ANIMATION.TXT and WAV;
+  geometry extraction: `asset-probe-14-omar.txt`.
 
-Pełne przejście wszystkich map, wierny balans, starszy Android,
-telefon 1–2 GB RAM oraz fizyczne strony pamięci 16 KiB pozostają
-niezweryfikowane. Kompilacja ARM32 nie jest testem jego działania.
+At this checkpoint, full traversal, faithful balance, older Android, 1–2 GB
+phones and physical 16 KiB pages remained unverified. Compiling ARM32 does not
+prove its runtime behavior.

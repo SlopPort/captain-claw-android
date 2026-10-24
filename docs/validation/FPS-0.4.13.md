@@ -1,5 +1,7 @@
 # Dense level-nine baseline
 
+> Historical validation record. Results apply to the builds and scenarios named here, not automatically to the latest APK. See the [README](../../README.md) for current project status.
+
 OpenAI Codex (LLM), Huawei P9 Lite / Android 10 / 2 GB RAM, 2026-10-22. No claim of a new performance improvement or steady 60 FPS.
 
 `dense-9-0.4.13` observed the existing map scene at (11027,5500) for 60 seconds. Setup teleport and player protection are explicit fixtures; no attacks, movement or ammo edits were used. The player settled at (11027,5554.6). Music/effects remained enabled at the script's declared 22050 Hz profile. Original config/saves were restored, and USB internet was untouched.

@@ -1,91 +1,87 @@
-# 0.4.8 — integracja funkcji, wydajność i audyt
+# 0.4.8 — feature integration, performance and audit
 
-Praca i testy wykonane przez LLM OpenAI Codex, 2026-10-20/21, z wymaganiami i sprzętem człowieka. To wersja testowa. Nie potwierdzono naturalnego przejścia całej gry ani 60 FPS we wszystkich sytuacjach.
+OpenAI Codex (LLM) performed the work and tests on 2026-10-20/21, using requirements and hardware supplied by a human. This is a development checkpoint. Neither a natural full-game completion nor 60 FPS in every situation was established.
 
-## Pochodzenie funkcji
+## Feature provenance
 
-Punkt odniesienia: Claw Web, Arthur Boss i współtwórcy, commit `e723d3d48b5ba2cc723751209954cfc46c82d202`, GPLv3. [Porównanie źródeł](CLAW-WEB-COMPARISON.md) opisuje stan przed integracją.
+Reference: Claw Web, Arthur Boss and contributors, commit `e723d3d48b5ba2cc723751209954cfc46c82d202`, GPLv3. The [source comparison](CLAW-WEB-COMPARISON.md) describes the state before integration.
 
-- Bezpośredni import REZ i eksport/import postępu: przejęty pomysł przepływu użytkownika; nowe implementacje Androida wykorzystują systemowy wybór dokumentu i nasz format SAVES.XML. Nie skopiowano warstwy IndexedDB/localStorage ani nie zadeklarowano zgodności z ich JSON.
-- Wibracje: adaptacja pomysłu warstwy zdarzeń/presetów HapticFeedback. Nowe wyjście przez SDL rumble i Android Vibrator. Skok, lądowanie, atak/strzał i otrzymanie obrażeń; opcja domyślnie wyłączona. Nie przeniesiono wszystkich ich wzorców kroków, eksplozji czy interfejsu.
-- Węższy preload menu/fontów: adaptacja podejścia ich BaseGameApp. Zasoby rozgrywki nadal obsługuje odziedziczony cache OpenClaw. Nie przenoszono ich całego renderera WebGL lub dźwięku przeglądarkowego.
+- Direct REZ import and progress export/import adopt the user-flow idea. The new Android implementation uses the system document picker and this port's SAVES.XML format. It does not copy IndexedDB/localStorage or claim compatibility with Claw Web JSON.
+- Haptics adapt the idea of the HapticFeedback event/preset layer, with new output through SDL rumble and Android Vibrator. Jump, landing, attack/fire and hurt events are supported; haptics are off by default. Not every upstream footstep, explosion or interface pattern was ported.
+- Narrower menu/font preloading adapts their BaseGameApp approach. Gameplay resources still use the inherited OpenClaw cache. The WebGL renderer and browser audio system were not ported.
 
-Autorstwo i rewizja są zapisane w NOTICE.md, komentarzach źródeł, ekranie narzędzi zapisów i licencjach APK. Oryginalne grafiki/dźwięki gry nie są dołączane przez te funkcje.
+Credits and revision references appear in NOTICE.md, source comments, the save-tools screen and APK licences. These features do not include original game graphics or audio.
 
-## Instalacja i zapisy
+## Installation and saves
 
-APK zawiera wsparcie XML i własne neutralne obrazy pomocnicze. Font konsoli jest kopiowany z fontów telefonu do lokalnego katalogu; nie rozprowadzamy nieustalonej licencji fontu z upstreamu. Użytkownik wskazuje pełny CLAW.REZ lub dotychczasowy game-data.zip. Lokalny CrazyHook ma REZ wielkości 168 bajtów oraz luźne Assets — dla takiego układu nadal potrzebny jest przygotowany ZIP.
+The APK includes supporting XML and original neutral helper images. The console font is copied from the phone into local storage; an upstream font with an unconfirmed licence is not redistributed. The user selects a full CLAW.REZ or the existing game-data.zip. The local CrazyHook layout has a 168-byte REZ and loose Assets, so that layout still requires a prepared ZIP.
 
-Eksport/import zapisów jest dostępny pod PAD → Kopie zapisów i wibracje. Parser ogranicza rozmiar, numery poziomów/checkpointów, pola i wartości oraz odrzuca deklaracje DOCTYPE. Import jest przygotowywany do następnego uruchomienia silnika, z zachowaniem poprzedniego SAVES.XML jako SAVES.before-import.xml. Zapis przez plik tymczasowy i podmianę. Nie importujemy zapisów Windows ani JSON Claw Web.
+Save export/import is under PAD → Save backups and haptics. The parser limits size, level/checkpoint numbers, fields and values, and rejects DOCTYPE declarations. Import is staged for the next engine start, retaining the previous SAVES.XML as SAVES.before-import.xml. Writes use a temporary file followed by replacement. Windows saves and Claw Web JSON are not imported.
 
-`PortFeaturesTest` na Androidzie zaliczył: odczyt/ponowny zapis, zastosowanie oczekującego importu, zachowanie kopii i poprzedniego postępu przy błędnym imporcie, odrzucenie nieprawidłowego REZ, zawartość pakietu wsparcia i dostępność systemowego fontu. Testuje rzeczywiste klasy Java i izolowany katalog, nie ręczną interakcję z systemowym selektorem dokumentów.
+Android `PortFeaturesTest` passed read/write round trips, applying pending imports, retaining backups and previous progress after invalid import, rejecting invalid REZ, checking support-package contents, and finding the system font. It exercises actual Java classes in an isolated directory, not manual interaction with the system document picker.
 
-`tools/direct_rez_runtime_smoke.py`: pełny REZ użytkownika wraz ze wsparciem wyjętym z APK uruchomił mapy 1 i 14 z dźwiękiem. Próba użycia 168-bajtowej atrapy zatrzymała się przed uruchomieniem silnika; następnie poprawiono dane testowe i komunikat błędu. Wszystkie dane telefonu przywrócono. To próba formatu runtime, nie dowód kompletności każdego wydania CLAW.REZ.
+`tools/direct_rez_runtime_smoke.py`: the user's full REZ plus support files extracted from the APK started maps 1 and 14 with audio. The 168-byte placeholder was rejected before engine startup; test data and the error message were then corrected. All phone data was restored. This checks the runtime format, not the completeness of every CLAW.REZ edition.
 
-## Optymalizacje bez obniżania obrazu
+## Optimization without reducing image quality
 
-- ThinLTO i `-O3` domyślnie dla kodu natywnego. Asercje i symbole pozostają; bez fast-math, zmiany solvera, rozdzielczości lub częstotliwości animacji/AI. `-PnativeLto=OFF` umożliwia porównanie.
-- Statyczne hasze nazw komponentów i usunięcie zbędnych kopii shared_ptr przy zwracaniu surowego wskaźnika.
-- Lista aktualizowanych komponentów zachowuje kolejność ID z mapy. Pomija wyłącznie dokładne typy z odziedziczoną pustą VUpdate (pozycja, render, trigger i zdrowie). Sprawdzenie typu i typu wskaźnika do metody chroni aktualizujące podklasy i przyszłe nadpisania. Fizyka, zdarzenia triggerów, AI i animacje nadal działają normalnie.
-- Nie powtarzamy Mix_SetDistance, jeśli jego skwantowana wartość się nie zmieniła. Nie wykazano istotnego osobnego zysku tej poprawki na poziomie 13.
-- Zegar symulacji jest resetowany po przejściu z ładowania/pauzy do rozgrywki. Czas blokującego ładowania nie powinien stawać się pojedynczym wielkim krokiem fizyki ani aktualizacji timerów.
-- Licznik FPS bierze tylko aktywną symulację; pauza i przestoje odradzania nie są dowodem 60 FPS rozgrywki. Dodano rozdzielenie czasu fizyki/aktorów/widoków oraz opcjonalny profiler komponentów (sam profiler zwiększa koszt, więc nie jest benchmarkiem).
+- ThinLTO and `-O3` are the native defaults. Assertions and symbols remain. No fast-math, solver, resolution, animation-frequency or AI-frequency changes were made. `-PnativeLto=OFF` enables comparison.
+- Component-name hashes are static; unnecessary shared_ptr copies were removed when returning raw pointers.
+- The update list preserves component-ID order from the map. It skips only exact types inheriting an empty VUpdate: position, render, trigger and health. Type and member-function-pointer checks protect updating subclasses and future overrides. Physics, trigger events, AI and animation still update normally.
+- Mix_SetDistance is not repeated when its quantized value is unchanged. No significant separate benefit was demonstrated on level 13.
+- The simulation clock resets when loading/pause ends. Blocking load time should not become one large physics or timer step.
+- FPS counts active simulation only. Pause and respawn stalls are not evidence of 60 FPS gameplay. Physics/actor/view timing and an optional component profiler were added. The profiler adds overhead and is not itself a benchmark.
 
-Huawei P9 Lite / VNS-L21, LineageOS Android 10, około 2 GB RAM, 1920×1080, dotyk widoczny, muzyka i efekty 22050 Hz. `reports/all-levels-final-0.4.8/`: po 35 sekund na początkową scenę każdej mapy, nieruchomy bohater, bez ochrony. Zakresy poniżej pomijają pierwszą partię 300 klatek. To nie najgorsze miejsce każdej mapy, nie trasa gracza i nie gwarancja stabilności cieplnej.
+Huawei P9 Lite / VNS-L21, LineageOS Android 10, approximately 2 GB RAM, 1920×1080, touch controls visible, music and effects at 22050 Hz. `reports/all-levels-final-0.4.8/` contains 35 seconds at each map's opening scene with a stationary, unprotected hero. Ranges below exclude the first 300-frame batch. These are not the worst scenes, player routes or sustained thermal tests.
 
-| Poziom | FPS w kolejnych partiach aktywnych klatek |
-|---|---|
-| 1 | około 60 |
-| 2 | około 60 |
-| 3 | około 60 |
+| Level | FPS in successive active-frame batches |
+| --- | --- |
+| 1 | approximately 60 |
+| 2 | approximately 60 |
+| 3 | approximately 60 |
 | 4 | 58–60 |
-| 5 | około 60 |
-| 6 | około 41 w tym przebiegu; w innych próbach 40–60, wynik niestabilny |
-| 7 | około 60 |
+| 5 | approximately 60 |
+| 6 | approximately 41 in this run; 40–60 in other runs, unstable |
+| 7 | approximately 60 |
 | 8 | 56–58 |
 | 9 | 53–56 |
-| 10 | około 60 |
-| 11 | około 60 |
-| 12 | około 60 |
+| 10 | approximately 60 |
+| 11 | approximately 60 |
+| 12 | approximately 60 |
 | 13 | 57–59 |
-| 14 | około 60 |
+| 14 | approximately 60 |
 
-Wcześniejsza scena poziomu 13 w 0.4.7 miała około 43 FPS. Po zmianie listy komponentów czas aktualizacji aktorów w tej scenie spadł z około 9,6 do 4,9 ms. Zmiany kompilacji, ładowania i zegara testowano etapami, ale tabela opisuje ich łączny wynik, nie indywidualny udział każdej poprawki.
+The earlier level-13 scene in 0.4.7 ran at about 43 FPS. Changing the component update list reduced actor-update time there from about 9.6 to 4.9 ms. Compilation, loading and clock changes were tested in stages, but the table reports their combined result, not each change's individual contribution.
 
-Migawki PSS procesu w przebiegu wszystkich map: około 134–187 MiB. To migawki, nie maksimum użycia RAM; sterownik GPU i pamięć systemowa mają osobne koszty. Skrypt odczytuje dokładny PID także ze zbiorczego zestawienia tej wersji LineageOS.
+Process PSS snapshots across the maps were approximately 134–187 MiB. These are snapshots, not peak RAM measurements; GPU driver and system memory have separate costs. The script reads the exact PID even from this LineageOS version's aggregate output.
 
-Ponowna próba poziomu 6 na końcowym APK (`box2d-monotonic-0.4.8`, 40 sekund): pierwsza partia 55,6 FPS, kolejne 60,0–60,4 FPS, p95 18 ms, maksima 21–27 ms po pierwszej partii. PSS 194198 KiB. Poprawiony profiler Box2D raportuje prawidłowe wartości, np. collide 0,75 / solve 2,59 / TOI 0,93 ms. Ten korzystny przebieg nie usuwa wcześniejszej zmienności ani nie potwierdza całego poziomu w 60 FPS.
+A level-6 repeat on the final APK (`box2d-monotonic-0.4.8`, 40 seconds) measured 55.6 FPS in its first batch, then 60.0–60.4 FPS, p95 18 ms and maxima of 21–27 ms after the first batch. PSS was 194198 KiB. The corrected Box2D profiler reported plausible values, for example collide 0.75 / solve 2.59 / TOI 0.93 ms. This better run does not erase earlier variability or prove 60 FPS throughout the level.
 
-## Znalezione błędy i ograniczenia
+## Bugs and limits
 
-- Dół drabiny: odtworzono dalsze schodzenie/animację i wciskanie w podłogę mimo kontaktu stóp z podłożem. Sam warunek zatrzymania nie wystarczył: stary wskaźnik kontaktu ze szczytem nie był czyszczony po EndContact. Kontakt Box2D może potem zostać zwolniony lub użyty ponownie. Pierwsze czyszczenie przed rozliczeniem podestu wywołało regresję: pozostał nadmiarowy kontakt stóp i zejście zamieniało się w spadanie. Ostateczna kolejność najpierw usuwa podest z listy kontaktów, a potem zeruje wskaźnik. `ladder-balanced-0.4.8` zaliczył szczyt, zejście, skoki, zatrzymanie na dole, ponowne wejście i obie krawędzie. Przy trzymaniu dołu stopy pozostają na y=1098 przy podłodze y=1100, bez dalszego wciskania w podłoże.
-- Zegar diagnostyczny starego Box2D odejmował unsigned mikrosekundy; przy przejściu przez sekundę raportował ogromne wartości. Android używa teraz signed czasu monotonicznego. To poprawka pomiaru, nie reguł symulacji.
-- Odbiornik USB przypiętego SDL nie określał wymaganej polityki eksportu w nowych Androidach. Dodano flagę dla API33+ i zachowano ścieżkę starszych wersji. Jest w osobnym odtwarzalnym patchu SDL; fizyczne USB nie zostało jeszcze sprawdzone.
-- Lint: poprawiono dwie uwagi naszego UI i rzeczywisty problem odbiornika USB. Wąskie wyjątki dotyczą wyłącznie odziedziczonych plików SDL: uprawnienia nieużywanej ścieżki BLE Steam Controller/mikrofonu oraz podklasy wybierane przez warunki API26. Nie przyznano aplikacji dostępu do mikrofonu lub nowych uprawnień Bluetooth. Pozostałe ostrzeżenia obejmują m.in. teksty interfejsu i stare API; brak błędów lint nie jest dowodem pełnej zgodności urządzeń.
-- Voice/Ambient w starym menu nadal nie ma kompletnej niezależnej obsługi; audyt 0.4.7 pozostaje aktualny.
+- Ladder bottom: holding Down continued the animation and pushed the hero into the floor despite foot contact. A stop condition alone was insufficient: EndContact did not clear the old ladder-top contact pointer, which Box2D could later free or reuse. The first attempt cleared it before removing platform support and caused a regression: a stale foot contact remained and descent became falling. The final order removes the platform contact first, then clears the pointer. `ladder-balanced-0.4.8` passed the cap, descent, jumps, bottom stop, re-entry and both edges. With Down held, feet stayed at y=1098 above floor y=1100 without further sinking.
+- The old Box2D diagnostic clock subtracted unsigned microseconds and produced enormous values across a second boundary. Android now uses signed monotonic time. This fixes measurement, not simulation rules.
+- Pinned SDL's USB receiver lacked an export policy required by newer Android versions. An API33+ flag was added while retaining older behavior, in a separate reproducible SDL patch. Physical USB had not yet been tested at this checkpoint.
+- Lint: two port-UI findings and the actual USB receiver issue were fixed. Narrow exceptions cover only inherited SDL files: permissions for unused BLE Steam Controller/microphone paths and subclasses selected by API26 conditions. The app gained no microphone access or new Bluetooth permission. Remaining warnings include UI text and old APIs; zero lint errors does not establish full device compatibility.
+- Voice/Ambient in the old menu still lacked complete independent control; the 0.4.7 audit remained applicable.
 
-## Rozgrywka: co rzeczywiście sprawdzono
+## Gameplay coverage
 
-- Wszystkie 14 map: ładowanie, dźwięk i brak wykrytej awarii procesu w krótkich próbach.
-- 13 kontrolowanych kombinacji trafień i ponownego kontaktu: zaliczone po zmianach aktualizacji/clock. Nie zastępuje walki z każdym bossem.
-- Drabina: szczyt rzeczywistej pierwszej drabiny poziomu 1, ponowna góra, zejście, skok z drabiny, wyjście bokiem i góra+skok. Dodatkowo izolowany dół drabiny i podłoga.
-- Krawędzie: kontrolowany podest, wyjście z obu stron, opadanie, lądowanie na niższym podłożu i brak dodatkowego skoku w powietrzu. Teleporty/izolacja sceny są częścią testu; to nie naturalne przejście mapy. Nie zbadano wszystkich drabin, ruchomych platform, połączeń i geometrii każdego poziomu.
-- Omar: rzeczywiste kontakty miecza/strzałów zmieniły HP 200→0, obie fazy, inscenizacja finału, podsumowanie i powrót do menu. Test używał teleportów, mocy, nieskończonej amunicji i ochrony gracza; nie edytował HP bossa. Nie jest dowodem normalnego pokonania finału z zasobami zebranymi po drodze.
+- All 14 maps loaded with audio, with no detected process crash during short trials.
+- All 13 controlled damage/repeated-contact cases passed after update-list and clock changes. These do not replace every boss fight.
+- Ladder tests covered the real first ladder of level 1: cap, repeated Up, descent, jump, side exit, and Up+jump. An isolated ladder-bottom/floor fixture was also tested.
+- Edge tests covered an isolated ledge, leaving both sides, falling, lower-floor landing and no extra mid-air jump. Teleports and scene isolation are part of the test; this is not natural map traversal. Not every ladder, moving platform, join or level geometry was tested.
+- Omar: actual sword/projectile contacts reduced HP 200→0 through both phases, finale staging, score and return to menu. The test used teleports, powerups, infinite ammunition and player protection, without editing boss HP. It does not prove an ordinary final-boss victory with resources collected during a campaign.
 
-**Pełne naturalne przejście 1→14 pozostaje niepotwierdzone.** Nie zastępujemy go teleportami, odblokowaniem poziomów ani samym załadowaniem map. Do zamknięcia pozostają trasy, wszystkie walki z bossami, śmierć/odrodzenie i checkpointy podczas normalnej gry oraz wszystkie warianty drabin/krawędzi. Podczas takiej próby trzeba zapisywać poziom, checkpoint i czynności prowadzące do blokady; każdy blokujący błąd wymaga osobnego odtworzenia i ponownego sprawdzenia trasy.
+**Natural completion of levels 1→14 remained unverified.** Teleports, level unlocks and map loading do not replace it. Routes, every boss fight, ordinary death/respawn/checkpoints and all ladder/edge variants remained open. A blocked run needs its level, checkpoint and preceding actions recorded, a separate reproduction, and a route retest after fixing the cause.
 
-## Końcowy kandydat APK
+## Final APK candidate
 
-`dist/kapitan-pazur-0.4.8-debug-universal.apk`, wersja 0.4.8-dev (20), ARM64 + ARMv7. SHA-256: `455b2ef12e2831ad74d87a571a1eb837eb06cffe8dd1af12b55a3e4b3d6cc526`. Jest to lokalna kompilacja deweloperska, bez oryginalnych danych gry.
+`dist/kapitan-pazur-0.4.8-debug-universal.apk`, version 0.4.8-dev (20), ARM64 + ARMv7. SHA-256: `455b2ef12e2831ad74d87a571a1eb837eb06cffe8dd1af12b55a3e4b3d6cc526`. This is a local development build without original game data.
 
-- `ladder-balanced-0.4.8` i `ladder-real-balanced-0.4.8`: zaliczone próby izolowane oraz pierwsza drabina rzeczywistego poziomu 1.
-- `combat-balanced-0.4.8`: 13/13 przypadków, w tym ponowny callback tego samego pocisku bez drugich obrażeń.
-- `jump-touch-balanced-0.4.8`: sześć pomiarów zaliczonych, wznios krótkiego tapnięcia 72,9–74,1 px, długiego 155 px, opóźnienie zdarzenie→wybicie 29–31 ms. Pomiar wejścia lokalnego aplikacji, nie pełnego opóźnienia fizycznego ekranu. Próby ruchu z dotykiem, przesunięcia palca, pauzy i powrotu z tła zakończone.
-- `omar-balanced-0.4.8`: po ostatecznej zmianie kontaktów ponownie zaliczono obie fazy (HP 200→0), finał, podsumowanie i menu. Nadal jest to jawnie kontrolowana próba z pomocą dla gracza.
-- `features-balanced-0.4.8.txt`: ponowiony test na końcowym APK zaliczył import, kopię poprzedniego zapisu, ochronę przed błędnym importem, odrzucenie błędnego REZ i pakiet wsparcia.
-- Kontrole ELF obu ABI, wyrównania 16 KiB ARM64, zipalign i podpisów v1/v2: zaliczone. Weryfikator podpisu zgłasza standardową uwagę o metadanych Gradle w META-INF.
-- Oba patche nałożone na czyste kopie źródeł: zgodne z 42 zmienionymi plikami OpenClaw i jednym SDL, z normalizacją CRLF. Lint: 0 błędów, 33 ostrzeżenia; nie wszystkie ostrzeżenia usunięto.
-
-## English summary
-
-Claw Web inspired direct REZ import, save export/import, optional event haptics and narrower preloading, with explicit credits and GPLv3 provenance. Android uses its own file picker/storage and SAVES.XML validation/backup path, not Web JSON compatibility. Native optimization retains image resolution and physics solver settings. Most stationary map starts approach 60 FPS; levels 8/9/13 remain lower and level 6 varies substantially. No universal 60 FPS claim is made. Controlled collision, ladder/ledge and Omar/finale tests are separate from a natural full playthrough, which remains unverified. Original game content remains outside public sources/APK support assets.
+- `ladder-balanced-0.4.8` and `ladder-real-balanced-0.4.8`: isolated and real first-level ladder trials passed.
+- `combat-balanced-0.4.8`: 13/13 cases passed, including repeated callbacks for the same projectile without duplicate damage.
+- `jump-touch-balanced-0.4.8`: six measurements passed; short tap rise 72.9–74.1 px, long hold 155 px, event-to-takeoff latency 29–31 ms. This is app-local input timing, not full physical-screen latency. Touch movement, pointer drift, pause and background/resume tests passed.
+- `omar-balanced-0.4.8`: both phases (HP 200→0), finale, score and menu passed again after the final contact change. This remains an explicitly assisted fixture.
+- `features-balanced-0.4.8.txt`: the final APK passed import, previous-save backup, invalid-import protection, invalid-REZ rejection and support-package checks again.
+- ELF checks for both ABIs, ARM64 16 KiB alignment, zipalign and v1/v2 signatures passed. The signature verifier reported its standard Gradle metadata warning for META-INF.
+- Both patches applied to clean source copies and matched 42 changed OpenClaw files and one SDL file with CRLF normalization. Lint: 0 errors, 33 warnings; not every warning was fixed.

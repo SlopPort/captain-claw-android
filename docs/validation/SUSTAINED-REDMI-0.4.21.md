@@ -1,4 +1,4 @@
-# Twenty-minute Redmi observation / 20 minut na Redmi
+# Twenty-minute Redmi observation
 
 OpenAI Codex (LLM), 2026-10-22. Physical Redmi Note 8, Android 16/API 36, ARM64, 4096-byte pages. Exact APK 0.4.21-dev SHA-256 `cfc586439527bb6e4f063d4d6b7b526aa8fa64e2c9f44d6fccc7e7889c7672cf`. Report `redmi-sustained-0.4.21`. No update was installed during observation.
 
@@ -22,7 +22,3 @@ Exclude the first 300-frame batch consistently with earlier comparisons; the fol
 | Post-observation app PSS | 233238 KiB, about 227.8 MiB |
 
 The process remained alive and no fatal markers were observed. No sustained FPS decline appeared in this single scene. The 65 ms frame is retained; this is not perfectly even frame pacing. Battery readings are not CPU temperature; one post-run PSS reading is not a peak, memory trend or leak test. This stationary protected fixture does not establish natural gameplay, all-map 60 FPS, traversal-related loading or stability under every background load. Huawei uses a different viewport and hardware, so this is not an A/B hardware comparison or a resolution of its roughly 58–59 FPS dense-scene result. The 0.4.22 import-only update is a different APK and does not automatically inherit these measured numbers.
-
-## Polski
-
-Redmi zakończył 20 minut ciężkiej sceny bez zaobserwowanej awarii i bez trwałego spadku FPS: średnia harmoniczna 59,998 FPS, początek 59,987, koniec 60,000. Temperatura baterii wzrosła z 28,0 do 28,9 C. Pozostała pojedyncza długa klatka 65 ms. To jedna przygotowana scena z ochroną bohatera; nie oznacza przejścia kampanii, idealnie równych klatek ani zamknięcia celu 60 FPS na wszystkich mapach i słabszym Huawei. Pomiar wykonano na 0.4.21, przed aktualizacją Redmi do 0.4.22.

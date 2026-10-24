@@ -1,4 +1,4 @@
-# Code guide / Mapa kodu
+# Code guide
 
 Adaptation changes in this session were made by an LLM; upstream source retains its original authorship. This guide explains entry points and reasons for the non-obvious design choices. It does not claim that every inherited source line has been reviewed or commented.
 
@@ -17,13 +17,14 @@ Version 0.4.9: `native/android_main.cpp` explicitly enables SDL render batching 
 | `native/OmarEncounterComponent.cpp` | Adaptation's encounter and engine-staged finale. Exact equivalence to the original game is unverified. |
 | `native/LavaGeyserComponent.cpp` | Level 14 hazard behavior. |
 | `patches/openclaw-android.patch` | Changes to the pinned OpenClaw tree: integration, rendering, resources, audio, AI, health and collisions. Generated with `tools/export_patch.py`, not a second independent source tree. |
-| `asset-overrides/` | Local XML prototype/metatada changes combined with support assets by the packer. |
+| `asset-overrides/` | Local XML prototype/metadata changes combined with support assets by the packer. |
 | `tools/pack_assets.py` | Creates a separate package from the user's PC game. Does not modify that installation or download the game. |
 | `tools/prepare_game_data_gui.py` | Bilingual GUI around the existing bootstrap/packer. Worker thread handles subprocess output; Tk updates stay on the UI thread. |
 | `tools/bootstrap.py`, `sources.lock.json` | Fetch pinned open-source dependencies and apply the patch. Preserve unexpected local changes instead of silently resetting them. |
 | `tools/prepare_runtime_assets.py` | Generates redistributable music support and the Android-only controller database before building. Licenses remain in APK assets. |
 
-Komentarze w kodzie opisują przyczyny, własność obiektów, granice testów i wymagania dotyczące zwalniania wejścia. Dziennik ustaleń i otwartych problemów jest w [DEVELOPMENT-NOTES.md](DEVELOPMENT-NOTES.md); wyniki i zakres prób w `validation/`. Nie wszystkie historyczne komentarze OpenClaw ani dokumenty są przetłumaczone. Nie deklarujemy pełnego przeglądu odziedziczonego silnika.
+Comments explain reasoning, object ownership, test boundaries and input-release requirements. [Development notes](DEVELOPMENT-NOTES.md) track findings and open problems; `validation/` records test results and scope. This documentation cleanup does not imply a complete review or translation of inherited OpenClaw comments.
+
 
 0.4.8: `ImportSupport` validates a complete REZ and installs XML/generated support plus a local system font. `SaveFiles` canonicalizes bounded saves, rejects invalid structure/values and atomically applies staged imports with backup; `FileToolsActivity` hosts Android document intents. `HapticFeedback` is an opt-in SDL/Android adaptation of Claw Web's event design. Actor updater caching preserves component-ID order and filters only exact types inheriting the empty base VUpdate, guarded by a member-pointer type trait. Box2D's Android profiling clock uses monotonic signed nanoseconds; physics timestep/solver counts are unchanged. Both engine and SDL patches are reproducible through bootstrap/export tools.
 

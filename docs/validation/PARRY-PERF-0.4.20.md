@@ -1,4 +1,4 @@
-# Parry observations and diagnostic overhead / Parowanie i koszt diagnostyki
+# Parry observations and diagnostic overhead
 
 OpenAI Codex (LLM), 2026-10-22. Scoped observations, not a release declaration.
 
@@ -30,11 +30,9 @@ Three sequential 90-second observations on the same installed APK, level 9 at se
 
 `--quiet-diagnostics` warms up for ten seconds and disables verbose actor tracing, the preview badge and further command polling for that process. Periodic frame/phase/physics diagnostics remain; it does not alter game AI, physics or image rendering. The final position cannot be queried after polling stops and is explicitly marked unqueried. Before-position evidence and final screenshot remain. Battery temperature is not CPU temperature. These short sequential runs do not establish statistical significance, sustained 60 FPS or coverage of all maps. Quiet mode is a measurement option, not a claimed optimization. Reports are `quiet-perf-0.4.20-verbose-a`, `quiet-perf-0.4.20-quiet`, `quiet-perf-0.4.20-verbose-b`.
 
-## Polski
-
-Dwanaście nowych prób rozdzieliło kontakt szabli, utratę HP i blok przeciwnika. Wszystkie sześć trafień bez obrażeń w tych próbach miało potwierdzone parowanie, a dwa zamachy na kraba z wyższego stopnia nie miały kontaktu. Nie powiększono hitboxów ani nie zmieniono obrażeń. Próby mają wyłączone stany ofensywnej AI i przygotowany teren, więc nie zamykają audytu normalnej walki.
-
-Wyłączenie części diagnostyki dało w krótkiej próbie około 58,86 FPS wobec 58,23 i 58,48 FPS w próbach przed i po. To nadal nie jest stałe 60 FPS. Odrzucony atlas kafelków pozostaje wyłącznie w archiwum eksperymentów: jego różnice obrazu nie spełniały wymaganego warunku jakości. Redmi będzie sprawdzony później; testów padów nie wykonywano.
+The rejected tile-atlas experiment remains archived because its image differences
+failed the required quality condition. Redmi was deferred at this checkpoint;
+no physical controller tests were performed.
 
 ## Touch regression
 

@@ -1,4 +1,4 @@
-# Signed development candidate / Podpisany kandydat rozwojowy
+# Signed development candidate
 
 OpenAI Codex (LLM), 2026-10-23. This is **not 1.0**; the human owns campaign QA.
 
@@ -15,7 +15,8 @@ OpenAI Codex (LLM), 2026-10-23. This is **not 1.0**; the human owns campaign QA.
 - Gradle release build passed; missing-key task rejected absent configuration with
   the intended error. Debug lint: zero errors, thirty retained warnings.
 
-The new identity is kept privately, not in Git or source archives.
+The signing key and password are private and excluded from Git and source archives.
+Keep a private backup of both outside the project before distribution.
 [Key backup and debug-to-release migration](../RELEASE-SIGNING.md) are essential.
 Neither existing phone app was uninstalled or replaced by the release certificate.
 Do not tell a tester to uninstall merely because signatures differ.
@@ -45,14 +46,3 @@ No physical controller, complete combat suite, sustained release benchmark,
 production migration, physical ARM16KB or original-game parity certification.
 The release native variant uses RelWithDebInfo / NDEBUG and differs from debug;
 do not assign debug's long FPS measurement to this artifact.
-
-## Polski
-
-Powstał podpisany kandydat 0.4.26 z prywatnym kluczem, bez imienia człowieka.
-Podpis, dwie architektury i statyczne wyrównanie 16 KB przeszły kontrolę.
-W osobnej instalacji na obu telefonach działały menu i poziomy 1/14 z dźwiękiem,
-także po wymuszeniu ARMv7. Biblioteki i kod DEX tej instalacji są identyczne z
-kandydatem, ale identyfikator i zasoby pakietu różnią się. Dotychczasowej gry
-nie usuwano. Nie jest to pełny audyt wydania, dowód przejścia kampanii ani 1.0.
-Przed dystrybucją zachowaj prywatną kopię klucza i hasła. Przed migracją ze starego
-podpisu trzeba osobno sprawdzić eksport i przywracanie zapisów.

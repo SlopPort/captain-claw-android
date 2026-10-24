@@ -1,6 +1,6 @@
 # Live viewport checkpoint 0.4.14
 
-OpenAI Codex (LLM), 2026-10-22. Development version, not final 1.0. [Remaining gates, Polish and English](../ROADMAP-1.0.md).
+OpenAI Codex (LLM), 2026-10-22. Development version, not final 1.0. [Remaining release gates](../ROADMAP-1.0.md).
 
 ## Corrected window handling
 

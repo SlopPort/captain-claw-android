@@ -1,4 +1,6 @@
-# Active normal-enemy audit / Audyt aktywnych przeciwników
+# Active normal-enemy audit
+
+> Historical validation record. Results apply to the builds and scenarios named here, not automatically to the latest APK. See the [README](../../README.md) for current project status.
 
 OpenAI Codex (LLM), 2026-10-23. This is isolated technical coverage, not campaign QA.
 45 level-specific prototypes were visited with offensive AI enabled, normal damage,
@@ -102,14 +104,3 @@ and timeout PIDs. Explicit invalid-height guards can be skipped only after file
 restoration and absence of native fatal evidence; the suite never marks them as
 successful actions. Natural terrain, every projectile, timing/fairness, physical
 controllers and original Windows parity are not certified by this audit.
-
-## Polski
-
-Sprawdzono 45 wariantów przeciwników z aktywną AI, z obu stron i przy obu relacjach
-wysokości. Łącznie są 180 poprawnie ustawione obserwacje; cztery uzupełnienia
-wymagały platformy 64 zamiast 48 px. Zachowano odrzucone ustawienia i timeout.
-Utrata zdrowia celu nie zawsze pochodziła od szabli: szczur potrafił otrzymać
-obrażenia od własnego wybuchu. Wyniki opisują konkretne próby, nie gwarantują
-idealnego balansu ani zgodności wszystkich schodów z oryginałem. Kampanię testuje
-człowiek. Kod, dokumentację i automatyzację wykonał LLM; autorstwo OpenClaw pozostaje
-przy jego twórcach.

@@ -19,7 +19,3 @@ ARM64 + ARMv7 candidate SHA-256 `04940bc2d0a7b5a3ae5033cf68feb9785ab9896b7dbbb6c
 `startup-direct-0.4.17` started GameActivity directly in the instrumentation process, bypassing LauncherActivity, then passed six focused-window jump, multitouch, focus and viewport checks. Measured takeoff 19–21 ms; short jump 73.5–74.1 px, held jump up to 155 px. Config/saves were restored. This exercises the direct entry path, not a complete real-system low-memory restoration scenario.
 
 `startup-import-process-0.4.17` passed intentional process death after publication and again during recovery, for empty/partial/full original file sets, on this same installed APK. Its tiny isolated fixtures do not replace real game data. ABI/library alignment verification also passed. Native preparation-error UI and actual low-storage conditions remain to be exercised; no final campaign/60 FPS claim follows from these checks.
-
-## Polski
-
-Przygotowanie danych obejmuje również bezpośrednie wznowienie ekranu gry przez Androida. Pierwszy zapis jest tworzony atomowo, a powtórzenie przerwanego importu zapisu zachowuje kopię wcześniejszego postępu. Nie resetujemy po cichu istniejących zapisów. Wyniki uruchomienia trzeba dopisać po sprawdzeniu konkretnego APK; dokument sam nie potwierdza ukończenia testów.

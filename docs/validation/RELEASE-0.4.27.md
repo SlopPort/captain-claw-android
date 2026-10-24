@@ -1,4 +1,4 @@
-# Signed candidate 0.4.27 / Podpisany kandydat
+# Signed candidate 0.4.27
 
 OpenAI Codex (LLM), 2026-10-23. **Not 1.0.**
 Production package pl.pazur.port, code39, min21/target35, local artifact
@@ -45,12 +45,6 @@ controller pass is claimed. Source is public; no binary GitHub release/tag 1.0
 was published. [Safety tests](READINESS-0.4.27.md) and
 [private key backup/migration](../RELEASE-SIGNING.md).
 
-## Polski
-
-Podpisany kandydat przeszedł kontrolę podpisu, dwóch architektur i wyrównania 16 KB.
-Na obu telefonach osobna instalacja ARM64 i ARMv7 zaliczyła menu, poziomy 1/14,
-dźwięk, skok i techniczny zapis następnego poziomu. Kod i biblioteki są identyczne
-z kandydatem produkcyjnym, ale identyfikator instalacji jest inny. Nie usuwano gry
-użytkownika. Przed dystrybucją trzeba zachować prywatną kopię **klucza i pliku
-hasła poza projektem**. Przejście z podpisu debug wymaga osobno sprawdzonej kopii
-postępu; nie należy odinstalowywać gry tylko dlatego, że podpisy się różnią.
+Before distribution, keep a private backup of the signing key and password file
+outside the project. Debug-to-release migration requires a separately verified
+progress backup; do not uninstall the game merely because its signature differs.

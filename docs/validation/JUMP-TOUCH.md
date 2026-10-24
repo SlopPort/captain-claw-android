@@ -1,14 +1,26 @@
-# Dotyk i skok — 0.4.3
+# Touch and jumping — 0.4.3
 
-20 października 2026. Redmi Note 8, Android 16. Zmiany dotyczą sterowania dotykowego; fizyka klawiatury pozostaje regulowana czasem przytrzymania.
+> Historical validation record. Results apply to the builds and scenarios named here, not automatically to the latest APK. See the [README](../../README.md) for current project status.
 
-Potwierdzono dwa źródła złego odczucia: dodatkowe kolejkowanie klawisza po dotyku i zmiana przycisku podczas przesuwania palca. W próbie starego układu przesunięcie palca ze skoku w lewo puszczało skok i uruchamiało atak. Impuls 10 ms dawał zaledwie 11,8 piksela wysokości.
+20 October 2026. Redmi Note 8, Android 16. These changes concern touch controls;
+keyboard jump physics remains dependent on hold duration.
 
-Dotyk przekazuje teraz zdarzenie w bieżącym obiegu gry. Przycisk zachowuje przypisany palec do puszczenia; samo przesunięcie nad sąsiada nie uruchamia go. Tapnięcie podtrzymuje skok przez minimum 110 ms, bez opóźnienia jego rozpoczęcia. Dłuższe przytrzymanie pozwala skoczyć wyżej. Utrata fokusu i reset sterowania zwalniają klawisze oraz anulują podtrzymanie.
+Two causes of poor response were confirmed: extra key queuing after touch and
+changing buttons when a finger moved. In the old layout, sliding left from Jump
+released it and started an attack. A 10 ms pulse produced only 11.8 pixels of rise.
 
-Przyciski są ułożone w łuk: skok 120×120, atak 104×104, strzał 96×96 jednostek logicznych. Skok jest na dole po prawej, atak po lewej, strzał wyżej. Są większe symbole i margines trafienia. Inspiracją do grupowania akcji pod kciukiem była [relacja twórców mobilnego Dead Cells](https://www.gamedeveloper.com/design/porting-i-dead-cells-i-to-mobile-an-in-depth-breakdown), nie kopiowanie jego zasobów.
+Touch now dispatches its event in the current game iteration. A button keeps its
+finger until release; moving across a neighbor does not activate that neighbor.
+A tap holds jump for at least 110 ms without delaying takeoff. Longer holds jump
+higher. Focus loss and control reset release keys and cancel the minimum hold.
 
-| Przytrzymanie / próba | Wysokość przed | Wysokość po | Start ruchu przed / po |
+Buttons form an arc: Jump 120×120, Attack 104×104, Shoot 96×96 logical units.
+Jump is bottom-right, Attack to its left, Shoot above. Symbols and hit margins
+are larger. Thumb grouping was inspired by the
+[mobile Dead Cells developers' account](https://www.gamedeveloper.com/design/porting-i-dead-cells-i-to-mobile-an-in-depth-breakdown),
+without copying its assets.
+
+| Hold / trial | Height before | Height after | Motion start before / after |
 |---|---:|---:|---|
 | hold10 | 11.8 px | 73.5 px | 41 / 25 ms |
 | hold100 | 63.6 px | 73.5 px | 43 / 26 ms |
@@ -17,14 +29,31 @@ Przyciski są ułożone w łuk: skok 120×120, atak 104×104, strzał 96×96 jed
 | hold1800 | 155.0 px | 155.0 px | 40 / 26 ms |
 | drift100 | 33.7 px | 74.0 px | 42 / 27 ms |
 
-Czas jest mierzony od odebrania zdarzenia dotykowego przez silnik do pierwszej zmiany pozycji o ponad 2 piksele. Nie obejmuje całej drogi od fizycznego kontaktu z ekranem do wyświetlenia obrazu; do takiego pomiaru potrzebna jest kamera lub odpowiedni sprzęt. Rozdzielnie zapisano wiek zdarzenia w kolejce SDL. Sześć prób nie jest pomiarem pełnego rozkładu opóźnień.
+Timing runs from the engine receiving the touch event to the first position
+change above 2 pixels. It does not measure physical finger-to-display latency;
+that needs a camera or suitable equipment. SDL queue-event age was recorded
+separately. Six trials do not characterize the full latency distribution.
 
-Większe okrągłe przyciski początkowo spowolniły rysowanie. Ich dwa stany są teraz przygotowywane raz w małych teksturach i kopiowane w kolejnych klatkach. Rezerwa tekstur to około 0,3 MiB. Przy resecie urządzenia renderującego cache jest odtwarzany. Na poziomie 1 z muzyką i efektami po rozgrzaniu: około 60 FPS. Na poziomie 13: około 54 FPS; poprzednia APK na tych samych danych miała około 53 FPS. To pozostałe ograniczenie wydajności poziomu, nie deklaracja 60 FPS na wszystkich mapach.
+Larger circular buttons initially slowed rendering. Their two states are now
+prepared once in small textures and copied each frame. Texture reserve is about
+0.3 MiB; renderer reset recreates the cache. With music/effects after warmup:
+level 1 about 60 FPS; level 13 about 54 FPS, versus about 53 FPS in the previous
+APK with the same data. Level 13 remains limited; no all-map 60 FPS claim is made.
 
-Zaliczone: 18 pomiarów skoku przy trzech proporcjach ekranu (fizyczny 2340×1080, 16:9 i 4:3), ruch ze skokiem i niezależne puszczenie palców, atak/strzał, pauza i powrót z tła, 13 regresji hitboxów oraz krótkie uruchomienia map 1 i 13 z dźwiękiem. Surowe wyniki są w `reports/jump-*`; podsumowanie tworzy `tools/verify_jump_release.py`.
+Passed: 18 jump measurements at three aspect ratios (physical 2340×1080, 16:9,
+4:3), movement+jump and independent releases, attack/shoot, pause/background
+return, 13 hitbox regressions and short level 1/13 starts with audio. Raw results:
+`reports/jump-*`; summary: `tools/verify_jump_release.py`.
 
-[Relacja gracza oryginału z 2009 r.](https://forum.winehq.org/viewtopic.php?p=28959) również opisuje niższy skok po tapnięciu i wyższy po trzymaniu spacji. Nie wykonano pomiaru oryginalnego EXE klatka po klatce. Minimalne podtrzymanie 110 ms jest wygodniejszą adaptacją dotyku, nie twierdzeniem o dokładnym parametrze wersji Windows.
+[A 2009 original-game player's account](https://forum.winehq.org/viewtopic.php?p=28959)
+also describes lower jumps from taps and higher jumps from holding Space. No
+frame-by-frame EXE measurement was performed. The 110 ms minimum is a touch
+adaptation, not a claim about the exact Windows parameter.
 
 ## Huawei / 0.4.7
 
-Po optymalizacji bibliotek i cache gałki test sześciu skoków na Huawei P9 Lite / Android 10 zaliczony: 28–30 ms od odebrania wejścia do ruchu, krótkie tapnięcia 73,5–74,1 px, pełny skok około 155 px. Multitouch, pauza, powrót z tła i brak przypadkowego ataku przy przesunięciu palca zaliczone. Surowe wyniki: `reports/jump-touch-optimized-0.4.7/`. Nie jest to pełny pomiar fizycznego opóźnienia dotyku. [Audyt i FPS](TODO-AUDIT.md).
+After library optimization and joystick caching, six jumps passed on Huawei
+P9 Lite / Android 10: event-to-motion 28–30 ms, short rise 73.5–74.1 px, full
+jump about 155 px. Multitouch, pause, background return and no accidental attack
+when sliding passed. Raw evidence: `reports/jump-touch-optimized-0.4.7/`.
+This is not full physical-touch latency. [Audit and FPS](TODO-AUDIT.md).

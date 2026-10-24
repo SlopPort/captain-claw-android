@@ -1,7 +1,5 @@
 # Natural checkpoint and menu reload — 0.4.24
 
-## English
-
 OpenAI Codex (LLM) performed and documented this work. Status: **first persistent
 checkpoint reached naturally; level 1 and the full campaign remain incomplete**.
 APK SHA-256: `583ec1d605527ba812e7da3da510a52dc4e08a2cc94f84c4733592051f2cc0a2`.
@@ -60,47 +58,9 @@ this was a route error, not established as a physics bug. The checkpoint write
 also produced a logged 61.9 ms frame, so these diagnostics do not establish a
 55/60 FPS minimum. Remaining maps, bosses and final ending are still release gates.
 
-## Polski
+## Further continuation
 
-Pracę wykonał i udokumentował OpenAI Codex (LLM). Stan: **naturalnie osiągnięto
-pierwszy trwały zapis; pierwszy poziom i cała kampania nadal nie są ukończone**.
-Test dotyczy wskazanego wyżej APK na Redmi z Androidem 16.
-
-Początek korzysta z oddzielnego standardowego zapisu poziomu 1. Dalsze przejście
-używa zwykłych przycisków i odczytu stanu; bez teleportowania, odporności, zmian
-zdrowia/amunicji, tworzenia pocisków lub terenu. Zachowano śmierci, odrodzenia,
-przedmioty z mapy i jedno użycie zwykłej opcji „Zakończ życie”. Nie cofano ich.
-
-Pazur przeszedł drabiny, ruchomą platformę i pionową windę, dotarł do kolejnej
-flagi, przeszedł cztery kamienne podesty i dalszy dolny przejazd. Pierwsza próba
-przesiadki na dolną drabinę zakończyła się śmiercią po zbyt dalekim ruchu w prawo.
-Poprawiona sekwencja przeszła najpierw osobny kontrolowany test na Huawei, potem
-naturalną próbę na Redmi. Testu kontrolowanego nie zalicza się jako przejścia.
-
-Gra sama zapisała checkpoint 1 poziomu 1: 43 900 punktów, zdrowie 100, zero
-zapasowych żyć, pistolet 6, magia 2, dynamit 3. Log potwierdza zapis atomowy.
-Zachowana kopia jest identyczna z plikiem przy zakończeniu sesji; jej suma jest
-podana wyżej. Po zakończeniu pierwszej sesji ponownie pobrano pliki użytkownika
-— konfiguracja i zapis były identyczne bajt w bajt z kopiami sprzed testu.
-Bieżąca kontynuacja posiada oddzielne kopie i przywraca je przy zakończeniu.
-
-Pierwsza próba wznowienia narzędzia błędnie użyła skrótu rozpoczynania poziomu;
-zatrzymano ją bez grania dalej i nie zaliczono jako poprawnego wczytania.
-Poprawione narzędzie przechodzi zwykłe menu „Wczytaj grę”, La Roca, checkpoint 1.
-Kopiuje niezmieniony plik zapisany przez grę. Silnik sam ustawia pozycję startową
-checkpointu. Odczyty potwierdzają zdrowie, życia i całą amunicję zgodnie z tabelą,
-a zrzut ekranu pokazuje 43 900 punktów. Nie używa się poleceń ustawiających
-pozycję lub zasoby do uzyskania tych wyników.
-
-Do dalszego audytu: utrata oparcia na ruchomej platformie po trafieniu wymaga
-osobnego odtworzenia i porównania. Ominięty kamienny stopień był błędem trasy,
-nie potwierdzonym błędem fizyki. Przy zapisie wystąpiła klatka 61,9 ms, więc te
-próby nie dowodzą minimum 55/60 FPS. Pozostałe poziomy, bossowie i zakończenie
-nadal wymagają przejścia przed wydaniem 1.0.
-
-## Further continuation / Dalsza kontynuacja
-
-English: The ordinary continuation crossed the crumbling pegs at x7502,7631,
+The ordinary continuation crossed the crumbling pegs at x7502,7631,
 7758 and reached the static catwalk near x7900 with HP100. The observer initially
 re-read older support samples and falsely reported a bad landing; consuming each
 sample only once fixed this test-tool error. A subsequent natural repetition
@@ -117,21 +77,6 @@ rose 155 pixels and landed at (8448.8,4114.6), ground=1. The earlier natural
 This evidence does not justify a physics change. The isolated fixture removes
 enemies and sets HP100/ammo99 before initial placement; it is not a campaign pass.
 
-Polski: Zwykłe skoki pozwoliły przejść kruche podesty x7502,7631,7758 i dotrzeć
-na stały pomost około x7900 ze zdrowiem 100. Narzędzie początkowo odczytywało
-ponownie stare próbki kontaktu i fałszywie odrzucało lądowanie. Poprawiono wyłącznie
-obserwator; powtórzenie również przeszło cały odcinek ze zdrowiem 100. Nie zmieniano
-czasu znikania ani kolizji podestów. Następnie zwykły strzał pokonał Oficera,
-a Pazur wszedł na drabinę x8224. Później zginął pod ostrzałem, tracąc ostatnie życie.
-Nie zaliczono tej próby jako ukończenia poziomu.
-
-Osobna próba bez przeciwników potwierdziła poprawny skok z tej drabiny: początek
-(8224,4104.6), brak wspinania, kontakt z podłożem; start skoku po 31 ms, wznios
-155 pikseli i lądowanie na górnym pomoście (8448.8,4114.6). W naturalnej próbie
-zbyt długi ruch w prawo (1700 ms) przeprowadził bohatera za koniec pomostu.
-Nie ma podstaw do zmiany fizyki. Próba kontrolowana usuwa przeciwników i ustawia
-zdrowie/amunicję przed początkowym ustawieniem bohatera; nie jest przejściem gry.
-
 The fourth continuation repeated the real peg crossing, boarded the y4182 moving
 platform and reached the next ledge near (9063,4114), HP60. It then died to repeated
 Officer hits near (9094,4114). Input acceptance under hurt recovery remains an
@@ -139,13 +84,7 @@ open combat-fairness check; the loss is not hidden and level 1 remains incomplet
 No invulnerability, recovery, reach or enemy timing parameters were changed.
 Local evidence: `natural-campaign-0.4.24-resume4`.
 
-Czwarta kontynuacja ponownie przeszła podesty, przejechała platformą y4182 i dotarła
-na następną półkę około (9063,4114), zdrowie 60. Następnie Pazur zginął od kolejnych
-trafień Oficera około (9094,4114). Przyjmowanie sterowania w trakcie reakcji na
-obrażenia nadal wymaga audytu uczciwości walki. Nie zmieniano odporności, czasu
-reakcji na obrażenia, zasięgu ani tempa ataków. Poziom 1 nadal nieukończony.
-
-## Later route attempts / Kolejne próby trasy
+## Later route attempts
 
 The fifth ordinary continuation defeated the next Officer by firing from the
 moving platform, reached x9236 with HP70 and boarded the second carrier. A late
@@ -166,23 +105,6 @@ reusable observer now allows three two-second Up holds, accounting for variation
 in the platform's return timing. This fixture removes enemies and initializes
 HP100/ammo99 before initial placement. It is not natural campaign completion.
 
-Piąta naturalna kontynuacja pokonała Oficera strzałem z ruchomej platformy,
-dotarła do x9236 ze zdrowiem 70 i weszła na kolejną platformę. Za późny skok
-rozpoczął się przy x9606,8, poza kolumną drabiny x9568, i zakończył się śmiercią.
-Szósta próba wcześniej przytrzymała „góra” i poprawnie zaczepiła się o drabinę:
-zdrowie 60, x9568, y3548. Narzędzie zakończyło test 19,4 piksela przed szczytem,
-ponieważ nie uwzględniło całego czasu powrotu platformy i wspinania. Przywróciło
-pliki użytkownika; to za krótki czas próby, nie śmierć ani pełne wejście.
-Siódma próba zginęła wcześniej od żołnierza: strzał zlecony podczas reakcji na
-obrażenia nie pokonał przeciwnika. Dalsza automatyzacja wymaga potwierdzania
-wyniku walki, zamiast zakładać skuteczność naciśnięcia przycisku. APK nie zmieniano.
-
-Osobna jawnie kontrolowana próba potwierdziła wejście po wcześniejszym
-przytrzymaniu „góra”: x9568,y3528,6, zdrowie 100. Obserwator pozwala teraz na trzy
-przytrzymania po dwie sekundy, aby uwzględnić fazę powrotu platformy. Scena
-kontrolowana usuwa przeciwników i ustawia zdrowie/amunicję przed początkowym
-umieszczeniem bohatera. Nie zaliczamy jej jako naturalnego przejścia.
-
 The eighth natural attempt confirmed a Soldier defeat before departure but again
 missed the second ladder after boarding. The controlled landing offset was not
 representative of every natural state: a real catnip pickup changes movement
@@ -193,15 +115,7 @@ jump, rather than waiting for post-landing queries. Controlled candidate r3
 This is still not a complete natural-route or campaign pass. Earlier r1/r2
 controlled passes remain evidence only for their own fixture and input timing.
 
-Ósma naturalna próba potwierdziła pokonanie żołnierza przed dalszym ruchem, lecz
-ponownie minęła drabinę po wejściu na platformę. Naturalnie zdobyta kocimiętka
-zmienia prędkość i miejsce lądowania; odczyty po lądowaniu pozwalały też platformie
-wyjechać poza kolumnę drabiny przed naciśnięciem „góra”. Obserwator przytrzymuje
-teraz wspinanie już podczas skoku. Próba kontrolowana r3 przeszła do szczytu
-(9568,3528,6), zdrowie 100. Nie jest to ukończenie naturalnej trasy ani kampanii.
-Poprzednie próby kontrolowane potwierdzają wyłącznie własne ustawienie i sterowanie.
-
-## Natural ninth continuation / Dziewiąta naturalna kontynuacja
+## Natural ninth continuation
 
 The corrected ordinary sequence now passes in the natural run too:
 `natural-campaign-0.4.24-resume9/second-carrier-natural-ladder.json` records HP60,
@@ -214,14 +128,4 @@ single uninterrupted clear, all-level pass, FPS guarantee or 1.0 release.
 After ending this owned run the real device configuration and save were pulled
 again and matched both original backups byte for byte (`restoration.json`).
 
-Poprawiona sekwencja zwykłych przycisków przeszła również w naturalnej próbie:
-zdrowie 60, x9568,y3528,6 na szczycie drabiny. Kolejny skok w lewo wszedł na
-prawdziwą pionową windę x9442. Przejazd i krótki skok z przytrzymaną wspinaczką
-pozwoliły dotrzeć na następną drabinę x9568,y2440,6, zdrowie 30. Następny żołnierz
-zabił jednak bohatera; próba dłuższego skoku ze strzałem nie zapewniła przeżycia.
-Pierwszy poziom nadal nieukończony. Są to kolejne sprawdzone fragmenty naturalnej
-trasy, nie nieprzerwane przejście całej gry ani gwarancja FPS czy wersja 1.0.
-Po zakończeniu ponownie pobrano konfigurację i zapis z telefonu — oba pliki były
-identyczne bajt w bajt z kopiami użytkownika sprzed próby.
-
-[Huawei continuation and log-reader recovery / Kontynuacja na Huawei i odzyskiwanie logów](HUAWEI-CAMPAIGN-0.4.24.md).
+[Huawei continuation and log-reader recovery](HUAWEI-CAMPAIGN-0.4.24.md).

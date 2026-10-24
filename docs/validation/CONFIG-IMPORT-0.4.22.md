@@ -1,4 +1,6 @@
-# Validate imported configuration / Kontrola importowanej konfiguracji
+# Validate imported configuration
+
+> Historical validation record. Results apply to the builds and scenarios named here, not automatically to the latest APK. See the [README](../../README.md) for current project status.
 
 OpenAI Codex (LLM), 2026-10-22. Controller tests excluded.
 
@@ -22,9 +24,6 @@ The subsequent ARM candidate `0fb591d61b0c40f9528e91d98ad44fad61596dc2a0b1f431b7
 
 `config-features-huawei-0.4.22-r5.txt` and `config-features-api21-0.4.22-r5.txt`: actual Android 10/5 parsers passed the generated valid document and rejected all eleven cases: empty, unclosed root, wrong root, DTD, duplicate root, wrong closing tag, bad nesting, leading text, trailing text, unresolved entity and >1 MiB input. Existing save, support-font/art and startup/staging fixtures also passed. Tests run in an isolated app-owned folder; they do not perform a real document-picker import or replace the live installation.
 
-## Polski
-
-Instalator sprawdza teraz `config.xml` przed podmianą pięciu plików danych gry. Odrzuca m.in. ucięty XML, błędny korzeń, niedopasowane znaczniki i niezdefiniowaną encję. Jedenaście takich prób przeszło na Huawei i emulatorze Androida 5. Pierwsze dwie nieudane iteracje są zachowane w raportach; wykryły realne ograniczenia parsera Androida. Nie jest to pełna kontrola wszystkich wartości ustawień ani zaliczenie całej obsługi selektora plików.
 
 ## Committed-source build
 

@@ -9,5 +9,3 @@ Same physical Huawei P9Lite Android 10, ARM64. Installed 0.4.15-dev APK SHA-256 
 - Batch FPS ranged **48.7–60.2**. Largest observed interval **64 ms**; largest batch p95 **26 ms**. Therefore this does **not** pass steady 60 FPS.
 - Reported battery temperature was **28.0 C before / 35.0 C after**. Battery temperature is not CPU temperature. Before/after battery reports, an after-run system memory listing and complete native logs remain local. That listing contains app PSS 187721 KiB; a point memory sample is not peak-memory/leak proof.
 - The performance harness now streams logcat continuously, without clearing system logs, so a long run cannot silently lose early batches when the ring buffer wraps. The startup surface was 1800x1020/logical847x480; sampling required the corrected settled 1920x1080/logical853x480 and did not mix viewports.
-
-Po polsku: dwadzieścia minut tej ciężkiej sceny nie spowodowało awarii ani widocznego trwałego spadku średniej wydajności. Cel stabilnych 60 FPS nie został osiągnięty. Wynik dotyczy konkretnego APK, telefonu i sceny; nie zastępuje przejścia wszystkich poziomów.

@@ -1,7 +1,5 @@
 # Moving-platform observation — 0.4.24
 
-## English
-
 OpenAI Codex (LLM). This update adds opt-in diagnostic observation and ordinary
 input scheduling; it does not change platform movement, jump physics, health,
 damage or collision rules. The powder-keg fix from 0.4.23 remains present.
@@ -44,31 +42,3 @@ it does not query a newly created physics body's bounds.
 Open: natural boarding with enemies active, the lower elevator route, all 14
 levels and final ending. No new 55/60 FPS claim or complete Android matrix is
 made from these observations.
-
-## Polski
-
-Pracę wykonał OpenAI Codex (LLM). 0.4.24 dodaje opcjonalny zapis diagnostyczny
-i zwykłe wejścia klawiatury. Nie zmienia ruchu platform, skoku, obrażeń, zdrowia
-ani reguł kolizji. Zachowuje poprawkę awarii beczki z 0.4.23.
-
-Na APK o podanej wyżej sumie skok na prawdziwą platformę przeszedł na Redmi
-(Android 16) i Huawei (Android 10). Zmierzono wybicie po 30–35 ms i wysokość
-155 pikseli. Po puszczeniu kierunku Pazur stał na platformie i był przez nią
-przenoszony. Zbudowano oba warianty ARM; obserwacje telefonów dotyczą ARM64.
-
-To **test kontrolowany, nie zaliczenie kampanii**: przygotowanie usuwa wrogów,
-ustawia zdrowie 100 i amunicję 99 na odległej testowej podłodze, potem ustawia
-Pazura na rzeczywistej krawędzi. Lokalna mapa i platforma pozostają oryginalne.
-Podczas mierzonego skoku nie zmienia się pozycji ani zasobów; nie padają strzały.
-Oczekiwanie na platformę odczytuje jej rzeczywisty ruch, bez zatrzymywania jej.
-Po każdej próbie przywrócono konfigurację i zapis użytkownika.
-
-Odczyt ujawnił także pionową windę x4259 o zakresie y4395..4858. Wcześniejsze
-podejrzenie dolnej ślepej odnogi wymaga więc korekty: przed uznaniem jej za
-pułapkę trzeba uwzględnić tę windę. Naturalne wejście i wyjście tą drogą nadal
-wymaga sprawdzenia. Sam odczyt mapy nie jest przejściem tej trasy.
-
-Narzędzie może teraz wysłać jednoczesny zwykły ruch i skok bez dodatkowego ciosu
-oraz zwykły Shift do zmiany broni. Nie są to testy padów ani edycje amunicji.
-Pełna kampania, wejście na platformę przy aktywnych przeciwnikach oraz finał
-pozostają otwarte. Te próby nie stanowią nowego pomiaru 55/60 FPS.

@@ -1,4 +1,6 @@
-# Controller validation / Testy pada
+# Controller validation
+
+> Historical validation record. Results apply to the builds and scenarios named here, not automatically to the latest APK. See the [README](../../README.md) for current project status.
 
 Status: implemented and compiled. The user confirmed physical GameSir menu navigation on Huawei in red Switch mode. Gameplay actions, USB and sustained connection checks remain pending.
 
@@ -10,7 +12,7 @@ Implementation: SDL2 controller events, hotplug and a pinned Android subset of S
 
 Previously observed on Redmi: GameSir Nova 2 Lite in a mode identified by Android as Wireless Controller (VID 054c, PID 09cc). This identifies the connected mode, not proof of correct button mapping. USB hardware testing remains pending. No controller was listed on the newly connected Huawei during the initial check.
 
-| Action / Czynność | Expected / Oczekiwane |
+| Action | Expected |
 |---|---|
 | Left stick and D-pad | Both directions, diagonals, climbing and crouch; no movement at rest |
 | A / bottom face | Jump; longer hold raises jump height |
@@ -36,6 +38,6 @@ Build the capture test with `-PtestRunner=pl.pazur.port.ControllerBindingsTest :
 
 The raw-button pause test passed three cycles on Huawei. Touch instrumentation also completed, with useful short jumps and full held jumps, but the host regression failed its 65 ms latency threshold: first takeoff 124 ms, subsequent measurements 47–51 ms. There is no pre-0.4.5 Huawei touch latency comparison establishing whether this is a new regression. This remains an open performance finding, not a fully passed touch regression. Raw evidence: `reports/jump-touch-huawei-0.4.5/`.
 
-## Natural playthrough / Zwykłe przejście
+## Natural playthrough
 
 For each level 1–14, record entry, checkpoint reload, death/retry, enemy encounters, moving platforms/traps, level completion and progression to the next map. Include the level number and approximate location for every failure. Separate normal play from invincibility, teleports and isolated diagnostic arenas. A successful load is not a completed level. The full natural playthrough remains pending.

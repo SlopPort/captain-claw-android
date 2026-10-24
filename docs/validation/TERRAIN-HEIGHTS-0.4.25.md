@@ -1,4 +1,4 @@
-# Ladder, edges and active heights / Drabiny, krawędzie i wysokości
+# Ladder, edges and active heights
 
 OpenAI Codex (LLM), 2026-10-23. Huawei Android 10, debug 0.4.25 APK SHA-256:
 `6175b1b450ca7f46ede0910a884e3608d104e4a86251822aa6c6b4a57d6ca955`.
@@ -67,18 +67,3 @@ Private prefixes: `active-officer16-huawei-0.4.25` and
 `active-officer64-huawei-0.4.25`. Earlier [32 px trials](ACTIVE-OFFICER-0.4.25.md)
 include actual-after-hit reactions. This remains partial active-enemy coverage,
 not proof of all enemy/projectile/boss behaviour.
-
-## Polski
-
-Audyt drabiny zakończył się 73 odczytami i 1001 próbkami animacji. Trzymanie góry
-na szczycie nie uruchamia wspinania. W próbach skoków przy szczycie nie wykryto
-zablokowanej animacji spadania przez co najmniej 300 ms. Postać stojąca środkiem
-1/5/20 px wewnątrz izolowanej krawędzi pozostawała podparta; środek poza krawędzią
-może prowadzić do zsunięcia. Zgodność tego zachowania z oryginałem jest nieznana.
-
-Dodano 16 prób aktywnego oficera na wysokościach 16 i 64 px. Wszystkie osiem
-ucieczek oderwało bohatera od podłoża. Trafienia szablą były mieszane. Wąski zasięg
-Pazura, stan otrzymywania obrażeń, zwrot postaci i losowy wariant ataku wymagają
-oddzielnego traktowania. Nie zmienialiśmy balansu ani nie uznajemy tego za pełny
-audyt wszystkich przeciwników. Błąd metadanych starego narzędzia opisano jawnie;
-surowe wyniki i nieudane próby pozostają zachowane.

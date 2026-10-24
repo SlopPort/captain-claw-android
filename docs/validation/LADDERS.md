@@ -1,4 +1,6 @@
-# Drabiny / Ladder investigation
+# Ladder investigation
+
+> Historical validation record. Results apply to the builds and scenarios named here, not automatically to the latest APK. See the [README](../../README.md) for current project status.
 
 Reported by the user on the first ladder of level 1: holding Up after reaching the top kept the climbing animation active. The user subsequently confirmed that configurable controller bindings work well. PAD previously covered health; version 0.4.6 moves it to the bottom centre.
 
@@ -25,7 +27,3 @@ Final run: `reports/ladder-level1-verified-0.4.6/`, APK SHA-256 `6ce91b1ee6465da
 ## Additional bug found: held menu directions
 
 The controller already emitted timed directional repeats, but ScreenElementMenuPage discarded repeat events. Android menus now accept repeated Up/Down while continuing to reject repeated confirmation/page actions. `reports/gamepad-menu-repeat-0.4.6/` recorded eight selection changes on the same page during one held Down input, with no confirmation and no exit. This is a separate menu fix, not a ladder-physics change.
-
-## Polski
-
-Potwierdzono błąd odziedziczonej fizyki: trzymanie góry na szczycie ponownie zaczepiało Pazura o drabinę i podciągało go ponad podest. Poprawka kończy wspinanie i blokuje zaczepienie od góry, zachowując schodzenie. Próby obejmują kontrolowaną drabinę oraz prawdziwą drabinę poziomu 1. Nie potwierdzono jeszcze dokładnej zgodności z zachowaniem oryginalnego wydania Windows ani pełnego przejścia wszystkich poziomów.

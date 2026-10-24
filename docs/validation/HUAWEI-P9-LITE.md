@@ -1,5 +1,7 @@
 # Huawei P9 Lite — initial checks, 2026-10-20
 
+> Historical validation record. Results apply to the builds and scenarios named here, not automatically to the latest APK. See the [README](../../README.md) for current project status.
+
 Device reports VNS-L21, Android 10, LineageOS 17.1.0-vns (build dated 2023-08-12, security patch 2023-08-05), ARM64/ARMv7, MemTotal 1,821,440 kB. APK 0.4.4-dev. The user confirmed that the normal APK installation and prepared-ZIP import workflow works. This is human feedback, not an automated usability claim.
 
 ## Short stationary level checks
@@ -36,7 +38,3 @@ Later result: the user successfully paired in the red Switch mode as Pro Control
 The repeated Play Protect message was traced to Google Play services' notification channel `uncertified_device`. This is a device-certification warning, separate from the game's code or a malware detection. Google documents the distinction in its [certification help](https://support.google.com/android/answer/7165974?hl=en). No security scanning was disabled and no certification status was modified.
 
 The manufacturer's [Android connection guide](https://gamesir.com/pages/tutorials-how-to-connect-nova-2-lite) specifies rapid yellow blinking and device name `GameSir-Nova 2 Lite`. Recommended next non-destructive check: toggle Bluetooth, then restart Huawei after the performance test finishes and retry discovery. Do not silently erase pairings or reset network settings. USB and successful Bluetooth gameplay remain untested on this phone.
-
-## Polski
-
-Użytkownik potwierdził instalację APK i import ZIP. Krótkie próby poziomów 1 i 13 zakończyły się bez awarii procesu gry, ale płynność jest niska. Zmniejszenie rozdzielczości nie poprawiło wyraźnie wyniku poziomu 1; potrzebne jest profilowanie. To nie jest pełne przejście gry. Systemowy Bluetooth kilkukrotnie się wysypał; przyczyna problemu parowania nie jest jeszcze ustalona.

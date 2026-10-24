@@ -1,16 +1,9 @@
-# Recoverable game-data import / Odzyskiwanie importu
+# Recoverable game-data import
+
+> Historical validation record. Results apply to the builds and scenarios named here, not automatically to the latest APK. See the [README](../../README.md) for current project status.
 
 OpenAI Codex (LLM), 2026-10-22. Introduced in 0.4.15-dev. This closes a source-review risk with measured process-interruption coverage, not every installation/release gate.
 
-## Polski
-
-Poprzedni importer podmieniał pięć plików kolejno, bez wycofania. Nowy mechanizm najpierw zachowuje istniejące pliki, zapisuje dziennik, a dopiero potem przenosi przygotowany komplet. Przy następnym uruchomieniu launcher odzyskuje niedokończoną operację przed sprawdzeniem gotowości gry. Praca odbywa się poza wątkiem ekranu. Import i odzyskiwanie są serializowane w procesie.
-
-Przerwanie przed punktem zatwierdzenia przywraca poprzedni zestaw, również gdy poprzednia instalacja była pusta lub częściowa. Przerwanie po zatwierdzeniu zachowuje kompletny nowy zestaw. Kopie pozostają do końca odzyskiwania, więc kolejne przerwanie można obsłużyć ponownie. Uszkodzony dziennik blokuje start i zachowuje kopie zamiast zgadywać stan danych. Zapisy, przypisania i preferencje języka są poza listą podmienianych plików.
-
-Przy zastępowaniu istniejących danych potrzeba dodatkowego miejsca na kopię starego kompletu. Brak miejsca może przerwać przygotowanie lub odzyskiwanie; kopii nie należy wtedy usuwać ręcznie. Zwolnij miejsce i uruchom aplikację ponownie.
-
-## English
 
 The previous importer replaced five files sequentially without rollback. The new implementation first preserves existing files, writes a journal, then publishes the prepared set. On the next launch, unfinished work is recovered before checking whether the game is ready. Recovery runs off the UI thread. Import/recovery operations are serialized within the process.
 

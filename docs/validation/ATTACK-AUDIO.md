@@ -1,4 +1,6 @@
-# Attack audio / Dźwięki ataków
+# Attack audio
+
+> Historical validation record. Results apply to the builds and scenarios named here, not automatically to the latest APK. See the [README](../../README.md) for current project status.
 
 Audit and implementation by OpenAI Codex (LLM), 2026-10-21. Original recordings stay in the user's game archive; the APK contains XML references only.
 
@@ -27,5 +29,3 @@ The opt-in `AudioProbe` counts nonzero samples and peak amplitude from SDL's exi
 - `boss-campaign-level4-audio` and `boss-campaign-level6-audio`: real boss melee requests included the newly connected WHIP1/UPPERCUT effect; both fights and next-level saves passed with explicit teleport/player-protection fixtures.
 
 These measurements validate the game's generated audio, not the phone speaker, Bluetooth audio routing, system volume or a human listening test. No claim of full audio parity with the Windows original is made.
-
-Po polsku: zamachy, wystrzały i trafienia mają odrębne dźwięki; głosy postaci mogą być losowe. Uzupełniono pięć brakujących przypisań do istniejących nagrań. Testy mierzą rzeczywisty sygnał z gry, a nie samą obecność pliku WAV.

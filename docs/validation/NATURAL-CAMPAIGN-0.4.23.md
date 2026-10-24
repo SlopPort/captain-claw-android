@@ -1,7 +1,5 @@
 # Natural campaign attempt — 0.4.23
 
-## English
-
 Status: **incomplete; level 1 not completed**. Work and observations by OpenAI
 Codex (LLM). Do not substitute this for a campaign pass or a 1.0 release gate.
 
@@ -43,37 +41,3 @@ driver's early rejection was corrected by bounded retry, not by changing the gam
 Next: measure real hero/platform trajectories in a separately labelled fixture,
 then repeat natural boarding and continue through the first persistent checkpoint.
 All 14 levels, normal resource balance, bosses and final ending remain open.
-
-## Polski
-
-Stan: **nieukończone; pierwszy poziom nie został ukończony**. Pracę i obserwacje
-wykonał OpenAI Codex (LLM). To nie zaliczenie kampanii ani gotowości wersji 1.0.
-
-Test na Redmi z Androidem 16 korzystał z APK o podanej wyżej sumie i zwykłych
-zasobów początkowych. Podczas naturalnej próby nie zmieniano pozycji, zdrowia,
-amunicji, odporności, terenu ani pocisków poleceniami. Odczyt map pomagał planować
-trasę. Włączona diagnostyka oznacza, że to nie pomiar wydajności.
-
-Pazur przeszedł pierwszą drabinę i wczesne platformy, zebrał kocimiętkę oraz flagę
-odrodzenia. Po nieudanych skokach wracał dołem; trzykrotnie użyto też zwykłej
-opcji „Zakończ życie”, co prawidłowo zużyło życia i zostawiło zero zapasowych.
-Nie były to edycje zapisu, ale nie oznaczają zaliczenia pominiętych przepaści.
-
-Strzał z przykucnięcia w beczkę na górnej trasie wywołał prawdziwy wybuch,
-odebrał Pazurowi 50 zdrowia i pokonał oficera. Naprawiona gra działała dalej.
-Kolejny skok minął ruchomą platformę. Pomiar wykazał przyjęcie skoku po 34 ms
-oraz pełną wysokość 155 pikseli przy przytrzymaniu 600 ms. Nie potwierdza to
-poprawnego lądowania ani identycznego zachowania jak w oryginale.
-
-Nie osiągnięto trwałego punktu zapisu na dysku; pierwsza flaga służy odrodzeniu
-w bieżącej sesji. Próby nie dają zapisu pozwalającego wznowić kampanię z flagi.
-Po zakończeniu przywrócono pliki użytkownika i porównano pobrane pliki z kopiami:
-konfiguracja oraz zapis są identyczne bajt w bajt.
-
-Błędów sterowania narzędzia nie zalicza się automatycznie jako błędów gry.
-Pierwsza próba zbyt szybko uznała wygaszanie ekranu po śmierci za awarię;
-poprawiono ograniczone oczekiwanie w narzędziu, bez zmiany rozgrywki.
-
-Dalej: osobny pomiar trajektorii ruchomej platformy, ponowna naturalna próba
-lądowania i dotarcie do trwałego punktu zapisu. Cała kampania, bilans zasobów,
-bossowie i zakończenie pozostają do zaliczenia.

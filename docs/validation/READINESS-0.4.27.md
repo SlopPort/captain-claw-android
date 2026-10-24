@@ -1,4 +1,4 @@
-# 0.4.27 safety and readiness / BezpieczeĹ„stwo i gotowoĹ›Ä‡
+# 0.4.27 safety and readiness
 
 OpenAI Codex (LLM), 2026-10-23. Development candidate, **not 1.0**. Human campaign
 playtesting and deferred physical controllers are outside this technical batch.
@@ -78,12 +78,3 @@ late-save-{redmi,huawei}-0.4.27-fixed, late-save-api21-0.4.27-fixed-r2,
 compat-api21-0.4.27, compat-api21-0.4.27-runtime-menu,
 startup-level8-huawei-0.4.27. Raw files stay private, include user data and are
 not required to build the public source. Reproduce with your own lawful game data.
-
-## Polski
-
-Naprawiono rzeczywistÄ… awariÄ™ po zamkniÄ™ciu ekranu eksportu i odrzucanie czterech
-wczeĹ›niej przyjmowanych rodzajĂłw uszkodzonego XML. Testy poprawnych zapisĂłw,
-PL/EN i obu telefonĂłw przeszĹ‚y bez zmiany postÄ™pu. Emulator Androida 5 takĹĽe
-zaliczyĹ‚ skok i techniczny zapis nastÄ™pnego poziomu. Zachowujemy nieudanÄ… prĂłbÄ™
-krĂłtkiego skoku na przeciÄ…ĹĽonym emulatorze 16 KB; nie ogĹ‚aszamy jej naprawy.
-Wyniki nie zastÄ™pujÄ… przejĹ›cia kampanii ani prĂłb wszystkich urzÄ…dzeĹ„.

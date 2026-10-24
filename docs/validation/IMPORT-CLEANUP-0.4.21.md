@@ -1,4 +1,6 @@
-# Import staging cleanup / Sprzątanie roboczych danych importu
+# Import staging cleanup
+
+> Historical validation record. Results apply to the builds and scenarios named here, not automatically to the latest APK. See the [README](../../README.md) for current project status.
 
 OpenAI Codex (LLM), 2026-10-22. Controller testing excluded.
 
@@ -24,9 +26,6 @@ A failed rollback keeps its evidence and staging intact: cleanup cannot hide a d
 
 `compat-huawei-armv7-0.4.21-menu/level`: actual 32-bit engine library mapping, menu, ordinary 100 ms jump, exit pickup, score and level-two loading passed on Huawei Android 10. ARM64 was restored after the trial. `compat-api21-0.4.21-menu/level`: the separate x86_64 package passed corresponding runtime checks on Android 5.0.2, including a 61.4 px short jump (113 ms effective hold, 85 ms takeoff under software emulation). No controller attachment or global Android input; ABI tests use app-local SDL pointer events on the score screen.
 
-## Polski
-
-Nieudany import mógł zostawić dużą kopię roboczą danych aż do kolejnej próby importu. Teraz aplikacja sprząta ją po poprawnym odzyskaniu danych, również po ponownym uruchomieniu i bezpośrednim wznowieniu ekranu gry. Nie usuwa zapisów gracza ani nie zgaduje zawartości uszkodzonego dziennika. Próby na Huawei i emulatorze Androida 5 przeszły, podobnie jak 64 próby granic operacji i rzeczywiste ubijanie procesu w trzech wariantach wcześniejszej instalacji. Nadal trzeba sprawdzić rzeczywisty brak miejsca i pełną obsługę selektora plików.
 
 ## Fresh committed-source build
 
