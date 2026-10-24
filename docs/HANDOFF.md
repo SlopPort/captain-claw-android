@@ -12,6 +12,10 @@ Current state: **2026-10-24**. Adaptation code, documentation, investigation and
 
 Start with [contributing](../CONTRIBUTING.en.md), [building](BUILDING.en.md), [installation](INSTALL-EN.md), [release gates](ROADMAP-1.0.md) and [upstream differences](UPSTREAM-DIFF.en.md).
 
+Public test distribution: [v0.4.31-test](https://github.com/SlopPort/captain-claw-android/releases/tag/v0.4.31-test),
+with [exact artifact/signing/runtime limits](validation/RELEASE-0.4.31.md).
+The phone's existing debug installation was not migrated or uninstalled.
+
 ## Latest verified behavior
 
 The 0.4.31 changes separate the Game Over title from its touch instruction. The Huawei last-life/touch return test passed. Native builds for ARM64 and ARMv7 passed; this is build coverage, not physical runtime coverage for every architecture. See [Game Over UI evidence](GAME-OVER-UI.md).
