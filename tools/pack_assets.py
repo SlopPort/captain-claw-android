@@ -5,6 +5,8 @@ Writes a separate test-data directory; never changes the original installation.
 from pathlib import Path
 import argparse
 import json
+import os
+import tempfile
 import shutil
 import struct
 import xml.etree.ElementTree as ET
@@ -58,6 +60,77 @@ def build_rez(source, destination, header_path=None):
     return {'packed': count, 'skipped': skipped, 'bytes': destination.stat().st_size}
 
 
+
+PACKAGE_FILES = ('CLAW.REZ', 'ASSETS.ZIP', 'config.xml', 'clacon.ttf', 'console02.tga')
+
+
+class GameDataInputError(ValueError):
+    """Stable error category lets the window translate guidance without parsing text."""
+    def __init__(self, code, message):
+        super().__init__(message)
+        self.code = code
+
+
+def validate_game_root(game_root):
+    """Fail before downloads/copying when the selected installation is incomplete."""
+    source = Path(game_root) / 'CLAW.REZ'
+    if not source.is_file():
+        raise GameDataInputError('missing', 'CLAW.REZ was not found in the selected game folder.')
+    if source.stat().st_size < 168:
+        raise GameDataInputError('truncated', 'CLAW.REZ is truncated (less than 168 bytes). Select your original game installation.')
+    if source.stat().st_size == 168 and not (Path(game_root) / 'Assets').is_dir():
+        raise GameDataInputError('placeholder', 'This CLAW.REZ is only a placeholder. Select it beside the original Assets folder.')
+    assets = Path(game_root) / 'Assets'
+    if source.stat().st_size > 168:
+        if assets.is_dir():
+            raise GameDataInputError('mixed', 'A full CLAW.REZ and loose Assets were found. This tool does not merge partial overrides. Import the full REZ directly to play its contents, or select a placeholder beside a complete loose-data installation.')
+        try:
+            validate_rez(source)
+        except ValueError as error:
+            raise GameDataInputError('invalid', str(error)) from error
+    elif not any(path.is_file() for path in assets.rglob('*')):
+        raise GameDataInputError('empty', 'The Assets folder is empty. Select a complete loose-data installation.')
+
+
+
+def validate_rez(path):
+    """Match the Android importer's outer-directory check, not full game coverage."""
+    size = path.stat().st_size
+    with path.open('rb') as source:
+        header = source.read(168)
+    if size <= 168 or len(header) < 168:
+        raise ValueError('The prepared REZ is empty or incomplete. Check the original Assets folder.')
+    version, offset, length = struct.unpack_from('<III', header, 127)
+    if version != 1 or offset < 168 or length < 16 or offset + length > size:
+        raise ValueError('Invalid REZ directory. Select a complete original CLAW.REZ or its loose Assets installation.')
+
+
+def write_game_archive(directory, destination):
+    """Publish only a closed, CRC-checked ZIP; old output survives write failure.
+
+    The temporary ZIP is on the destination filesystem so os.replace is atomic.
+    Abrupt process termination can leave a temporary file, never a partial final
+    ZIP. A completed replacement is either the previous valid file or the new one.
+    """
+    destination = Path(destination)
+    with tempfile.NamedTemporaryFile(prefix='game-data-', suffix='.tmp',
+                                     dir=destination.parent, delete=False) as temporary:
+        pending = Path(temporary.name)
+    try:
+        with zipfile.ZipFile(pending, 'w', zipfile.ZIP_DEFLATED) as archive:
+            for name in PACKAGE_FILES:
+                archive.write(directory / name, name)
+        with zipfile.ZipFile(pending) as archive:
+            bad = archive.testzip()
+            if bad is not None:
+                raise ValueError('ZIP verification failed: ' + bad)
+        with pending.open('rb+') as finished:
+            os.fsync(finished.fileno())
+        os.replace(pending, destination)
+    finally:
+        pending.unlink(missing_ok=True)
+
+
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--game-root',type=Path,default=ROOT,help='Own game installation with CLAW.REZ and optional loose Assets/')
@@ -65,12 +138,15 @@ def main():
     dest = PORT / 'build/game-data'
     dest.mkdir(parents=True, exist_ok=True)
     game_root=args.game_root.resolve()
-    if not (game_root/'CLAW.REZ').is_file(): parser.error('Own CLAW.REZ not found in --game-root')
+    validate_game_root(game_root)
+    if (game_root/'CLAW.REZ').resolve() == (dest/'CLAW.REZ').resolve():
+        parser.error('Select the original game folder, not the generated build/game-data folder.')
     if (game_root/'Assets').is_dir():
         report = build_rez(game_root / 'Assets', dest / 'CLAW.REZ',game_root/'CLAW.REZ')
     else:
         shutil.copyfile(game_root/'CLAW.REZ',dest/'CLAW.REZ')
         report={'mode':'copy_original_rez','bytes':(dest/'CLAW.REZ').stat().st_size,'skipped':[]}
+    validate_rez(dest / 'CLAW.REZ')
     upstream = PORT / 'upstream/OpenClaw/Build_Release'
     pack_support_assets(dest / 'ASSETS.ZIP')
     for name in ('clacon.ttf', 'console02.tga'):
@@ -79,11 +155,14 @@ def main():
     tree.find('Audio/MusicOn').text = 'true'
     tree.find('Assets/AssetsFolder').text = './'
     tree.write(dest / 'config.xml', encoding='utf-8', xml_declaration=True)
-    with zipfile.ZipFile(dest.parent / 'game-data.zip', 'w', zipfile.ZIP_DEFLATED) as archive:
-        for name in ('CLAW.REZ', 'ASSETS.ZIP', 'config.xml', 'clacon.ttf', 'console02.tga'):
-            archive.write(dest / name, name)
-    (PORT / 'reports').mkdir(parents=True,exist_ok=True)
-    (PORT / 'reports/asset-pack.json').write_text(json.dumps(report, indent=2), encoding='utf-8')
+    write_game_archive(dest, dest.parent / 'game-data.zip')
+    # Diagnostics are optional; inability to save a report must not turn a valid
+    # published ZIP into an apparent packaging failure in the preparation window.
+    try:
+        (PORT / 'reports').mkdir(parents=True, exist_ok=True)
+        (PORT / 'reports/asset-pack.json').write_text(json.dumps(report, indent=2), encoding='utf-8')
+    except OSError as error:
+        print('Warning: ZIP is ready, but the local diagnostic report could not be saved: ' + str(error))
     print(json.dumps(report))
 
 

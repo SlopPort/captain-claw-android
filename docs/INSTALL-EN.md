@@ -16,7 +16,7 @@ You do not need a GitHub account, USB debugging, ADB or Android Studio to instal
 | What you have | What to do |
 | --- | --- |
 | A complete `CLAW.REZ` | Select that file directly in the app. No ZIP preparation is needed. |
-| `CLAW.REZ` plus extra loose `Assets` files you want to include | Prepare `game-data.zip` using the steps below. Direct REZ import reads only the archive. |
+| A complete `CLAW.REZ` beside loose `Assets` files | Import the REZ directly to play its archive contents. The preparation tool does not merge loose modifications into a full REZ and rejects this ambiguous combination. |
 | A tiny 168-byte `CLAW.REZ` from a CrazyHook installation | This is a placeholder. Prepare a ZIP from the installation's loose `Assets` using the steps below. |
 | An existing `game-data.zip` made by this project's packaging tool | Select it directly. A ZIP of the entire PC game folder is not the same package. |
 
@@ -77,11 +77,11 @@ Skip this section if your complete `CLAW.REZ` imports directly.
 1. Install **Python 3.11 or newer with Tcl/Tk**, and **Git**. Enable Python's **Add to PATH** option during installation.
 2. Download and extract this repository's source files on your computer. Open the extracted folder containing `README.md` and `Prepare-game-data.cmd`.
 3. Double-click **Prepare-game-data.cmd**. Choose **EN** in its language selector.
-4. Select `CLAW.REZ` inside your own PC game installation. For a placeholder REZ, select it in the folder beside its `Assets` directory.
+4. Select `CLAW.REZ` inside your own PC game installation. For a placeholder REZ, select it beside the complete original `Assets` directory, not a folder containing only modifications.
 5. Wait. The first preparation needs internet to obtain open-source dependencies; it does not download Claw.
 6. The window shows the output path for **`build/game-data.zip`**. Copy that ZIP to the phone and use step 4 above to import it.
 
-The tool leaves the original PC installation unchanged. This preparation window still needs a clean-computer usability test. If it fails to open, use the terminal method below and include its error text in a report.
+The tool leaves the original PC installation unchanged. It checks the selected input before downloading dependencies. A new ZIP is written separately and checked before replacing an existing `game-data.zip`; an interrupted preparation preserves the previous finished ZIP. After a forced termination, an unfinished `game-data-*.tmp` may remain in `build`; copy only `game-data.zip`. These checks do not prove that every level exists in your source installation. This preparation window still needs a clean-computer usability test. If it fails to open, use the terminal method below and include its error text in a report.
 
 ### Terminal method
 

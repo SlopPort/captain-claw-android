@@ -5,12 +5,14 @@ The worker owns subprocesses only. All Tk updates stay on the UI thread.
 """
 from pathlib import Path
 import queue
+import os
 import shutil
 import subprocess
 import sys
 import threading
 import tkinter as tk
 from tkinter import filedialog, messagebox
+from pack_assets import GameDataInputError, validate_game_root
 
 PORT = Path(__file__).resolve().parents[1]
 
@@ -63,7 +65,8 @@ def main():
                           '--game-root', str(game_root)]):
                 with subprocess.Popen(args, cwd=PORT, stdout=subprocess.PIPE,
                                       stderr=subprocess.STDOUT, text=True,
-                                      encoding='utf-8', errors='replace') as process:
+                                      encoding='utf-8', errors='replace',
+                                      env={**os.environ, 'PYTHONIOENCODING': 'utf-8'}) as process:
                     for line in process.stdout:
                         messages.put(('line', line.rstrip()))
                     if process.wait():
@@ -84,6 +87,22 @@ def main():
         selected = Path(path)
         if selected.name.lower() != 'claw.rez':
             messagebox.showerror('CLAW.REZ', 'Select / Wybierz CLAW.REZ')
+            return
+        try:
+            validate_game_root(selected.parent)
+        except (OSError, ValueError) as error:
+            # Keep ordinary guidance in the selected UI language; console output
+            # remains English for reproducible developer reports.
+            polish = {
+                'missing': 'Nie znaleziono CLAW.REZ w wybranym folderze gry.',
+                'mixed': 'Znaleziono pełny CLAW.REZ i osobny folder Assets. Program nie łączy częściowych modyfikacji. Aby zagrać w zawartość REZ, wybierz ten plik bezpośrednio w aplikacji na telefonie. Do pakowania potrzebna jest kompletna instalacja z luźnymi danymi.',
+                'invalid': 'Plik CLAW.REZ ma nieprawidłowy katalog danych. Wybierz kompletny plik z własnej instalacji gry.',
+                'empty': 'Folder Assets jest pusty. Wybierz kompletną instalację gry z luźnymi danymi.',
+
+                'truncated': 'Plik CLAW.REZ jest niepełny. Wybierz plik z oryginalnej instalacji gry.',
+                'placeholder': 'Ten CLAW.REZ jest tylko plikiem zastępczym. Wybierz go w folderze z oryginalnym katalogiem Assets.'}
+            message = polish.get(error.code, str(error)) if isinstance(error, GameDataInputError) and lang.get() == 'PL' else str(error)
+            messagebox.showerror('CLAW.REZ', message)
             return
         busy = True
         button.configure(state='disabled', text=text[lang.get()][3])

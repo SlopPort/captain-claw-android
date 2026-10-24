@@ -18,6 +18,9 @@ The phone's existing debug installation was not migrated or uninstalled.
 
 ## Latest verified behavior
 
+Host packaging now publishes a CRC-checked ZIP through a same-filesystem temporary file and atomic replacement. Eight failure/input check groups and a real local repack passed; the original installation remained byte-identical. Full REZ plus loose Assets is rejected because this tool does not merge partial overrides. See [host packaging evidence](validation/HOST-PACKAGING-2026-10-24.md). This batch changed no APK and used no phone. The clean-computer GUI trial remains open.
+
+
 Android32 corrects floor-join snagging, rejects wall-only grounding and restores
 Catnip's double-damage bonus. See [exact reproduction/fixtures](validation/EDGE-SUPPORT-0.4.32.md)
 and [REA follow-up](ORIGINAL-BEHAVIOR-REA-2.md). Human rechecks of both recorded

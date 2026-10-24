@@ -2,7 +2,7 @@
 
 Updated **2026-10-24** by OpenAI Codex (LLM), guided by anonymous human requirements and feedback. This is a release checklist, not a claim that the work is finished. Results always apply to a specific APK, device and scenario. See the [handoff](HANDOFF.md) for current allocation: only Huawei is available to this task; preserve its USB internet connection.
 
-Current main Huawei build: **0.4.31-dev**. [Game Over UI](GAME-OVER-UI.md) and [REA/terrain findings](ORIGINAL-BEHAVIOR-REA.md) document this batch. Those checks do not close the full campaign or every compatibility gate. Do not transfer earlier APK results automatically to a newer build.
+Current main Huawei build: **0.4.32-dev**. [Floor joins and wall support](validation/EDGE-SUPPORT-0.4.32.md), [Game Over UI](GAME-OVER-UI.md) and [REA follow-up](ORIGINAL-BEHAVIOR-REA-2.md) document the recent runtime changes. Those checks do not close the full campaign or every compatibility gate. Do not transfer earlier APK results automatically to a newer build.
 
 Natural campaign testing belongs to the human. Broad physical controller testing was deferred; later reported pause/input bugs are still in scope. Touch and technical regression checks remain in scope. Interrupted-import recovery now has an [implementation and tests](validation/IMPORT-RECOVERY.md); the other installation checks remain open.
 
@@ -47,3 +47,5 @@ If the agreed performance threshold or another required gate is not verified, it
 - **0.4.21:** [Redmi map starts, PL/EN, ARM64/ARMv7 and FPS](validation/REDMI-0.4.21.md), [import cleanup/clean build](validation/IMPORT-CLEANUP-0.4.21.md), and [limited active Tiger Guard checks](validation/ACTIVE-TIGER-0.4.21.md).
 
 On 2026-10-22 the human accepted 55 FPS as the lower target in the heavy Huawei scene. 60 FPS remains an optimization goal rather than an absolute release requirement there. Report frame-time stalls and sustained measurements separately. None of these historical milestones authorizes current access to Redmi or establishes release 1.0.
+
+Host packaging now preserves an existing ZIP on interrupted writes and rejects ambiguous full-REZ/loose-data combinations. [Host validation](validation/HOST-PACKAGING-2026-10-24.md) does not close the clean-computer preparation-window usability gate.
