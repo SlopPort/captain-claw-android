@@ -52,3 +52,7 @@ Compare the same APK, viewport and scene. Report duration, warm-up, stalls and m
 Historical hardware includes Redmi Note 8 / Android 16 / ARM64 and Huawei P9 Lite / LineageOS Android 10 / approximately 2 GB RAM. ARMv7 libraries are also built; minimum API is 21. These facts do not prove support for every Android version or 1 GB phone. See the [compatibility matrix](validation/ANDROID-COMPATIBILITY.md) and current allocation before using hardware.
 
 Raw results go to ignored `reports/`, not public source commits. They may contain local configurations, paths, logs and game screenshots. Reviewed summaries belong in `docs/validation/`. Test data and commercial game files remain supplied by the user and must not be published.
+
+## Preserve the current human save
+
+Use the backup captured immediately before an owned test, not an old report archive. The human may progress between test batches. A mismatch against a historical save is not permission to overwrite newer progress. Verify restoration against the current fixture backup and retain all evidence when a comparison fails.

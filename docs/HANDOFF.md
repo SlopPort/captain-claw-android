@@ -12,8 +12,8 @@ Current state: **2026-10-24**. Adaptation code, documentation, investigation and
 
 Start with [contributing](../CONTRIBUTING.en.md), [building](BUILDING.en.md), [installation](INSTALL-EN.md), [release gates](ROADMAP-1.0.md) and [upstream differences](UPSTREAM-DIFF.en.md).
 
-Public test distribution: [v0.4.31-test](https://github.com/SlopPort/captain-claw-android/releases/tag/v0.4.31-test),
-with [exact artifact/signing/runtime limits](validation/RELEASE-0.4.31.md).
+Public test distribution: [v0.4.32-test](https://github.com/SlopPort/captain-claw-android/releases/tag/v0.4.32-test),
+with [exact artifact/signing/runtime limits](validation/RELEASE-0.4.32.md).
 The phone's existing debug installation was not migrated or uninstalled.
 
 ## Latest verified behavior
@@ -28,7 +28,7 @@ The 0.4.31 changes separate the Game Over title from its touch instruction. The 
 
 The flat player foot in 0.4.30 passed the controlled ledge/crouch cases and full ladder matrix on Huawei. Melee recovery checks passed on 0.4.31. Static REA findings distinguish hurt-state attack suppression from attacks after recovery; the port's 400 ms melee buffer remains an intentional accommodation, not verified original behavior. Read [original-behavior evidence and limitations](ORIGINAL-BEHAVIOR-REA.md) before making collision or balance changes. Do not treat decompiled executable output as original source or publish proprietary code dumps.
 
-Versioned reports keep their exact-build scope. Prior compatibility results do not automatically certify 0.4.31. Game audio language still depends on the player's own data; see [language research](GAME-LANGUAGE.md).
+Versioned reports keep their exact-build scope. Prior compatibility results do not automatically certify 0.4.32. Game audio language still depends on the player's own data; see [language research](GAME-LANGUAGE.md).
 
 ## Historical evidence, not current allocation
 

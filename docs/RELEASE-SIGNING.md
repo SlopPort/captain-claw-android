@@ -13,6 +13,11 @@ private key; password.txt contains its password. Privately back up both outside
 the checkout, preferably encrypted. Do not upload either file or share its contents.
 The main test installations retain debug signing; signing preparation did not require uninstalling or migrating them. See the [current handoff](HANDOFF.md) for device allocation.
 
+Public 0.4.31 and 0.4.32 test APKs share the project release-signing identity.
+They can update each other normally. A locally debug-signed installation is a
+separate signature channel, even though the package ID is the same. See the
+[current public artifact](validation/RELEASE-0.4.32.md).
+
 ## Create and use a signing identity
 
 A first release identity was generated locally with subject `CN=SlopPort`, RSA

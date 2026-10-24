@@ -21,18 +21,20 @@ Before publishing new changes:
    Never commit this pattern file. This heuristic does not replace reviewing art,
    licenses, binary provenance and intended public content.
 3. Review `git diff --cached`, `git status`, authors and the exact remote. Raw
-   reports, screenshots, player saves, signing keys and credentials stay local.
+   reports, gameplay screenshots, player saves, signing keys and credentials stay local.
+   Separately reviewed app-owned UI images in docs/images are documented exceptions.
 4. Authenticate the intended account through the normal Git/browser login flow.
    A browser login is not automatically a Git login. Never paste tokens into an
    issue, commit, remote URL, script or chat. Do not reuse another account by accident.
 5. Push the reviewed branch normally to the verified project repository. For a
    first publication, use an empty repository; never overwrite unrelated work.
 
-Keep APK releases separate from source publication. The current APK is a debug
-signed development build; do not label it a final 1.0 or silently change its signing
-key for existing users. Any later binary release must identify its exact source
-revision, checksums, source availability, license notices, validation and limitations.
-No commercial game-data bundle is a release asset.
+Keep APK releases separate from source publication. Public test APKs now use the
+project release-signing identity; the main local Huawei installation retains its
+debug signature. Do not silently migrate or uninstall it. Each binary release
+must identify source revision, checksums, license notices, exact validation and
+limitations. Public 0.4.32 is a development test, not final 1.0. No commercial
+game-data bundle is a release asset. See [current binary validation](validation/RELEASE-0.4.32.md).
 
 Historical first-publication audit: the initial local reachable-history scan inspected
 596 blobs (5,679,023 bytes), found none of its excluded paths/credential/private

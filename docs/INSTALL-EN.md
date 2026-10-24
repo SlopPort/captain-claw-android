@@ -6,7 +6,7 @@ You do not need a GitHub account, USB debugging, ADB or Android Studio to instal
 
 ## 1. Get the two files ready
 
-**Download the test APK:** open [v0.4.31-test](https://github.com/SlopPort/captain-claw-android/releases/tag/v0.4.31-test), expand **Assets**, and download **`captain-claw-android-0.4.31-test.apk`**. The release also supplies `SHA256SUMS.txt`. This is a development test, not version 1.0. GitHub's source-code archives are not the APK.
+**Download the test APK:** open [v0.4.32-test](https://github.com/SlopPort/captain-claw-android/releases/tag/v0.4.32-test), expand **Assets**, and download **`captain-claw-android-0.4.32-test.apk`**. The release also supplies `SHA256SUMS.txt`. This is a development test, not version 1.0. GitHub's source-code archives are not the APK.
 
 - **App installer:** the APK from the test release above, or one you [build from source](BUILDING.en.md). GitHub's **Code → Download ZIP** downloads source code; it cannot be installed on a phone.
 - **Game data:** `CLAW.REZ` from your own PC game folder, or a `game-data.zip` prepared with this project's tools. Do not unpack or rename it.
@@ -60,7 +60,7 @@ These examples show this port's own screens on Huawei/Android 10, debug 0.4.31, 
 
 ## Updates and save backups
 
-The planned public test APK uses the project's release signing identity. Existing locally built debug installations use a different key and cannot be updated in place with that APK. Keep the current debug app until you have exported and checked a save backup and retained your original game-data file; then follow a deliberate migration plan. Do not uninstall just to dismiss an installation error. Future updates must retain the same signing identity.
+The public test APK uses the project's release signing identity. Existing locally built debug installations use a different key and cannot be updated in place with that APK. Keep the current debug app until you have exported and checked a save backup and retained your original game-data file; then follow a deliberate migration plan. Do not uninstall just to dismiss an installation error. Future updates must retain the same signing identity.
 
 To update, install the newer APK over the existing app. Its signing key must match the installed version. If Android reports a signature conflict, keep the existing app and ask for a compatible APK; this does not mean your phone is damaged.
 

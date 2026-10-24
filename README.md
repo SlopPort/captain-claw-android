@@ -8,7 +8,7 @@ An Android adaptation of [OpenClaw](https://github.com/pjasicek/OpenClaw), using
 
 You need this port's **APK** (the Android installer) and your own complete **`CLAW.REZ`** (the PC game's data file). A prepared `game-data.zip` also works.
 
-1. Download **`captain-claw-android-0.4.31-test.apk`** from [the test release](https://github.com/SlopPort/captain-claw-android/releases/tag/v0.4.31-test), under **Assets**, or [build one](docs/BUILDING.en.md). GitHub's **Source code (zip)** is source code, not an Android installer or game data. A finished 1.0 APK is not announced here.
+1. Download **`captain-claw-android-0.4.32-test.apk`** from [the test release](https://github.com/SlopPort/captain-claw-android/releases/tag/v0.4.32-test), under **Assets**, or [build one](docs/BUILDING.en.md). GitHub's **Source code (zip)** is source code, not an Android installer or game data. A finished 1.0 APK is not announced here.
 2. Copy the APK and `CLAW.REZ` to **Downloads** on your phone.
 3. Open the APK in the phone's **Files** app and install it.
 4. Open **Kapitan Pazur**, tap **Choose game data**, and select `CLAW.REZ`. Wait for the import; the game starts automatically.
@@ -35,6 +35,7 @@ OpenClaw supplies the existing engine and much of the gameplay. See the [upstrea
 
 Reports identify the exact APK and setup. Results for older builds are not automatic proof for the current source.
 
+- [0.4.32 floor/wall/Catnip checks](docs/validation/EDGE-SUPPORT-0.4.32.md) and [REA comparison](docs/ORIGINAL-BEHAVIOR-REA-2.md): reproduced tiny-floor-join snag, support classification and bonus damage.
 - [0.4.29 regressions](docs/validation/USER-REGRESSIONS-0.4.29.md): pause, Catnip pickup audio, Game Over input and a short melee tap during hurt; [Redmi follow-up](docs/validation/REDMI-0.4.29.md).
 - [Current Game Over screen](docs/GAME-OVER-UI.md) and [original-executable behavior investigation](docs/ORIGINAL-BEHAVIOR-REA.md): what was observed, changed and still remains uncertain.
 - [Android compatibility matrix](docs/validation/ANDROID-COMPATIBILITY.md): tested devices, architectures and remaining gaps. Android 5/API 21 is the build minimum, not a guarantee for every phone.

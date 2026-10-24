@@ -25,11 +25,11 @@ hash retention and publication boundaries. The human remains anonymous.
 ## Test APK distribution
 
 A signed development APK is publicly available at
-[v0.4.31-test](https://github.com/SlopPort/captain-claw-android/releases/tag/v0.4.31-test).
+[v0.4.32-test](https://github.com/SlopPort/captain-claw-android/releases/tag/v0.4.32-test).
 Anonymous download was verified and its SHA-256 matched the local published file.
 The guide identifies the exact APK, and the release includes a checksum file,
 source revision, signing identity and runtime limitations. This is not release 1.0.
-See [binary validation](validation/RELEASE-0.4.31.md).
+See [binary validation](validation/RELEASE-0.4.32.md).
 
 ## External checks still required
 
