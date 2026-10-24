@@ -101,7 +101,7 @@ inline std::string Label(const std::string& name,const std::string& path) {
         :PazurUi::Text("PORT ANDROID\nKod i testy: OpenAI Codex (LLM)\nWymagania i uwagi: człowiek\n\nSilnik i port: GPL 3\nBiblioteki: własne licencje\n\nClaw: Monolith Productions\nDane gry zachowują prawa autorów\nGracz dostarcza własne dane\n\nPlansze autorstwa: Codex",
             "ANDROID PORT\nCode and tests: OpenAI Codex (LLM)\nRequirements and feedback: human\n\nEngine and port: GPL 3\nLibraries retain their licenses\n\nClaw: Monolith Productions\nGame data remains copyrighted\nPlayer supplies their own data\n\nCredit cards: Codex");
     if(name=="MAIN_MENU_TEXT")return path.find("GAMEOVER")!=std::string::npos
-        ?PazurUi::Text("Koniec gry\nDotknij ekranu: menu główne","Game Over\nTap screen: main menu")
+        ?PazurUi::Text("Dotknij dowolnego miejsca, aby wrócić do menu głównego","Tap anywhere to return to the main menu")
         :PazurUi::Text("Menu główne","Main menu");
     if(name.find("_LOAD_CHECKPOINT_1_BUTTON")!=std::string::npos)return PazurUi::Text("Punkt kontrolny 1","Checkpoint 1");
     if(name.find("_LOAD_CHECKPOINT_2_BUTTON")!=std::string::npos)return PazurUi::Text("Punkt kontrolny 2","Checkpoint 2");
@@ -126,7 +126,8 @@ inline std::shared_ptr<Image> Translate(const std::string& name,const std::strin
     if(name=="CONTROL_IMAGE"){width=620;height=265;}
     if(name=="TOUCHSCREEN_BUTTON")height=26;
     if(name=="SAVE_GAME_TEXT"){width=552;height=145;}
-    if(name=="MAIN_MENU_TEXT"&&path.find("GAMEOVER")!=std::string::npos)height=80;
+    const bool gameOver=name=="MAIN_MENU_TEXT"&&path.find("GAMEOVER")!=std::string::npos;
+    if(gameOver)height=140;
     if(width<4||height<4)return original;
     int fontSize=(std::max)(10,(std::min)(24,height-4));
     FontBatch batch;
@@ -139,7 +140,8 @@ inline std::shared_ptr<Image> Translate(const std::string& name,const std::strin
     SDL_Surface* text=TTF_RenderUTF8_Blended_Wrapped(font,label.c_str(),color,(std::max)(1,width-8));
     // Reflow long translated words at the smaller font size instead of merely
     // shrinking an already wrapped two-line image into a single-line button.
-    if(text&&text->h>height-4&&fontSize>8) {
+    const int contentHeight=gameOver?72:height;
+    if(text&&text->h>contentHeight-4&&fontSize>8) {
         int low=8,high=fontSize-1,best=8;
         const auto resize=[&](int size) {
             font=batch.Get(size);if(!font)return false;
@@ -150,7 +152,7 @@ inline std::shared_ptr<Image> Translate(const std::string& name,const std::strin
         bool valid=true;
         while(low<=high&&valid) {
             int candidate=(low+high)/2;valid=resize(candidate);
-            if(valid&&text->h<=height-4){best=candidate;low=candidate+1;}else high=candidate-1;
+            if(valid&&text->h<=contentHeight-4){best=candidate;low=candidate+1;}else high=candidate-1;
         }
         if(valid&&fontSize!=best)valid=resize(best);
         if(!valid){if(text)SDL_FreeSurface(text);return original;}
@@ -159,9 +161,22 @@ inline std::shared_ptr<Image> Translate(const std::string& name,const std::strin
     SDL_Surface* canvas=SDL_CreateRGBSurfaceWithFormat(0,width,height,32,SDL_PIXELFORMAT_RGBA32);
     if(!canvas){SDL_FreeSurface(text);return original;}
     SDL_FillRect(canvas,nullptr,SDL_MapRGBA(canvas->format,16,23,34,225));
-    const double scale=(std::min)({1.0,double(width-8)/text->w,double(height-4)/text->h});
-    SDL_Rect destination{VolumeRow(name)?4:(width-int(text->w*scale))/2,(height-int(text->h*scale))/2,
+    const double scale=(std::min)({1.0,double(width-8)/text->w,double(contentHeight-4)/text->h});
+    SDL_Rect destination{VolumeRow(name)?4:(width-int(text->w*scale))/2,(gameOver?62:0)+(contentHeight-int(text->h*scale))/2,
         (std::max)(1,int(text->w*scale)),(std::max)(1,int(text->h*scale))};
+    // Game Over is a heading followed by a whole-screen touch instruction,
+    // not two selectable menu items. Keep its hierarchy explicit in both languages.
+    if(gameOver) {
+        TTF_Font* titleFont=batch.Get(32);
+        SDL_Surface* title=titleFont?TTF_RenderUTF8_Blended(titleFont,
+            PazurUi::Text("Koniec gry","Game Over"),SDL_Color{255,221,125,255}):nullptr;
+        if(title) {
+            SDL_Rect at{(width-title->w)/2,10,title->w,title->h};
+            SDL_BlitSurface(title,nullptr,canvas,&at);SDL_FreeSurface(title);
+        }
+        SDL_Rect separator{24,55,width-48,2};
+        SDL_FillRect(canvas,&separator,SDL_MapRGBA(canvas->format,100,115,135,255));
+    }
     SDL_BlitScaled(text,nullptr,canvas,&destination);SDL_FreeSurface(text);
     SDL_Texture* texture=SDL_CreateTextureFromSurface(renderer,canvas);SDL_FreeSurface(canvas);
     if(!texture)return original;

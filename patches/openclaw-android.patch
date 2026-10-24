@@ -2714,7 +2714,7 @@ index 2bb4694..74a47c3 100644
  };
  
 diff --git a/OpenClaw/Engine/Physics/ClawPhysics.cpp b/OpenClaw/Engine/Physics/ClawPhysics.cpp
-index 0c037b8..9c6bc27 100644
+index 0c037b8..c27383d 100644
 --- a/OpenClaw/Engine/Physics/ClawPhysics.cpp
 +++ b/OpenClaw/Engine/Physics/ClawPhysics.cpp
 @@ -119,7 +119,7 @@ b2AABB GetBodyAABB(b2Body* pBody, bool discardSensors)
@@ -2742,12 +2742,10 @@ index 0c037b8..9c6bc27 100644
      m_pDebugDrawer.reset(new PhysicsDebugDrawer());
  
      // Create debug drawer
-@@ -395,7 +404,27 @@ void ClawPhysics::VOnUpdate(const uint32 msDiff)
- {
+@@ -396,6 +405,26 @@ void ClawPhysics::VOnUpdate(const uint32 msDiff)
      //PROFILE_CPU("ClawPhysics::VOnUpdate");
  
--    m_pWorld->Step(msDiff / 1000.0f, 10, 8);
-+    m_pWorld->Step(msDiff / 1000.0f, 10, 8);
+     m_pWorld->Step(msDiff / 1000.0f, 10, 8);
 +#ifdef __ANDROID__
 +    // Box2D already measures its internal phases. Reuse those counters rather
 +    // than changing solver iterations or simulation cadence to reach an FPS goal.
@@ -2771,7 +2769,33 @@ index 0c037b8..9c6bc27 100644
  
      // Remove actors form physics simulation which are scheduled to be destroyed
      for (uint32 actorId : m_ActorsToBeDestroyed)
-@@ -1431,6 +1460,16 @@ void ClawPhysics::VScaleActor(uint32_t actorId, double scale)
+@@ -604,10 +633,25 @@ void ClawPhysics::VAddDynamicActor(WeakActorPtr pActor)
+     fixtureDef.filter.categoryBits = CollisionFlag_Controller;
+     pBody->CreateFixture(&fixtureDef);
+ 
++#ifdef __ANDROID__
++    // Flat sole: partial overlap must support Claw rather than turn the
++    // bottom capsule's tangent into a downhill contact at a platform end.
++    // Preserve the old lowest point, head circle and sensor geometry. Extend
++    // to the centre rectangle without a gap; crouching disables that upper
++    // rectangle/head but keeps this lower polygon collidable.
++    b2PolygonShape flatFoot;
++    const float footTop=(b2BodySize.y-b2BodySize.x)/2;
++    const float footBottom=b2BodySize.y/2+PixelsToMeters(10);
++    flatFoot.SetAsBox(b2BodySize.x/2-PixelsToMeters(2),
++        (footBottom-footTop)/2,b2Vec2(0,(footTop+footBottom)/2),0);
++    fixtureDef.shape=&flatFoot;
++    pBody->CreateFixture(&fixtureDef);
++#else
+     bodyShape.m_p.Set(0, (b2BodySize.y / 2 - b2BodySize.x / 2) + PixelsToMeters(10));
+     fixtureDef.shape = &bodyShape;
+     //fixtureDef.friction = 100.0;
+     pBody->CreateFixture(&fixtureDef);
++#endif
+ 
+     b2PolygonShape polygonShape;
+     polygonShape.SetAsBox((b2BodySize.x / 2) - PixelsToMeters(2), (b2BodySize.y - b2BodySize.x) / 2);
+@@ -1431,6 +1475,16 @@ void ClawPhysics::VScaleActor(uint32_t actorId, double scale)
  // Private implementations
  //=====================================================================================================================
  
