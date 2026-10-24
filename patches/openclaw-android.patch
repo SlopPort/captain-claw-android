@@ -604,7 +604,7 @@ index eba8809..834d82f 100644
          Point contactPoint;
          if (SDL_IntersectRect(&areaDamageAABB, &actorAABB, &impactRect))
 diff --git a/OpenClaw/Engine/Actor/Components/ControllableComponent.cpp b/OpenClaw/Engine/Actor/Components/ControllableComponent.cpp
-index a131374..61143ca 100644
+index a131374..fea78df 100644
 --- a/OpenClaw/Engine/Actor/Components/ControllableComponent.cpp
 +++ b/OpenClaw/Engine/Actor/Components/ControllableComponent.cpp
 @@ -1,4 +1,7 @@
@@ -743,7 +743,22 @@ index a131374..61143ca 100644
      if (m_pPhysicsComponent->IsFalling())
      {
          m_pClawAnimationComponent->SetAnimation("fall");
-@@ -981,6 +1023,7 @@ void ClawControllableComponent::VOnAnimationLooped(Animation* pAnimation)
+@@ -941,7 +983,14 @@ void ClawControllableComponent::VOnAnimationFrameChanged(Animation* pAnimation,
+                 }
+                 if (m_pPowerupComponent->HasPowerup(PowerupType_Catnip))
+                 {
++#ifdef __ANDROID__
++                    // REA confirms Catnip doubles each ordinary attack's base.
++                    // Keep this port's existing health/base-damage scale; do not
++                    // turn the bonus into the inherited 100-damage instant kill.
++                    damage *= 2;
++#else
+                     damage = 100;
++#endif
+                 }
+ 
+                 ActorTemplates::CreateAreaDamage(
+@@ -981,6 +1030,7 @@ void ClawControllableComponent::VOnAnimationLooped(Animation* pAnimation)
              pClawLifeComponent->GetLives() - 1));
          IEventMgr::Get()->VTriggerEvent(pEvent);
  
@@ -751,7 +766,7 @@ index a131374..61143ca 100644
          SetCurrentPhysicsState();
          m_pPhysicsComponent->RestoreGravityScale();
          m_pRenderComponent->SetVisible(true);
-@@ -989,6 +1032,15 @@ void ClawControllableComponent::VOnAnimationLooped(Animation* pAnimation)
+@@ -989,6 +1039,15 @@ void ClawControllableComponent::VOnAnimationLooped(Animation* pAnimation)
               animName == "damage2")
      {
          SetCurrentPhysicsState();
@@ -767,7 +782,7 @@ index a131374..61143ca 100644
      }
      else if (animName == "land")
      {
-@@ -1013,6 +1065,10 @@ bool ClawControllableComponent::IsAttackingOrShooting()
+@@ -1013,6 +1072,10 @@ bool ClawControllableComponent::IsAttackingOrShooting()
  
  void ClawControllableComponent::VOnHealthBelowZero(DamageType damageType, int sourceActorId)
  {
@@ -778,7 +793,7 @@ index a131374..61143ca 100644
      if (m_State == ClawState_Dying)
      {
          return;
-@@ -1136,6 +1192,8 @@ bool ClawControllableComponent::IsDucking()
+@@ -1136,6 +1199,8 @@ bool ClawControllableComponent::IsDucking()
  
  void ClawControllableComponent::OnDuck()
  {
@@ -787,7 +802,7 @@ index a131374..61143ca 100644
      if (!IsDucking())
      {
          m_pClawAnimationComponent->SetAnimation("duck");
-@@ -1145,6 +1203,8 @@ void ClawControllableComponent::OnDuck()
+@@ -1145,6 +1210,8 @@ void ClawControllableComponent::OnDuck()
  
  void ClawControllableComponent::OnStand()
  {
@@ -2714,7 +2729,7 @@ index 2bb4694..74a47c3 100644
  };
  
 diff --git a/OpenClaw/Engine/Physics/ClawPhysics.cpp b/OpenClaw/Engine/Physics/ClawPhysics.cpp
-index 0c037b8..c27383d 100644
+index 0c037b8..f72b005 100644
 --- a/OpenClaw/Engine/Physics/ClawPhysics.cpp
 +++ b/OpenClaw/Engine/Physics/ClawPhysics.cpp
 @@ -119,7 +119,7 @@ b2AABB GetBodyAABB(b2Body* pBody, bool discardSensors)
@@ -2742,10 +2757,11 @@ index 0c037b8..c27383d 100644
      m_pDebugDrawer.reset(new PhysicsDebugDrawer());
  
      // Create debug drawer
-@@ -396,6 +405,26 @@ void ClawPhysics::VOnUpdate(const uint32 msDiff)
+@@ -396,6 +405,27 @@ void ClawPhysics::VOnUpdate(const uint32 msDiff)
      //PROFILE_CPU("ClawPhysics::VOnUpdate");
  
      m_pWorld->Step(msDiff / 1000.0f, 10, 8);
++    m_pPhysicsContactListener->RefreshFootSupport();
 +#ifdef __ANDROID__
 +    // Box2D already measures its internal phases. Reuse those counters rather
 +    // than changing solver iterations or simulation cadence to reach an FPS goal.
@@ -2769,7 +2785,7 @@ index 0c037b8..c27383d 100644
  
      // Remove actors form physics simulation which are scheduled to be destroyed
      for (uint32 actorId : m_ActorsToBeDestroyed)
-@@ -604,10 +633,25 @@ void ClawPhysics::VAddDynamicActor(WeakActorPtr pActor)
+@@ -604,10 +634,32 @@ void ClawPhysics::VAddDynamicActor(WeakActorPtr pActor)
      fixtureDef.filter.categoryBits = CollisionFlag_Controller;
      pBody->CreateFixture(&fixtureDef);
  
@@ -2782,8 +2798,15 @@ index 0c037b8..c27383d 100644
 +    b2PolygonShape flatFoot;
 +    const float footTop=(b2BodySize.y-b2BodySize.x)/2;
 +    const float footBottom=b2BodySize.y/2+PixelsToMeters(10);
-+    flatFoot.SetAsBox(b2BodySize.x/2-PixelsToMeters(2),
-+        (footBottom-footTop)/2,b2Vec2(0,(footTop+footBottom)/2),0);
++    const float halfFoot=b2BodySize.x/2-PixelsToMeters(2);
++    // Keep a 32-pixel flat bearing surface, but bevel only the outer 2 pixels
++    // over 3 pixels of height. A perfectly square corner snags on 1-pixel
++    // tile joins; restoring the old round capsule would reintroduce edge roll.
++    const float bevelX=PixelsToMeters(2),bevelY=PixelsToMeters(3);
++    const b2Vec2 sole[]={{-halfFoot,footTop},{halfFoot,footTop},
++        {halfFoot,footBottom-bevelY},{halfFoot-bevelX,footBottom},
++        {-halfFoot+bevelX,footBottom},{-halfFoot,footBottom-bevelY}};
++    flatFoot.Set(sole,6);
 +    fixtureDef.shape=&flatFoot;
 +    pBody->CreateFixture(&fixtureDef);
 +#else
@@ -2795,7 +2818,7 @@ index 0c037b8..c27383d 100644
  
      b2PolygonShape polygonShape;
      polygonShape.SetAsBox((b2BodySize.x / 2) - PixelsToMeters(2), (b2BodySize.y - b2BodySize.x) / 2);
-@@ -1431,6 +1475,16 @@ void ClawPhysics::VScaleActor(uint32_t actorId, double scale)
+@@ -1431,6 +1483,16 @@ void ClawPhysics::VScaleActor(uint32_t actorId, double scale)
  // Private implementations
  //=====================================================================================================================
  
@@ -2826,19 +2849,20 @@ index 4a75abc..5db0385 100644
      b2Body* FindBox2DBody(uint32 actorId);
      uint32 FindActorId(b2Body* pBody);
 diff --git a/OpenClaw/Engine/Physics/PhysicsContactListener.cpp b/OpenClaw/Engine/Physics/PhysicsContactListener.cpp
-index 5d4796a..cceb5fa 100644
+index 5d4796a..c912041 100644
 --- a/OpenClaw/Engine/Physics/PhysicsContactListener.cpp
 +++ b/OpenClaw/Engine/Physics/PhysicsContactListener.cpp
-@@ -1,5 +1,8 @@
+@@ -1,5 +1,9 @@
 +#include "../GameApp/BaseGameLogic.h"
 +#include "../GameApp/BaseGameApp.h"
  #include <cstdint>
++#include <cfloat>
  #include "PhysicsContactListener.h"
 +#include "../Actor/Components/AreaDamageComponent.h"
  #include "ClawPhysics.h"
  #include "../SharedDefines.h"
  #include "../Actor/Actor.h"
-@@ -106,10 +109,23 @@ static bool IsTriggerFixture(FixtureType fixtureType)
+@@ -106,10 +110,99 @@ static bool IsTriggerFixture(FixtureType fixtureType)
  // PhysicsContactListener::BeginContact
  //
  
@@ -2854,6 +2878,82 @@ index 5d4796a..cceb5fa 100644
 +    return actor && actor->GetRawComponent<AreaDamageComponent>(false);
 +}
 +
++#ifdef __ANDROID__
++static bool IsClawFootSensor(b2Fixture* sensor)
++{
++    if (sensor->GetUserData() != (void*)FixtureType_FootSensor) return false;
++    auto* actor = static_cast<Actor*>(sensor->GetBody()->GetUserData());
++    return actor && actor->GetName() == "Claw";
++}
++
++static bool HasRealFootSupport(b2Fixture* sensor, b2Fixture* ground)
++{
++    b2Body* body = sensor->GetBody();
++    if (!body->IsActive() || !ground->GetBody()->IsActive()) return false;
++    // A rising jump is not a landing even while the old sensor still overlaps
++    // the floor or approaches a wall top. Compare relative velocity so an
++    // upward-moving supporting platform is not mistaken for a player jump.
++    const float relativeY = body->GetLinearVelocity().y -
++        ground->GetBody()->GetLinearVelocityFromWorldPoint(body->GetPosition()).y;
++    if (relativeY < -0.1f) return false;
++    // Broad-phase bounds can include the previous transform: use exact current
++    // shapes so rising or teleporting does not preserve an obsolete floor.
++    b2AABB feet;
++    sensor->GetShape()->ComputeAABB(&feet, body->GetTransform(), 0);
++    float bottom = -FLT_MAX;
++    for (b2Fixture* fixture = body->GetFixtureList(); fixture; fixture = fixture->GetNext()) {
++        if (fixture->IsSensor()) continue;
++        b2AABB bounds;
++        fixture->GetShape()->ComputeAABB(&bounds, body->GetTransform(), 0);
++        bottom = b2Max(bottom, bounds.upperBound.y);
++    }
++    if (bottom == -FLT_MAX) return false;
++    b2AABB bounds;
++    ground->GetShape()->ComputeAABB(&bounds, ground->GetBody()->GetTransform(), 0);
++    const float left = b2Max(feet.lowerBound.x, bounds.lowerBound.x);
++    const float right = b2Min(feet.upperBound.x, bounds.upperBound.x);
++    if (right <= left) return false;
++    // Probe around the physical sole, not the whole 24-pixel sensor. Choosing
++    // the actual overlap midpoint preserves partial-edge support. Rays starting
++    // inside a tall wall do not produce a floor hit; require an upward normal.
++    const float tolerance = PixelsToMeters(2.5f);
++    const float x = (left + right) * 0.5f;
++    b2RayCastInput input;
++    input.p1.Set(x, bottom - tolerance);
++    input.p2.Set(x, bottom + tolerance);
++    input.maxFraction = 1.0f;
++    b2RayCastOutput output;
++    return ground->RayCast(&output, input, 0) && output.normal.y < -0.5f;
++}
++
++void PhysicsContactListener::UpdateFootSupport(FootSupport& support)
++{
++    const bool counted = HasRealFootSupport(support.sensor, support.ground);
++    if (counted == support.counted) return;
++    auto component = GetPhysicsComponentFromB2Body(support.sensor->GetBody());
++    if (!component) return;
++    support.counted = counted;
++    if (counted) component->OnBeginFootContact();
++    else component->OnEndFootContact();
++    if (g_pApp->GetDebugOptions()->bPreviewIncompleteLevel14) {
++        const auto position = support.sensor->GetBody()->GetPosition();
++        SDL_Log("Pazur foot support: counted=%d x=%.2f y=%.2f contacts=%d",
++            counted, MetersToPixels(position.x), MetersToPixels(position.y),
++            component->GetNumFootContacts());
++    }
++}
++#endif
++
++void PhysicsContactListener::RefreshFootSupport()
++{
++#ifdef __ANDROID__
++    // Sensors have no PreSolve callback. Reclassify persistent overlaps after
++    // Step, including transitions between a wall side and its top. EndContact
++    // removes entries before Box2D destroys or recycles their contact pointers.
++    for (auto& entry : m_FootSupport) UpdateFootSupport(entry.second);
++#endif
++}
++
  void PhysicsContactListener::BeginContact(b2Contact* pContact)
  {
      b2Fixture* pFixtureA = pContact->GetFixtureA();
@@ -2862,7 +2962,21 @@ index 5d4796a..cceb5fa 100644
  
      // Foot contact
      {
-@@ -426,6 +442,16 @@ void PhysicsContactListener::BeginContact(b2Contact* pContact)
+@@ -127,6 +220,13 @@ void PhysicsContactListener::BeginContact(b2Contact* pContact)
+                 shared_ptr<PhysicsComponent> pPhysicsComponent = GetPhysicsComponentFromB2Body(pFixtureA->GetBody());
+                 assert(pPhysicsComponent != nullptr);
+ 
++#ifdef __ANDROID__
++                if (IsClawFootSensor(pFixtureA)) {
++                    auto inserted = m_FootSupport.emplace(pContact,
++                        FootSupport{pFixtureA, pFixtureB, false});
++                    UpdateFootSupport(inserted.first->second);
++                } else
++#endif
+                 pPhysicsComponent->OnBeginFootContact();
+             }
+         }
+@@ -426,6 +526,16 @@ void PhysicsContactListener::BeginContact(b2Contact* pContact)
  
          if (pFixtureA->GetUserData() == (void*)FixtureType_Projectile)
          {
@@ -2879,19 +2993,32 @@ index 5d4796a..cceb5fa 100644
              // Collided with some actor
              if (pFixtureB->GetBody()->GetUserData() != (void*)NULL)
              {
-@@ -559,9 +585,10 @@ void PhysicsContactListener::BeginContact(b2Contact* pContact)
- //
- 
- void PhysicsContactListener::EndContact(b2Contact* pContact)
--{
-+{
+@@ -562,6 +672,7 @@ void PhysicsContactListener::EndContact(b2Contact* pContact)
+ {
      b2Fixture* pFixtureA = pContact->GetFixtureA();
      b2Fixture* pFixtureB = pContact->GetFixtureB();
 +    if (IsFootDamageContact(pFixtureA, pFixtureB)) return;
  
      {
          // Make it in predictable order
-@@ -641,6 +668,14 @@ void PhysicsContactListener::EndContact(b2Contact* pContact)
+@@ -578,6 +689,16 @@ void PhysicsContactListener::EndContact(b2Contact* pContact)
+                 shared_ptr<PhysicsComponent> pPhysicsComponent = GetPhysicsComponentFromB2Body(pFixtureA->GetBody());
+                 assert(pPhysicsComponent != nullptr);
+ 
++#ifdef __ANDROID__
++                if (IsClawFootSensor(pFixtureA)) {
++                    auto entry = m_FootSupport.find(pContact);
++                    if (entry != m_FootSupport.end()) {
++                        // Rejected wall overlaps never incremented the count.
++                        if (entry->second.counted) pPhysicsComponent->OnEndFootContact();
++                        m_FootSupport.erase(entry);
++                    }
++                } else
++#endif
+                 pPhysicsComponent->OnEndFootContact();
+             }
+         }
+@@ -641,6 +762,14 @@ void PhysicsContactListener::EndContact(b2Contact* pContact)
                          pPhysicsComponent->RemoveOverlappingGround(pFixtureA);
                      }
  
@@ -2906,6 +3033,43 @@ index 5d4796a..cceb5fa 100644
                      Actor* pGroundActor = static_cast<Actor*>(pFixtureA->GetBody()->GetUserData());
                      if (pGroundActor)
                      {
+diff --git a/OpenClaw/Engine/Physics/PhysicsContactListener.h b/OpenClaw/Engine/Physics/PhysicsContactListener.h
+index 55c6c96..67c215f 100644
+--- a/OpenClaw/Engine/Physics/PhysicsContactListener.h
++++ b/OpenClaw/Engine/Physics/PhysicsContactListener.h
+@@ -2,15 +2,31 @@
+ #define __PHYSICSCONTACTLISTENER_H__
+ 
+ #include <Box2D/Box2D.h>
++#include <map>
+ 
+ class PhysicsContactListener : public b2ContactListener
+ {
+ public:
++    // Call once after Step, before visible-scene synchronization. Sensor
++    // contacts do not receive PreSolve, and their support status can change
++    // while an overlap remains alive (for example sliding past a wall top).
++    void RefreshFootSupport();
++
+     virtual void BeginContact(b2Contact* pContact) override;
+     virtual void EndContact(b2Contact* pContact) override;
+ 
+     virtual void PreSolve(b2Contact* pContact, const b2Manifold* pOldManifold) override;
+     virtual void PostSolve(b2Contact* pContact, const b2ContactImpulse* pImpulse) override;
++private:
++#ifdef __ANDROID__
++    struct FootSupport {
++        b2Fixture* sensor;
++        b2Fixture* ground;
++        bool counted;
++    };
++    std::map<b2Contact*, FootSupport> m_FootSupport;
++    void UpdateFootSupport(FootSupport& support);
++#endif
+ };
+ 
+ #endif
+\ No newline at end of file
 diff --git a/OpenClaw/Engine/Resource/Loaders/WavLoader.cpp b/OpenClaw/Engine/Resource/Loaders/WavLoader.cpp
 index 8042f57..6b94448 100644
 --- a/OpenClaw/Engine/Resource/Loaders/WavLoader.cpp

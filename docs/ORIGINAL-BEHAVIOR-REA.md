@@ -77,3 +77,7 @@ Attack construction evidence:
 `ev_4dac6420a6262ee02313141af6508d5c51f0bd4ba144a87068a3552d9b1717bf`.
 Target-selection evidence:
 `ev_d425740111805ce19ba62fa12332ad63aa3935b9f12aa1b692e679d74daa5b28`.
+
+## Follow-up investigation
+
+[The second REA pass](ORIGINAL-BEHAVIOR-REA-2.md) recovered the Soldier constructor, level factors, Catnip amplification and jump sustain behavior. The dispatcher/hit-entry limits above still apply; constructor analysis is not a complete enemy reconstruction.

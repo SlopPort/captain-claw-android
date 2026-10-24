@@ -4,7 +4,7 @@ Current state: **2026-10-24**. Adaptation code, documentation, investigation and
 
 ## Current state and boundaries
 
-- Main Huawei installation: **ARM64 debug 0.4.31-dev**. Only Huawei is allocated to this task now. **Do not query, install on or otherwise operate Redmi without a new allocation.** Earlier Redmi results below are historical, not permission to use it now.
+- Main Huawei installation: **ARM64 debug 0.4.32-dev**. Only Huawei is allocated to this task now. **Do not query, install on or otherwise operate Redmi without a new allocation.** Earlier Redmi results below are historical, not permission to use it now.
 - Huawei supplies internet over USB. Do not reboot it, change USB/tethering/network settings, disconnect it or restart the shared ADB server to repair a test. Select the authorized device with a process-local `ANDROID_SERIAL`; never publish device serials.
 - The human owns natural campaign playtesting. Do not resume autonomous traversal. Technical reproductions of reported bugs are allowed, but teleports, invulnerability and resource edits must be labelled as fixtures, never natural campaign evidence.
 - This is not release 1.0. Full campaign completion, original-game parity and a universal FPS minimum are not established. Broad physical controller testing was deferred; later specific pause/input bug reports remain in scope.
@@ -17,6 +17,12 @@ with [exact artifact/signing/runtime limits](validation/RELEASE-0.4.31.md).
 The phone's existing debug installation was not migrated or uninstalled.
 
 ## Latest verified behavior
+
+Android32 corrects floor-join snagging, rejects wall-only grounding and restores
+Catnip's double-damage bonus. See [exact reproduction/fixtures](validation/EDGE-SUPPORT-0.4.32.md)
+and [REA follow-up](ORIGINAL-BEHAVIOR-REA-2.md). Human rechecks of both recorded
+locations remain necessary; no complete natural campaign clear is claimed.
+
 
 The 0.4.31 changes separate the Game Over title from its touch instruction. The Huawei last-life/touch return test passed. Native builds for ARM64 and ARMv7 passed; this is build coverage, not physical runtime coverage for every architecture. See [Game Over UI evidence](GAME-OVER-UI.md).
 

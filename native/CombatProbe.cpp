@@ -307,6 +307,22 @@ bool PazurCombatProbe::Handle(const std::vector<std::string>& args, const ActorM
         WAP_DestroyRezArchive(archive);
         return true;
     }
+    if(args[0]=="wallstage") {
+        // Fresh-process fixture: a segmented 768 px wall exceeds either normal
+        // jump. Side sensor overlap must never manufacture a landing.
+        Handle({"combatstage","-1","80","0"},actors);
+        for(int row=0;row<6;++row)
+            physics->VAddStaticGeometry(Point(200064,332+row*128),Point(64,128),
+                CollisionType_Solid,FixtureType_Solid);
+        SDL_Log("Pazur wall fixture: x=200064 top=332 floor=1100");
+        return true;
+    }
+    if(args[0]=="walltrial") {
+        ResetKeys();
+        keyEvent(SDLK_RIGHT,true);keyEvent(SDLK_SPACE,true);
+        heldKeys[SDLK_RIGHT]=heldKeys[SDLK_SPACE]=SDL_GetTicks()+1800;
+        return true;
+    }
     if (args[0]=="ladderstage") {
         // Isolated static ladder and its one-way cap, using the production fixtures.
         Handle({"combatstage","-1","80","0"},actors);
