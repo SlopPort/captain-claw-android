@@ -1,10 +1,10 @@
 # Project handoff
 
-Current state: **2026-10-24**. Adaptation code, documentation, investigation and automated tests were performed by OpenAI Codex (LLM), guided by anonymous human requirements and feedback. OpenClaw and dependency authorship remain separate.
+Current state: **2026-10-25**. Adaptation code, documentation, investigation and automated tests were performed by OpenAI Codex (LLM), guided by anonymous human requirements and feedback. OpenClaw and dependency authorship remain separate.
 
 ## Current state and boundaries
 
-- Main Huawei installation: **ARM64 debug 0.4.32-dev**. Only Huawei is allocated to this task now. **Do not query, install on or otherwise operate Redmi without a new allocation.** Earlier Redmi results below are historical, not permission to use it now.
+- Main Huawei installation: **ARM64 debug 0.4.33-dev**. Only Huawei is allocated to this task now. **Do not query, install on or otherwise operate Redmi without a new allocation.** Earlier Redmi results below are historical, not permission to use it now.
 - Huawei supplies internet over USB. Do not reboot it, change USB/tethering/network settings, disconnect it or restart the shared ADB server to repair a test. Select the authorized device with a process-local `ANDROID_SERIAL`; never publish device serials.
 - The human owns natural campaign playtesting. Do not resume autonomous traversal. Technical reproductions of reported bugs are allowed, but teleports, invulnerability and resource edits must be labelled as fixtures, never natural campaign evidence.
 - This is not release 1.0. Full campaign completion, original-game parity and a universal FPS minimum are not established. Broad physical controller testing was deferred; later specific pause/input bug reports remain in scope.
@@ -17,6 +17,9 @@ with [exact artifact/signing/runtime limits](validation/RELEASE-0.4.32.md).
 The phone's existing debug installation was not migrated or uninstalled.
 
 ## Latest verified behavior
+
+Android33 fixes double attenuation of sound effects: the master slider was applied both to each chunk and its mixer channel. At the user's 10% setting this reduced ordinary effects to roughly 1% amplitude. The Android path now applies master gain only to channels. [Audio evidence](validation/AUDIO-GAIN-0.4.33.md) records the measured fixtures. Public signed distribution remains 0.4.32-test until a separately verified release artifact is published.
+
 
 Host packaging now publishes a CRC-checked ZIP through a same-filesystem temporary file and atomic replacement. Eight failure/input check groups and a real local repack passed; the original installation remained byte-identical. Full REZ plus loose Assets is rejected because this tool does not merge partial overrides. See [host packaging evidence](validation/HOST-PACKAGING-2026-10-24.md). This batch changed no APK and used no phone. The clean-computer GUI trial remains open.
 

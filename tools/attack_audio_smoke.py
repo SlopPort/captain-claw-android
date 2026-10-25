@@ -13,9 +13,10 @@ from gamepad_quit_smoke import PORT
 
 def main():
     parser=argparse.ArgumentParser(description=__doc__);parser.add_argument('--report',required=True)
+    parser.add_argument("--sound-volume", type=int, choices=range(101), default=100, metavar="0..100")
     args=parser.parse_args();rows=[]
     with CampaignSession(args.report) as session:
-        session.command('audiooptions 1 0 100 100')
+        session.command('audiooptions 1 0 '+str(args.sound_volume)+' 100')
         session.command('audiotrace 1')
         session.command('combatstage -1 80 0');time.sleep(1)
         for label,key,expected in [('idle',None,None),('sword','sword','/claw/sounds/swordswish.wav'),
@@ -48,7 +49,7 @@ def main():
             rows.append(row);print(json.dumps(row),flush=True)
             if label=='sword':session.command('combatkey release 0')
         session.command('audiotrace 0')
-        (session.report/'results.json').write_text(json.dumps(dict(rows=rows,passed=all(row['passed'] for row in rows)),indent=2),encoding='utf-8')
+        (session.report/'results.json').write_text(json.dumps(dict(sound_volume=args.sound_volume,rows=rows,passed=all(row['passed'] for row in rows)),indent=2),encoding='utf-8')
         assert all(row['passed'] for row in rows),'See actual mixer and resource logs'
 
 

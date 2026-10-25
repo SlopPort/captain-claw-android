@@ -1755,7 +1755,7 @@ index 4619a3b..5b7fd9c 100644
      std::string m_ClawDialogSound;
      std::string m_BossDialogSound;
 diff --git a/OpenClaw/Engine/Audio/Audio.cpp b/OpenClaw/Engine/Audio/Audio.cpp
-index 97c8d19..1c20377 100644
+index 97c8d19..9eb5bbd 100644
 --- a/OpenClaw/Engine/Audio/Audio.cpp
 +++ b/OpenClaw/Engine/Audio/Audio.cpp
 @@ -1,8 +1,12 @@
@@ -1919,13 +1919,22 @@ index 97c8d19..1c20377 100644
      SDL_RWops* soundRwOps = SDL_RWFromMem((void*)soundData, soundSize);
      Mix_Chunk* soundChunk = Mix_LoadWAV_RW(soundRwOps, 1);
  
-@@ -278,6 +367,7 @@ bool Audio::PlaySound(const char* soundData, size_t soundSize, const SoundProper
+@@ -278,8 +367,16 @@ bool Audio::PlaySound(const char* soundData, size_t soundSize, const SoundProper
  
  bool Audio::PlaySound(Mix_Chunk* sound, const SoundProperties& soundProperties)
  {
 +    if (!m_bSoundOn) return true;
  #ifndef __EMSCRIPTEN__
++#ifdef __ANDROID__
++    // SDL_mixer multiplies chunk and channel gain. Apply the user's master
++    // volume only on channels; multiplying it here again squares attenuation
++    // and makes quiet effects disappear at low settings.
++    int chunkVolume = (int)((((float)soundProperties.volume) / 100.0f) * (float)MIX_MAX_VOLUME);
++#else
      int chunkVolume = (int)((((float)soundProperties.volume) / 100.0f) * (float)m_SoundVolume);
++#endif
+ 
+     Mix_VolumeChunk(sound, chunkVolume);
  
 diff --git a/OpenClaw/Engine/Audio/Audio.h b/OpenClaw/Engine/Audio/Audio.h
 index d12e28d..3d5319e 100644
