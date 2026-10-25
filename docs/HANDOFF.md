@@ -4,7 +4,7 @@ Current state: **2026-10-25**. Adaptation code, documentation, investigation and
 
 ## Current state and boundaries
 
-- Main Huawei installation: **ARM64 debug 0.4.33-dev**. Only Huawei is allocated to this task now. **Do not query, install on or otherwise operate Redmi without a new allocation.** Earlier Redmi results below are historical, not permission to use it now.
+- Main Huawei installation: **ARM64 debug 0.4.34-dev**. Only Huawei is allocated to this task now. **Do not query, install on or otherwise operate Redmi without a new allocation.** Earlier Redmi results below are historical, not permission to use it now.
 - Huawei supplies internet over USB. Do not reboot it, change USB/tethering/network settings, disconnect it or restart the shared ADB server to repair a test. Select the authorized device with a process-local `ANDROID_SERIAL`; never publish device serials.
 - The human owns natural campaign playtesting. Do not resume autonomous traversal. Technical reproductions of reported bugs are allowed, but teleports, invulnerability and resource edits must be labelled as fixtures, never natural campaign evidence.
 - This is not release 1.0. Full campaign completion, original-game parity and a universal FPS minimum are not established. Broad physical controller testing was deferred; later specific pause/input bug reports remain in scope.
@@ -17,6 +17,9 @@ with [exact artifact/signing/runtime limits](validation/RELEASE-0.4.32.md).
 The phone's existing debug installation was not migrated or uninstalled.
 
 ## Latest verified behavior
+
+The level 2 small-platform leftward blockage remains OPEN. The private recording was matched to the crate near (2460,4956), but 17 walking/entry/depth fixture attempts on debug33 did not reproduce the frozen movement. Debug34 adds read-only live collision capture without enabling combat diagnostics, so the next occurrence can be inspected before restart. See [attempts and capture instructions](validation/LEVEL2-PLATFORM-0.4.34.md). Do not label this as fixed.
+
 
 Android33 fixes double attenuation of sound effects: the master slider was applied both to each chunk and its mixer channel. At the user's 10% setting this reduced ordinary effects to roughly 1% amplitude. The Android path now applies master gain only to channels. [Audio evidence](validation/AUDIO-GAIN-0.4.33.md) records the measured fixtures. Public signed distribution remains 0.4.32-test until a separately verified release artifact is published.
 
