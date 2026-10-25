@@ -1975,10 +1975,13 @@ index d12e28d..3d5319e 100644
 \ No newline at end of file
 +#endif
 diff --git a/OpenClaw/Engine/GameApp/BaseGameApp.cpp b/OpenClaw/Engine/GameApp/BaseGameApp.cpp
-index 64533c3..b4de358 100644
+index 64533c3..9356b8f 100644
 --- a/OpenClaw/Engine/GameApp/BaseGameApp.cpp
 +++ b/OpenClaw/Engine/GameApp/BaseGameApp.cpp
-@@ -1,4 +1,7 @@
+@@ -1,4 +1,10 @@
++#ifdef __ANDROID__
++#include "FlightRecorder.h"
++#endif
  #include "../Resource/ResourceCache.h"
 +#ifdef __ANDROID__
 +#include "AtomicXml.h"
@@ -1986,7 +1989,7 @@ index 64533c3..b4de358 100644
  #include "../Audio/Audio.h"
  #include "../Events/EventMgr.h"
  #include "../Events/EventMgrImpl.h"
-@@ -21,6 +24,10 @@
+@@ -21,6 +27,10 @@
  #include "../Resource/Loaders/PngLoader.h"
  
  #include "BaseGameApp.h"
@@ -1997,7 +2000,7 @@ index 64533c3..b4de358 100644
  
  #include <cctype>
  
-@@ -78,11 +85,15 @@ bool BaseGameApp::Initialize(int argc, char** argv)
+@@ -78,11 +88,15 @@ bool BaseGameApp::Initialize(int argc, char** argv)
          return false;
      }
  
@@ -2016,7 +2019,7 @@ index 64533c3..b4de358 100644
  
      if (!VPerformStartupTests())
      {
-@@ -98,6 +109,14 @@ bool BaseGameApp::Initialize(int argc, char** argv)
+@@ -98,6 +112,14 @@ bool BaseGameApp::Initialize(int argc, char** argv)
  void BaseGameApp::Terminate()
  {
      LOG("Terminating...");
@@ -2031,7 +2034,7 @@ index 64533c3..b4de358 100644
  
      RemoveAllDelegates();
  
-@@ -118,7 +137,9 @@ void BaseGameApp::Terminate()
+@@ -118,7 +140,9 @@ void BaseGameApp::Terminate()
      }
      m_ActorXmlPrototypeMap.clear();
  
@@ -2041,7 +2044,7 @@ index 64533c3..b4de358 100644
  }
  
  #define STARTUP_TEST(condition, error) \
-@@ -212,12 +233,43 @@ void BaseGameApp::StepLoop() {
+@@ -212,12 +236,43 @@ void BaseGameApp::StepLoop() {
          }
          consecutiveLagSpikes = 0;
  
@@ -2085,27 +2088,25 @@ index 64533c3..b4de358 100644
          // Handle all touch events
          if (m_pTouchManager) {
              m_pTouchManager->Update();
-@@ -231,8 +283,17 @@ void BaseGameApp::StepLoop() {
+@@ -231,8 +286,17 @@ void BaseGameApp::StepLoop() {
              // Update game
              {
                  //PROFILE_CPU("ONLY GAME UPDATE");
--                IEventMgr::Get()->VUpdate(20); // Allow event queue to process for up to 20 ms
--                m_pGame->VOnUpdate(elapsedTime);
 +#ifdef __ANDROID__
 +                phaseInputEnd=SDL_GetPerformanceCounter();
 +#endif
-+                IEventMgr::Get()->VUpdate(20); // Allow event queue to process for up to 20 ms
+                 IEventMgr::Get()->VUpdate(20); // Allow event queue to process for up to 20 ms
 +#ifdef __ANDROID__
 +                phaseEventEnd=SDL_GetPerformanceCounter();
 +#endif
-+                m_pGame->VOnUpdate(elapsedTime);
+                 m_pGame->VOnUpdate(elapsedTime);
 +#ifdef __ANDROID__
 +                phaseUpdateEnd=SDL_GetPerformanceCounter();
 +#endif
              }
  
              // Render game
-@@ -245,6 +306,42 @@ void BaseGameApp::StepLoop() {
+@@ -245,6 +309,42 @@ void BaseGameApp::StepLoop() {
              //m_pGame->VRenderDiagnostics();
          }
  
@@ -2148,10 +2149,13 @@ index 64533c3..b4de358 100644
          // Artificially decrease fps. Configurable from console
          Util::Sleep(m_DebugOptions.cpuDelayMs);
      }
-@@ -284,6 +381,11 @@ int32 BaseGameApp::Run()
+@@ -284,6 +384,14 @@ int32 BaseGameApp::Run()
  
  void BaseGameApp::OnEvent(SDL_Event& event)
  {
++#ifdef __ANDROID__
++    PazurRecorder::Input(event);
++#endif
 +#ifdef __ANDROID__
 +    if (event.type==SDL_APP_WILLENTERBACKGROUND && m_pAudio) SaveGameOptions();
 +    if (PazurGamepad::Handle(event)) return;
@@ -2160,7 +2164,7 @@ index 64533c3..b4de358 100644
      switch (event.type)
      {
          case SDL_QUIT:
-@@ -317,6 +419,12 @@ void BaseGameApp::OnEvent(SDL_Event& event)
+@@ -317,6 +425,12 @@ void BaseGameApp::OnEvent(SDL_Event& event)
              break;
          }
  
@@ -2173,7 +2177,7 @@ index 64533c3..b4de358 100644
          case SDL_APP_DIDENTERBACKGROUND:
          {
              LOG("Entered background");
-@@ -325,6 +433,8 @@ void BaseGameApp::OnEvent(SDL_Event& event)
+@@ -325,6 +439,8 @@ void BaseGameApp::OnEvent(SDL_Event& event)
  
          case SDL_APP_DIDENTERFOREGROUND:
          {
@@ -2182,7 +2186,7 @@ index 64533c3..b4de358 100644
              LOG("Entered foreground");
              break;
          }
-@@ -374,6 +484,28 @@ void BaseGameApp::OnEvent(SDL_Event& event)
+@@ -374,6 +490,28 @@ void BaseGameApp::OnEvent(SDL_Event& event)
  void BaseGameApp::OnDisplayChange(int newWidth, int newHeight)
  {
      LOG("Display changed. New Width-Height: " + ToStr(newWidth) + "-" + ToStr(newHeight));
@@ -2211,7 +2215,7 @@ index 64533c3..b4de358 100644
  }
  
  void BaseGameApp::VOnRestore()
-@@ -555,6 +687,11 @@ bool BaseGameApp::LoadGameOptions(const char* inConfigFile)
+@@ -555,6 +693,11 @@ bool BaseGameApp::LoadGameOptions(const char* inConfigFile)
      {
          ParseValueFromXmlElem(&m_GameOptions.assetsFolder,
              assetsElem->FirstChildElement("AssetsFolder"));
@@ -2223,7 +2227,7 @@ index 64533c3..b4de358 100644
          DO_AND_CHECK(ParseValueFromXmlElem(&m_GameOptions.rezArchive,
              assetsElem->FirstChildElement("RezArchive")));
          DO_AND_CHECK(ParseValueFromXmlElem(&m_GameOptions.customArchive,
-@@ -713,6 +850,8 @@ bool BaseGameApp::LoadGameOptions(const char* inConfigFile)
+@@ -713,6 +856,8 @@ bool BaseGameApp::LoadGameOptions(const char* inConfigFile)
      //-------------------------------------------------------------------------
      if (TiXmlElement* pDebugOptionsRootElem = configRoot->FirstChildElement("DebugOptions"))
      {
@@ -2232,7 +2236,7 @@ index 64533c3..b4de358 100644
          ParseValueFromXmlElem(&m_DebugOptions.bSkipBossFightIntro,
              pDebugOptionsRootElem->FirstChildElement("SkipBossFightIntro"));
          ParseValueFromXmlElem(&m_DebugOptions.bSkipMenu,
-@@ -721,6 +860,10 @@ bool BaseGameApp::LoadGameOptions(const char* inConfigFile)
+@@ -721,6 +866,10 @@ bool BaseGameApp::LoadGameOptions(const char* inConfigFile)
              pDebugOptionsRootElem->FirstChildElement("CpuDelay"));
          ParseValueFromXmlElem(&m_DebugOptions.lastImplementedLevel,
              pDebugOptionsRootElem->FirstChildElement("LastImplementedLevel"));
@@ -2243,12 +2247,10 @@ index 64533c3..b4de358 100644
          ParseValueFromXmlElem(&m_DebugOptions.skipMenuToLevel,
              pDebugOptionsRootElem->FirstChildElement("SkipMenuToLevel"));
      }
-@@ -730,8 +873,37 @@ bool BaseGameApp::LoadGameOptions(const char* inConfigFile)
+@@ -730,8 +879,37 @@ bool BaseGameApp::LoadGameOptions(const char* inConfigFile)
  
  void BaseGameApp::SaveGameOptions(const char* outConfigFile)
  {
--    LOG_ERROR("Not implemented yet!");
--    return;
 +#ifdef __ANDROID__
 +    if (!m_pAudio) return;
 +    TiXmlDocument config;
@@ -2278,12 +2280,13 @@ index 64533c3..b4de358 100644
 +    }
 +    SDL_Log("Pazur audio options saved");
 +#else
-+    LOG_ERROR("Not implemented yet!");
+     LOG_ERROR("Not implemented yet!");
+-    return;
 +#endif
  }
  
  //=====================================================================================================================
-@@ -780,6 +952,10 @@ bool BaseGameApp::InitializeDisplay(GameOptions& gameOptions)
+@@ -780,6 +958,10 @@ bool BaseGameApp::InitializeDisplay(GameOptions& gameOptions)
          return false;
      }
  
@@ -2294,7 +2297,7 @@ index 64533c3..b4de358 100644
      m_pWindow = SDL_CreateWindow(VGetGameTitle(), SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
          gameOptions.windowWidth, gameOptions.windowHeight, SDL_WINDOW_SHOWN);
      if (m_pWindow == NULL)
-@@ -799,6 +975,15 @@ bool BaseGameApp::InitializeDisplay(GameOptions& gameOptions)
+@@ -799,6 +981,15 @@ bool BaseGameApp::InitializeDisplay(GameOptions& gameOptions)
          SDL_GetWindowSize(m_pWindow, &m_GameOptions.windowWidth, &m_GameOptions.windowHeight);
      }
  
@@ -2310,7 +2313,7 @@ index 64533c3..b4de358 100644
      m_WindowSize.Set(gameOptions.windowWidth, gameOptions.windowHeight);
  
      uint32 rendererFlags = SDL_RENDERER_ACCELERATED;
-@@ -815,6 +1000,9 @@ bool BaseGameApp::InitializeDisplay(GameOptions& gameOptions)
+@@ -815,6 +1006,9 @@ bool BaseGameApp::InitializeDisplay(GameOptions& gameOptions)
      }
  
      SDL_RenderSetScale(m_pRenderer, (float)gameOptions.scale, (float)gameOptions.scale);
@@ -2320,7 +2323,7 @@ index 64533c3..b4de358 100644
  
      LOG("Display successfully initialized.");
  
-@@ -878,6 +1066,17 @@ bool BaseGameApp::InitializeResources(GameOptions& gameOptions)
+@@ -878,6 +1072,17 @@ bool BaseGameApp::InitializeResources(GameOptions& gameOptions)
      m_pResourceCache->RegisterLoader(PcxResourceLoader::Create());
  
      std::string customArchivePath = gameOptions.assetsFolder + gameOptions.customArchive;
@@ -2338,7 +2341,7 @@ index 64533c3..b4de358 100644
  
      IResourceFile* pCustomArchive = new ResourceZipArchive(customArchivePath);
      std::shared_ptr<ResourceCache> pCustomCache{ new ResourceCache(50, pCustomArchive, CUSTOM_RESOURCE) };
-@@ -918,7 +1117,7 @@ bool BaseGameApp::InitializeFont(GameOptions& gameOptions)
+@@ -918,7 +1123,7 @@ bool BaseGameApp::InitializeFont(GameOptions& gameOptions)
      m_pConsoleFont = TTF_OpenFont(gameOptions.consoleFontName.c_str(), gameOptions.consoleFontSize);
      if (m_pConsoleFont == NULL)
      {
@@ -2347,7 +2350,7 @@ index 64533c3..b4de358 100644
          return false;
      }
  
-@@ -1234,7 +1433,11 @@ Point BaseGameApp::GetScale()
+@@ -1234,7 +1439,11 @@ Point BaseGameApp::GetScale()
      uint32 windowFlags = GetWindowFlags();
      Point scale(1.0, 1.0);
  
@@ -2359,7 +2362,7 @@ index 64533c3..b4de358 100644
      
      scale.Set((double)scaleX, (double)scaleY);
  
-@@ -1243,7 +1446,11 @@ Point BaseGameApp::GetScale()
+@@ -1243,7 +1452,11 @@ Point BaseGameApp::GetScale()
  
  void BaseGameApp::SetScale(Point scale)
  {
@@ -2371,19 +2374,17 @@ index 64533c3..b4de358 100644
  }
  
  uint32 BaseGameApp::GetWindowFlags()
-@@ -1412,8 +1619,14 @@ void BaseGameApp::RemoveAllDelegates()
+@@ -1412,8 +1625,14 @@ void BaseGameApp::RemoveAllDelegates()
  
  void BaseGameApp::QuitGameDelegate(IEventDataPtr pEventData)
  {
--    Terminate();
--    exit(0);
 +#ifdef __ANDROID__
 +    // Unwind the SDL main loop; exit() finalizes process-wide Android/JNI state.
 +    // Do not destroy EventMgr from inside its own event callback.
 +    m_IsRunning = false;
 +#else
-+    Terminate();
-+    exit(0);
+     Terminate();
+     exit(0);
 +#endif
  }
  
@@ -2738,10 +2739,13 @@ index 2bb4694..74a47c3 100644
  };
  
 diff --git a/OpenClaw/Engine/Physics/ClawPhysics.cpp b/OpenClaw/Engine/Physics/ClawPhysics.cpp
-index 0c037b8..c2ca2bc 100644
+index 0c037b8..a00505f 100644
 --- a/OpenClaw/Engine/Physics/ClawPhysics.cpp
 +++ b/OpenClaw/Engine/Physics/ClawPhysics.cpp
-@@ -1,4 +1,9 @@
+@@ -1,4 +1,12 @@
++#ifdef __ANDROID__
++#include "FlightRecorder.h"
++#endif
  #include "ClawPhysics.h"
 +#if defined(__ANDROID__) && !defined(NDEBUG)
 +#include <fstream>
@@ -2751,7 +2755,7 @@ index 0c037b8..c2ca2bc 100644
  #include "../Scene/SceneNodes.h"
  #include "../Events/EventMgr.h"
  #include "../Events/Events.h"
-@@ -119,7 +124,7 @@ b2AABB GetBodyAABB(b2Body* pBody, bool discardSensors)
+@@ -119,7 +127,7 @@ b2AABB GetBodyAABB(b2Body* pBody, bool discardSensors)
      b2Fixture* fixture = pBody->GetFixtureList();
      while (fixture != NULL)
      {
@@ -2760,7 +2764,7 @@ index 0c037b8..c2ca2bc 100644
          {
              fixture = fixture->GetNext();
              continue;
-@@ -192,6 +197,15 @@ bool ClawPhysics::VInitialize()
+@@ -192,6 +200,15 @@ bool ClawPhysics::VInitialize()
  {
      b2Vec2 gravity(0, 9.8f);
      m_pWorld.reset(new b2World(gravity));
@@ -2776,11 +2780,19 @@ index 0c037b8..c2ca2bc 100644
      m_pDebugDrawer.reset(new PhysicsDebugDrawer());
  
      // Create debug drawer
-@@ -396,6 +410,80 @@ void ClawPhysics::VOnUpdate(const uint32 msDiff)
+@@ -396,6 +413,88 @@ void ClawPhysics::VOnUpdate(const uint32 msDiff)
      //PROFILE_CPU("ClawPhysics::VOnUpdate");
  
      m_pWorld->Step(msDiff / 1000.0f, 10, 8);
 +    m_pPhysicsContactListener->RefreshFootSupport();
++#if defined(__ANDROID__) && !defined(NDEBUG)
++    if(auto recorderClaw=g_pApp->GetGameLogic()->GetClawActor()) {
++        auto level=g_pApp->GetGameLogic()->GetCurrentLevelData();
++        PazurRecorder::Sample(FindBox2DBody(recorderClaw->GetGUID()),recorderClaw->GetPhysicsComponent().get(),
++            level?int(level->GetLevelNumber()):0,msDiff);
++    }
++#endif
++
 +#if defined(__ANDROID__) && !defined(NDEBUG)
 +    // Read-only, one-shot debug capture works during ordinary human play.
 +    // Unlike the combat mailbox it enables no fixtures, cheats or input. A
@@ -2857,7 +2869,7 @@ index 0c037b8..c2ca2bc 100644
  
      // Remove actors form physics simulation which are scheduled to be destroyed
      for (uint32 actorId : m_ActorsToBeDestroyed)
-@@ -604,10 +692,32 @@ void ClawPhysics::VAddDynamicActor(WeakActorPtr pActor)
+@@ -604,10 +703,32 @@ void ClawPhysics::VAddDynamicActor(WeakActorPtr pActor)
      fixtureDef.filter.categoryBits = CollisionFlag_Controller;
      pBody->CreateFixture(&fixtureDef);
  
@@ -2890,7 +2902,7 @@ index 0c037b8..c2ca2bc 100644
  
      b2PolygonShape polygonShape;
      polygonShape.SetAsBox((b2BodySize.x / 2) - PixelsToMeters(2), (b2BodySize.y - b2BodySize.x) / 2);
-@@ -1431,6 +1541,16 @@ void ClawPhysics::VScaleActor(uint32_t actorId, double scale)
+@@ -1431,6 +1552,16 @@ void ClawPhysics::VScaleActor(uint32_t actorId, double scale)
  // Private implementations
  //=====================================================================================================================
  

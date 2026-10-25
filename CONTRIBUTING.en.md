@@ -23,7 +23,7 @@ Keep inherited authorship and dependency notices intact.
 | Touch and controller input | `native/PlatformInput.cpp`, `app/src/main/java/pl/pazur/port/ControllerSettingsActivity.java` |
 | Launcher, data selection | `app/src/main/java/pl/pazur/port/LauncherActivity.java`, `GameFiles.java` |
 | Import recovery and save files | `ImportTransaction.java`, `SaveFiles.java` in that Java directory |
-| Native diagnostics | `native/CombatProbe.cpp`; some commands deliberately alter fixtures |
+| Native diagnostics | [Read-only background recorder](docs/BACKGROUND-DEBUGGING.md); `native/CombatProbe.cpp` commands may deliberately alter fixtures |
 | Engine changes | edit ignored `upstream/OpenClaw/`, then `python tools/export_patch.py` |
 | Reproducible dependency revisions | `sources.lock.json`, `patches/` |
 | Test tools and reviewed evidence | `tools/`, `docs/validation/` |

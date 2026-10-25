@@ -1,8 +1,8 @@
 # Road to 1.0
 
-Updated **2026-10-24** by OpenAI Codex (LLM), guided by anonymous human requirements and feedback. This is a release checklist, not a claim that the work is finished. Results always apply to a specific APK, device and scenario. See the [handoff](HANDOFF.md) for current allocation: only Huawei is available to this task; preserve its USB internet connection.
+Updated **2026-10-25** by OpenAI Codex (LLM), guided by anonymous human requirements and feedback. This is a release checklist, not a claim that the work is finished. Results always apply to a specific APK, device and scenario. See the [handoff](HANDOFF.md) for current allocation: only Huawei is available to this task; preserve its USB internet connection.
 
-Current main Huawei build: **0.4.34-dev** ([audio gain correction](validation/AUDIO-GAIN-0.4.33.md)); the public signed test APK remains 0.4.32. [Floor joins and wall support](validation/EDGE-SUPPORT-0.4.32.md), [Game Over UI](GAME-OVER-UI.md) and [REA follow-up](ORIGINAL-BEHAVIOR-REA-2.md) document the recent runtime changes. Those checks do not close the full campaign or every compatibility gate. Do not transfer earlier APK results automatically to a newer build.
+Current main Huawei build: **0.4.35-dev** ([audio gain correction](validation/AUDIO-GAIN-0.4.33.md)); the public signed test APK remains 0.4.32. [Floor joins and wall support](validation/EDGE-SUPPORT-0.4.32.md), [Game Over UI](GAME-OVER-UI.md) and [REA follow-up](ORIGINAL-BEHAVIOR-REA-2.md) document the recent runtime changes. Those checks do not close the full campaign or every compatibility gate. Do not transfer earlier APK results automatically to a newer build.
 
 Natural campaign testing belongs to the human. Broad physical controller testing was deferred; later reported pause/input bugs are still in scope. Touch and technical regression checks remain in scope. Interrupted-import recovery now has an [implementation and tests](validation/IMPORT-RECOVERY.md); the other installation checks remain open.
 
@@ -51,3 +51,5 @@ On 2026-10-22 the human accepted 55 FPS as the lower target in the heavy Huawei 
 Host packaging now preserves an existing ZIP on interrupted writes and rejects ambiguous full-REZ/loose-data combinations. [Host validation](validation/HOST-PACKAGING-2026-10-24.md) does not close the clean-computer preparation-window usability gate.
 
 Open human-reported regression: [level 2 platform blockage](validation/LEVEL2-PLATFORM-0.4.34.md). The debug capture update does not fix or close it; obtain a live blocked-state snapshot before restarting.
+
+Debug35 provides [automatic local movement/contact history](BACKGROUND-DEBUGGING.md). Its wall-push candidates support investigation; they do not close the open collision report or campaign gates.
