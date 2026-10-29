@@ -828,19 +828,19 @@ index 22c0852..2778cc4 100644
      int m_TakeDamageTimeLeftMs;
  
 diff --git a/OpenClaw/Engine/Actor/Components/ControllerComponents/HealthComponent.cpp b/OpenClaw/Engine/Actor/Components/ControllerComponents/HealthComponent.cpp
-index a0cfe72..fcf5cd8 100644
+index a0cfe72..7b7275b 100644
 --- a/OpenClaw/Engine/Actor/Components/ControllerComponents/HealthComponent.cpp
 +++ b/OpenClaw/Engine/Actor/Components/ControllerComponents/HealthComponent.cpp
-@@ -1,4 +1,7 @@
--#include "HealthComponent.h"
-+#include "HealthComponent.h"
+@@ -1,4 +1,8 @@
+ #include "HealthComponent.h"
 +#ifdef __ANDROID__
 +#include "HapticFeedback.h"
++#include "GameplayBalance.h"
 +#endif
  #include "../ControllableComponent.h"
  #include "../../Actor.h"
  
-@@ -38,7 +41,7 @@ void HealthComponent::VPostInit()
+@@ -38,7 +42,7 @@ void HealthComponent::VPostInit()
          m_IsController = true;
      }
  
@@ -849,7 +849,7 @@ index a0cfe72..fcf5cd8 100644
  }
  
  TiXmlElement* HealthComponent::VGenerateXml()
-@@ -49,6 +52,8 @@ TiXmlElement* HealthComponent::VGenerateXml()
+@@ -49,6 +53,8 @@ TiXmlElement* HealthComponent::VGenerateXml()
  
  void HealthComponent::AddHealth(int32 health, DamageType damageType, Point impactPoint, int sourceActorId)
  {
@@ -858,7 +858,7 @@ index a0cfe72..fcf5cd8 100644
      if ((m_bInvulnerable && health < 0) && (damageType != DamageType_DeathTile))
      {
          return;
-@@ -63,12 +68,20 @@ void HealthComponent::AddHealth(int32 health, DamageType damageType, Point impac
+@@ -63,12 +69,26 @@ void HealthComponent::AddHealth(int32 health, DamageType damageType, Point impac
      }
  
      // TODO: Is this against subject-observer pattern ? Seems odd.
@@ -877,10 +877,16 @@ index a0cfe72..fcf5cd8 100644
 +    // Event feedback inspired by Claw Web, Arthur Boss and contributors (GPLv3).
 +    if (m_IsController && health < 0) PazurHaptics::Trigger(PazurHaptics::Damage);
 +#endif
++#ifdef __ANDROID__
++    // Lethal terrain is a level rule, not an ordinary damage amount.
++    if(m_IsController && health<0 && damageType!=DamageType_DeathTile) {
++        health=-PazurBalance::Damage(-health,PazurBalance::Difficulty());
++    }
++#endif
      int32 oldHealth = m_CurrentHealth;
      m_CurrentHealth += health;
      if (m_CurrentHealth > m_MaxHealth)
-@@ -100,6 +113,9 @@ void HealthComponent::SetCurrentHealth(int32 health)
+@@ -100,6 +120,9 @@ void HealthComponent::SetCurrentHealth(int32 health)
  
  void HealthComponent::BroadcastHealthChanged(int32 oldHealth, int32 newHealth, DamageType damageType, Point impactPoint, int sourceActorId, bool isInitial)
  {
@@ -890,7 +896,7 @@ index a0cfe72..fcf5cd8 100644
      NotifyHealthChanged(oldHealth, newHealth, damageType, impactPoint, sourceActorId);
      if (newHealth <= 0)
      {
-@@ -153,4 +169,4 @@ bool HealthSubject::AskCanResistDamage(DamageType damageType, Point impactPoint)
+@@ -153,4 +176,4 @@ bool HealthSubject::AskCanResistDamage(DamageType damageType, Point impactPoint)
      }
  
      return false;
@@ -1646,6 +1652,30 @@ index 261ed61..2c69e2a 100644
      // Configurable data read from XML
      bool m_CanClimb;
      bool m_CanBounce;
+diff --git a/OpenClaw/Engine/Actor/Components/PickupComponents/PickupComponent.cpp b/OpenClaw/Engine/Actor/Components/PickupComponents/PickupComponent.cpp
+index 4ca30db..0687f1e 100644
+--- a/OpenClaw/Engine/Actor/Components/PickupComponents/PickupComponent.cpp
++++ b/OpenClaw/Engine/Actor/Components/PickupComponents/PickupComponent.cpp
+@@ -1,3 +1,6 @@
++#ifdef __ANDROID__
++#include "GameplayBalance.h"
++#endif
+ #include "PickupComponent.h"
+ #include "../TriggerComponents/TriggerComponent.h"
+ #include "../ControllerComponents/ScoreComponent.h"
+@@ -298,7 +301,11 @@ bool HealthPickupComponent::VOnApply(Actor* pActorWhoPickedThis)
+             return false;
+         }
+ 
+-        pHealthComponent->AddHealth(m_NumRestoredHealth, DamageType_None, Point(0, 0), m_pOwner->GetGUID());
++        int restoredHealth=m_NumRestoredHealth;
++#ifdef __ANDROID__
++        restoredHealth=PazurBalance::Healing(restoredHealth,PazurBalance::Difficulty());
++#endif
++        pHealthComponent->AddHealth(restoredHealth, DamageType_None, Point(0, 0), m_pOwner->GetGUID());
+ 
+         shared_ptr<EventData_Destroy_Actor> pEvent(new EventData_Destroy_Actor(m_pOwner->GetGUID()));
+         IEventMgr::Get()->VQueueEvent(pEvent);
 diff --git a/OpenClaw/Engine/Actor/Components/ProjectileSpawnerComponent.cpp b/OpenClaw/Engine/Actor/Components/ProjectileSpawnerComponent.cpp
 index 340580a..94745b9 100644
 --- a/OpenClaw/Engine/Actor/Components/ProjectileSpawnerComponent.cpp
@@ -3341,10 +3371,17 @@ index 49c7f1e..78d568c 100644
          customData.tap = tap;
          sdlEvent.user.code = type;
 diff --git a/OpenClaw/Engine/UserInterface/UserInterface.cpp b/OpenClaw/Engine/UserInterface/UserInterface.cpp
-index 9966337..06d1c90 100644
+index 9966337..b06d490 100644
 --- a/OpenClaw/Engine/UserInterface/UserInterface.cpp
 +++ b/OpenClaw/Engine/UserInterface/UserInterface.cpp
-@@ -11,6 +11,9 @@
+@@ -1,3 +1,6 @@
++#ifdef __ANDROID__
++#include "TouchControls.h"
++#endif
+ #include "UserInterface.h"
+ 
+ #include "../Graphics2D/Image.h"
+@@ -11,6 +14,9 @@
  #include "../Audio/Audio.h"
  
  #include <cctype>
@@ -3354,7 +3391,7 @@ index 9966337..06d1c90 100644
  
  std::map<std::string, MenuPage> g_StringToMenuPageEnumMap =
  {
-@@ -109,6 +112,9 @@ std::map<std::string, MenuItemType> g_StringToMenuItemType =
+@@ -109,6 +115,9 @@ std::map<std::string, MenuItemType> g_StringToMenuItemType =
  
  static SDL_Rect GetScreenRect()
  {
@@ -3364,7 +3401,7 @@ index 9966337..06d1c90 100644
      Point windowSize = g_pApp->GetWindowSize();
      Point scale = g_pApp->GetScale();
      int targetWidth = (int)(windowSize.x / scale.x);
-@@ -379,6 +385,7 @@ ScreenElementMenu::ScreenElementMenu(SDL_Renderer* pRenderer)
+@@ -379,6 +388,7 @@ ScreenElementMenu::ScreenElementMenu(SDL_Renderer* pRenderer)
      :
      m_pRenderer(pRenderer),
      m_bIsVisible(true),
@@ -3372,7 +3409,7 @@ index 9966337..06d1c90 100644
      m_MenuType(MenuType_None)
  {
      IEventMgr::Get()->VAddListener(MakeDelegate(
-@@ -427,8 +434,17 @@ void ScreenElementMenu::VOnUpdate(uint32 msDiff)
+@@ -427,8 +437,17 @@ void ScreenElementMenu::VOnUpdate(uint32 msDiff)
  
  void ScreenElementMenu::VOnRender(uint32 msDiff)
  {
@@ -3390,7 +3427,7 @@ index 9966337..06d1c90 100644
  
      assert(m_pBackground != nullptr);
      assert(m_pBackground->GetTexture() != NULL);
-@@ -438,14 +454,31 @@ void ScreenElementMenu::VOnRender(uint32 msDiff)
+@@ -438,14 +457,31 @@ void ScreenElementMenu::VOnRender(uint32 msDiff)
  
      assert(m_pActiveMenuPage);
      m_pActiveMenuPage->VOnRender(msDiff);
@@ -3422,7 +3459,7 @@ index 9966337..06d1c90 100644
      return m_pActiveMenuPage->VOnEvent(evt);
  }
  
-@@ -488,6 +521,9 @@ void ScreenElementMenu::VSetVisible(bool visible)
+@@ -488,6 +524,9 @@ void ScreenElementMenu::VSetVisible(bool visible)
  
  bool ScreenElementMenu::Initialize(TiXmlElement* pElem)
  {
@@ -3432,7 +3469,7 @@ index 9966337..06d1c90 100644
      assert(m_pRenderer != NULL);
  
      std::string menuTypeStr;
-@@ -580,7 +616,11 @@ bool ScreenElementMenu::Initialize(TiXmlElement* pElem)
+@@ -580,7 +619,11 @@ bool ScreenElementMenu::Initialize(TiXmlElement* pElem)
      // Lets just assume that the background will take the whole screen
      // From that we can calculate current scale (can't use predefined scale here)
      Point windowSize = g_pApp->GetWindowSize();
@@ -3444,7 +3481,7 @@ index 9966337..06d1c90 100644
  
      return true;
  }
-@@ -596,6 +636,9 @@ void ScreenElementMenu::SwitchPageDelegate(IEventDataPtr pEventData)
+@@ -596,6 +639,9 @@ void ScreenElementMenu::SwitchPageDelegate(IEventDataPtr pEventData)
      {
          m_pActiveMenuPage = findIt->second;
          m_pActiveMenuPage->OnPageLoaded();
@@ -3454,7 +3491,7 @@ index 9966337..06d1c90 100644
      }
      else
      {
-@@ -696,28 +739,92 @@ void ScreenElementMenuPage::VOnRender(uint32 msDiff)
+@@ -696,28 +742,92 @@ void ScreenElementMenuPage::VOnRender(uint32 msDiff)
      {
          if (pMenuItem->VIsVisible())
          {
@@ -3553,7 +3590,7 @@ index 9966337..06d1c90 100644
          if (keyCode == SDL_SCANCODE_DOWN)
          {
              MoveToMenuItemIdx(activeMenuItemIdx, 1);
-@@ -765,14 +872,24 @@ bool ScreenElementMenuPage::VOnEvent(SDL_Event& evt)
+@@ -765,14 +875,24 @@ bool ScreenElementMenuPage::VOnEvent(SDL_Event& evt)
          if (evt.button.button == SDL_BUTTON_LEFT)
          {
              SDL_Rect clickRect;
@@ -3578,7 +3615,21 @@ index 9966337..06d1c90 100644
                  if (SDL_HasIntersection(&clickRect, &itemRect))
                  {
                      if (pMenuItem->CanBeFocused())
-@@ -896,6 +1013,9 @@ bool ScreenElementMenuPage::MoveToMenuItemIdx(int oldIdx, int idxIncrement, bool
+@@ -811,6 +931,13 @@ bool ScreenElementMenuPage::Initialize(TiXmlElement* pElem)
+         pMenuItemElem != NULL;
+         pMenuItemElem = pMenuItemElem->NextSiblingElement("MenuItem"))
+     {
++#ifdef __ANDROID__
++        auto itemName=pMenuItemElem->FirstChildElement("Name");
++        if(itemName && itemName->GetText() && std::string(itemName->GetText())=="MULTIPLAYER_BUTTON") {
++            SDL_Log("Pazur menu removed: MULTIPLAYER_BUTTON");
++            continue;
++        }
++#endif
+         shared_ptr<ScreenElementMenuItem> pItem(new ScreenElementMenuItem(m_pRenderer));
+         if (!pItem->Initialize(pMenuItemElem))
+         {
+@@ -896,6 +1023,9 @@ bool ScreenElementMenuPage::MoveToMenuItemIdx(int oldIdx, int idxIncrement, bool
          return false;
      }
  
@@ -3588,7 +3639,7 @@ index 9966337..06d1c90 100644
      DeactivateAllMenuItems();
  
      // Moving up
-@@ -904,7 +1024,10 @@ bool ScreenElementMenuPage::MoveToMenuItemIdx(int oldIdx, int idxIncrement, bool
+@@ -904,7 +1034,10 @@ bool ScreenElementMenuPage::MoveToMenuItemIdx(int oldIdx, int idxIncrement, bool
  
      while (true)
      {
@@ -3600,7 +3651,7 @@ index 9966337..06d1c90 100644
  
          // At first button and we pressed "up" -> move to last button
          if (buttonIdx < 0 && idxIncrement < 0)
-@@ -926,6 +1049,11 @@ bool ScreenElementMenuPage::MoveToMenuItemIdx(int oldIdx, int idxIncrement, bool
+@@ -926,6 +1059,11 @@ bool ScreenElementMenuPage::MoveToMenuItemIdx(int oldIdx, int idxIncrement, bool
          tryCount++;
      }
  
@@ -3612,7 +3663,7 @@ index 9966337..06d1c90 100644
      if (playSound)
      {
          // Play sound
-@@ -939,6 +1067,9 @@ bool ScreenElementMenuPage::MoveToMenuItemIdx(int oldIdx, int idxIncrement, bool
+@@ -939,6 +1077,9 @@ bool ScreenElementMenuPage::MoveToMenuItemIdx(int oldIdx, int idxIncrement, bool
  
  void ScreenElementMenuPage::OnPageLoaded()
  {
@@ -3622,7 +3673,7 @@ index 9966337..06d1c90 100644
      // Focus on first active button
      MoveToMenuItemIdx(m_MenuItems.size() - 1, 1, false);
  }
-@@ -1042,6 +1173,9 @@ bool ScreenElementMenuItem::VOnEvent(SDL_Event& evt)
+@@ -1042,6 +1183,9 @@ bool ScreenElementMenuItem::VOnEvent(SDL_Event& evt)
  
  bool ScreenElementMenuItem::Initialize(TiXmlElement* pElem)
  {
@@ -3632,7 +3683,7 @@ index 9966337..06d1c90 100644
      SetPointIfDefined(&m_Position, pElem->FirstChildElement("Position"), "x", "y");
      SetPointIfDefined(&m_DefaultPosition, pElem->FirstChildElement("Position"), "x", "y");
      ParseValueFromXmlElem(&m_Name, pElem->FirstChildElement("Name"));
-@@ -1138,14 +1272,23 @@ bool ScreenElementMenuItem::Initialize(TiXmlElement* pElem)
+@@ -1138,14 +1282,23 @@ bool ScreenElementMenuItem::Initialize(TiXmlElement* pElem)
  
      if (shared_ptr<Image> pImage = LoadImageFromXmlElement(pElem->FirstChildElement("DisabledImage")))
      {
@@ -3656,7 +3707,7 @@ index 9966337..06d1c90 100644
          m_Images.insert(std::make_pair(MenuItemState_Active, pImage));
      }
  
-@@ -1274,6 +1417,44 @@ bool ScreenElementMenuItem::Initialize(TiXmlElement* pElem)
+@@ -1274,11 +1427,54 @@ bool ScreenElementMenuItem::Initialize(TiXmlElement* pElem)
          return false;
      }
  
@@ -3677,7 +3728,7 @@ index 9966337..06d1c90 100644
 +    }
 +    // Several inherited options target pages absent from this single-player
 +    // implementation. Disable them instead of accepting a click that goes nowhere.
-+    if(m_Type==MenuItemType_Button && pElem->Parent() && pElem->Parent()->Parent()) {
++    if(m_Name!="CONTROLS_BUTTON" && m_Name!="DIFFICULTY_BUTTON" && m_Type==MenuItemType_Button && pElem->Parent() && pElem->Parent()->Parent()) {
 +        auto root=pElem->Parent()->Parent();
 +        for(auto event=pElem->FirstChildElement("GeneratedEvent");event;event=event->NextSiblingElement("GeneratedEvent")) {
 +            auto type=event->FirstChildElement("Type"),target=event->FirstChildElement("PageName");
@@ -3701,7 +3752,17 @@ index 9966337..06d1c90 100644
      return true;
  }
  
-@@ -1305,6 +1486,11 @@ bool ScreenElementMenuItem::Press()
+ bool ScreenElementMenuItem::Press()
+ {
++#ifdef __ANDROID__
++    if((m_Name=="CONTROLS_BUTTON"||m_Name=="DIFFICULTY_BUTTON") && CanBeFocused()) {
++        PazurTouch::OpenSettings(m_Name=="DIFFICULTY_BUTTON");return true;
++    }
++#endif
+     if (CanBeFocused())
+     {
+         if (m_GeneratedEventList.empty())
+@@ -1305,6 +1501,11 @@ bool ScreenElementMenuItem::Press()
  
  bool ScreenElementMenuItem::SetState(MenuItemState state)
  {
@@ -3713,7 +3774,7 @@ index 9966337..06d1c90 100644
      if (m_Images.find(state) != m_Images.end())
      {
          if (state != m_State)
-@@ -1380,4 +1566,4 @@ SDL_Rect ScreenElementMenuItem::GetMenuItemRect()
+@@ -1380,4 +1581,4 @@ SDL_Rect ScreenElementMenuItem::GetMenuItemRect()
      itemRect.h = itemHeight;
  
      return itemRect;

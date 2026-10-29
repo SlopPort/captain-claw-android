@@ -46,4 +46,22 @@
     <string name="import_recovery_error">"Cannot recover an interrupted import. Your backup has been kept. Free some storage and retry. Details: "</string>
     <string name="import_config_error">Invalid configuration in the game-data package.</string>
     <string name="save_tools_credit">Inspired by Claw Web — Arthur Boss and contributors (GPLv3). Android adaptation: OpenAI Codex / LLM.</string>
+
+    <string name="touch_layout_title">Touch controls</string>
+    <string-array name="touch_layout_names"><item>Classic</item><item>Comfort</item><item>Jump beside attack</item><item>Left-handed</item></string-array>
+    <string-array name="touch_layout_descriptions"><item>Original stick and buttons.</item><item>Larger buttons for quick jumps and combat.</item><item>Swap the JUMP and ATTACK positions.</item><item>Stick on the right, action buttons on the left.</item></string-array>
+    <string name="difficulty_title">Difficulty</string>
+    <string name="difficulty_help">Only damage taken and healing pickups change. Lethal terrain and all other game rules remain the same.</string>
+    <string name="movement_title">Movement</string>
+    <string name="deadzone">Stick dead zone</string>
+    <string name="deadzone_help">Lower values respond to smaller thumb movements.</string>
+    <string name="edit_touch_buttons">Edit touch buttons</string>
+    <string name="button_size">Size (%)</string>
+    <string name="button_x">Horizontal offset</string>
+    <string name="button_y">Vertical offset</string>
+    <string name="reset_touch_buttons">Reset touch buttons</string>
+    <string name="button_editor_help">Select a button and adjust its size and position. Changes save when you release each slider and apply on returning to the game. Buttons stay within the screen; avoid overlapping them.</string>
+    <string-array name="difficulty_names"><item>Easy — damage 50%, healing 150%</item><item>Normal — damage 100%, healing 100%</item><item>Hard — damage 150%, healing 50%</item></string-array>
+    <string-array name="movement_names"><item>Fixed stick</item><item>Floating stick</item><item>Directional buttons</item></string-array>
+    <string-array name="touch_button_names"><item>Jump</item><item>Attack</item><item>Shoot</item><item>Weapon</item><item>Pause</item></string-array>
 </resources>

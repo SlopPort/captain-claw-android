@@ -19,7 +19,7 @@ def main():
     parser.add_argument('--stress-cycles',type=int,choices=range(0,101),default=0,metavar='0..100')
     parser.add_argument('--audio-sliders',action='store_true')
     parser.add_argument('--languages',nargs='+',choices=('en','pl'),default=['en','pl']);args=parser.parse_args()
-    names=('main','help-index','help','single','levels','options','audio','credits','quit','returned','keyboard-return')
+    names=('movement','difficulty','button-editor','controls','main','help-index','help','single','levels','options','audio','credits','quit','returned','keyboard-return')
     if args.audio_sliders:names+=('audio-zero','audio-max','audio-cancel','audio-toggle')
     expected=['MenuPage_Help','MenuPage_Help_TouchScreen','MenuPage_Main',
               'MenuPage_SinglePlayer','MenuPage_SinglePlayer_NewGame','MenuPage_SinglePlayer','MenuPage_Main',
@@ -71,7 +71,7 @@ def main():
             assert shared and not result['non_disabled_shared_sound_states'],'Mute/unmute re-enabled independent shared-sound controls'
             assert 'Pazur menu label fallback:' not in log,'System font unavailable'
             assert 'Could not switch to page:' not in log,'A disabled destination accepted input'
-            assert 'Pazur unavailable menu page: item=MULTIPLAYER_BUTTON' in log,'Unavailable multiplayer not disabled'
+            assert 'Pazur menu removed: MULTIPLAYER_BUTTON' in log,'Multiplayer not removed'
             assert 'Pazur menu shared sound: item=VOICE_ON_BUTTON' in log and 'Pazur menu shared sound: item=AMBIENT_ON_BUTTON' in log,'Nonfunctional independent sound options not disabled'
             labels=re.findall(r'Pazur menu label: language=(en|pl) item=(\S+) box=(\d+)x(\d+) text=(\d+)x(\d+)',log)
             assert len(labels)>100 and all(row[0]==language for row in labels),'Wrong/missing native locale'
