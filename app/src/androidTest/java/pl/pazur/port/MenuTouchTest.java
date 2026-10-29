@@ -62,7 +62,12 @@ public class MenuTouchTest extends Instrumentation {
         for(int action:new int[]{MotionEvent.ACTION_DOWN,MotionEvent.ACTION_UP}) {
             MotionEvent event=MotionEvent.obtain(now,SystemClock.uptimeMillis(),action,px,py,0);
             event.setSource(InputDevice.SOURCE_TOUCHSCREEN);
-            runOnMainSync(()->{focus();game.getWindow().getDecorView().dispatchTouchEvent(event);});event.recycle();
+            runOnMainSync(()->{
+                // A menu press can open the native settings Activity on DOWN.
+                // Never send the matching UP into an unfocused game window.
+                if(event.getAction()==MotionEvent.ACTION_UP&&!game.hasWindowFocus())return;
+                focus();game.getWindow().getDecorView().dispatchTouchEvent(event);
+            });event.recycle();
             SystemClock.sleep(60);
         }
         SystemClock.sleep(900);
@@ -82,7 +87,12 @@ public class MenuTouchTest extends Instrumentation {
             MotionEvent event=MotionEvent.obtain(down,SystemClock.uptimeMillis(),actions[i],
                 (logicalWidth/2-320+x)*width/logicalWidth,y*height/480f,0);
             event.setSource(InputDevice.SOURCE_TOUCHSCREEN);
-            runOnMainSync(()->{focus();game.getWindow().getDecorView().dispatchTouchEvent(event);});event.recycle();
+            runOnMainSync(()->{
+                // A menu press can open the native settings Activity on DOWN.
+                // Never send the matching UP into an unfocused game window.
+                if(event.getAction()==MotionEvent.ACTION_UP&&!game.hasWindowFocus())return;
+                focus();game.getWindow().getDecorView().dispatchTouchEvent(event);
+            });event.recycle();
             SystemClock.sleep(100);
         }
         SystemClock.sleep(1000);
@@ -121,6 +131,97 @@ public class MenuTouchTest extends Instrumentation {
         try(FileOutputStream out=new FileOutputStream(new File(root,"menu-"+language+"-"+name+".png"))){shot.compress(Bitmap.CompressFormat.PNG,100,out);}
         shot.recycle();
     }
+    private void captureSettings(Activity settings,String name) throws Exception {
+        if(!settings.hasWindowFocus())throw new AssertionError("Settings screenshot without focus");
+        SystemClock.sleep(300);Bitmap shot=getUiAutomation().takeScreenshot();
+        try(FileOutputStream out=new FileOutputStream(new File(root,"menu-"+language+"-"+name+".png"))){shot.compress(Bitmap.CompressFormat.PNG,100,out);}
+        shot.recycle();
+    }
+    private void controlLayouts() throws Exception {
+        SharedPreferences controls=getTargetContext().getSharedPreferences("controls",Context.MODE_PRIVATE);
+        java.util.Map<String,?> originalOptions=new java.util.HashMap<>(controls.getAll());
+        try {
+            for(int selected=0;selected<4;selected++) {
+                ActivityMonitor monitor=addMonitor("pl.pazur.port.ControllerSettingsActivity",null,false);
+                tap(270,302);
+                Activity settings=waitForMonitorWithTimeout(monitor,5000);removeMonitor(monitor);
+                if(settings==null)throw new AssertionError("Options > Controls did not open settings");
+                final int id=2000+selected;
+                runOnMainSync(()-> {
+                    if(!settings.hasWindowFocus())throw new AssertionError("Settings not focused");
+                    android.widget.RadioButton choice=settings.findViewById(id);
+                    if(choice==null)throw new AssertionError("Missing control layout");
+                    choice.performClick();
+                });
+                if(controls.getInt("touch_layout",0)!=selected)throw new AssertionError("Layout not saved");
+                if(selected==3) {
+                    for(int mode=0;mode<3;mode++) {
+                        final int modeId=2200+mode;
+                        runOnMainSync(()->((android.widget.RadioButton)settings.findViewById(modeId)).performClick());
+                        if(((GameActivity)game).getControlOptions()[0]!=mode)throw new AssertionError("Movement option not saved");
+                    }
+                    runOnMainSync(()->((android.widget.RadioButton)settings.findViewById(2200)).performClick());
+                    final android.app.AlertDialog[] editor={null};
+                    runOnMainSync(()->editor[0]=GameplaySettingsUi.edit(settings));SystemClock.sleep(500);
+                    for(int sliderId=2400;sliderId<=2402;sliderId++) {
+                        final int idToDrag=sliderId;
+                        runOnMainSync(()-> {
+                            android.widget.SeekBar bar=editor[0].findViewById(idToDrag);
+                            long time=SystemClock.uptimeMillis();
+                            for(int action:new int[]{MotionEvent.ACTION_DOWN,MotionEvent.ACTION_UP}) {
+                                MotionEvent event=MotionEvent.obtain(time,time+20,action,bar.getWidth()-bar.getPaddingRight()-1,bar.getHeight()/2f,0);
+                                bar.onTouchEvent(event);event.recycle();
+                            }
+                        });
+                    }
+                    int[] custom=((GameActivity)game).getControlOptions();
+                    if(custom[3]<125||custom[4]<95||custom[5]<95)throw new AssertionError("Editor slider persistence");
+                    // Dialog owns focus while the editor is open.
+                    SystemClock.sleep(300);
+                    Bitmap editorShot=getUiAutomation().takeScreenshot();
+                    try(FileOutputStream out=new FileOutputStream(new File(root,"menu-"+language+"-button-editor.png"))){editorShot.compress(Bitmap.CompressFormat.PNG,100,out);}
+                    editorShot.recycle();
+                    runOnMainSync(()->editor[0].dismiss());
+                    // Keep the rest of this menu fixture on unmodified geometry.
+                    controls.edit().remove("button_size_0").remove("button_x_0").remove("button_y_0").commit();
+                    SystemClock.sleep(300);
+                    Bitmap shot=getUiAutomation().takeScreenshot();
+                    try(FileOutputStream out=new FileOutputStream(new File(root,"menu-"+language+"-controls.png"))){shot.compress(Bitmap.CompressFormat.PNG,100,out);}
+                    shot.recycle();
+                    runOnMainSync(()-> {
+                        android.view.View target=settings.findViewById(2301);
+                        target.requestRectangleOnScreen(new android.graphics.Rect(0,0,target.getWidth(),target.getHeight()),true);
+                    });
+                    captureSettings(settings,"movement");
+                }
+                runOnMainSync(()->settings.finish());SystemClock.sleep(1600);focus();
+                if(((GameActivity)game).getTouchLayout()!=selected)throw new AssertionError("Native layout getter mismatch");
+            }
+            ActivityMonitor difficultyMonitor=addMonitor("pl.pazur.port.ControllerSettingsActivity",null,false);
+            tap(270,267);
+            Activity difficulty=waitForMonitorWithTimeout(difficultyMonitor,5000);removeMonitor(difficultyMonitor);
+            if(difficulty==null)throw new AssertionError("Options > Difficulty not available");
+            for(int selected=0;selected<3;selected++) {
+                final int id=2100+selected;
+                runOnMainSync(()->((android.widget.RadioButton)difficulty.findViewById(id)).performClick());
+                if(((GameActivity)game).getControlOptions()[2]!=selected)throw new AssertionError("Difficulty not saved");
+            }
+            captureSettings(difficulty,"difficulty");
+            runOnMainSync(()->difficulty.finish());SystemClock.sleep(1600);focus();
+        } finally {
+            SharedPreferences.Editor restore=controls.edit().clear();
+            for(java.util.Map.Entry<String,?> entry:originalOptions.entrySet()) {
+                Object v=entry.getValue();String k=entry.getKey();
+                if(v instanceof Integer)restore.putInt(k,(Integer)v);
+                else if(v instanceof Boolean)restore.putBoolean(k,(Boolean)v);
+                else if(v instanceof String)restore.putString(k,(String)v);
+                else if(v instanceof Long)restore.putLong(k,(Long)v);
+                else if(v instanceof Float)restore.putFloat(k,(Float)v);
+                else if(v instanceof java.util.Set)restore.putStringSet(k,(java.util.Set<String>)v);
+            }
+            if(!restore.commit())throw new AssertionError("Control preference restoration failed");
+        }
+    }
     @Override public void onStart() {
         Bundle result=new Bundle();int code=1;
         SharedPreferences prefs=getTargetContext().getSharedPreferences("interface",Context.MODE_PRIVATE);
@@ -158,7 +259,7 @@ public class MenuTouchTest extends Instrumentation {
             tap(275,427);
             tap(185,217);capture("single");tap(228,217);capture("levels");
             tap(288,427);tap(276,392);
-            tap(248,322);capture("options");tap(270,337);capture("audio");tap(220,268);tap(220,302);
+            tap(248,322);capture("options");controlLayouts();tap(270,337);capture("audio");tap(220,268);tap(220,302);
             if(audioSliders)audioSliderCases();
             tap(276,372);tap(276,407);
             tap(248,357);capture("credits");tap(276,427);

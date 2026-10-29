@@ -1,3 +1,5 @@
+#include "GameplayBalance.h"
+#include "TouchControls.h"
 #include "CombatProbe.h"
 #include "CombatPrototypes.h"
 #include "ComponentProfiler.h"
@@ -251,6 +253,23 @@ bool PazurCombatProbe::Handle(const std::vector<std::string>& args, const ActorM
             from.x,from.y,to.x,to.y,
             claw->GetRawComponent<PowerupComponent>(true)->HasPowerup(PowerupType_Catnip));
         return true;
+    }
+    if(args[0]=="gameplayoptionscheck") {
+        auto health=claw->GetRawComponent<HealthComponent>(true);
+        const int originalHealth=health->GetHealth(),originalDifficulty=PazurBalance::Difficulty();
+        bool passed=PazurTouch::CheckInputOptions();
+        const int damages[]={5,10,15},heals[]={15,10,5};
+        for(int difficulty=0;difficulty<3;difficulty++) {
+            PazurBalance::Difficulty()=difficulty;
+            health->SetCurrentHealth(50);health->SetInvulnerable(false);
+            health->AddHealth(-10,DamageType_Bullet,Point(0,0),INVALID_ACTOR_ID);
+            const int damaged=health->GetHealth();
+            health->AddHealth(PazurBalance::Healing(10,difficulty),DamageType_None,Point(0,0),INVALID_ACTOR_ID);
+            passed=passed&&damaged==50-damages[difficulty]&&health->GetHealth()==damaged+heals[difficulty];
+            SDL_Log("Pazur balance fixture: difficulty=%d damage=%d healing=%d",difficulty,50-damaged,health->GetHealth()-damaged);
+        }
+        health->SetCurrentHealth(originalHealth);PazurBalance::Difficulty()=originalDifficulty;
+        SDL_Log("Pazur gameplay options fixture: passed=%d",passed);return true;
     }
     if(args[0]=="combatlastlife") {
         // Enter the normal last-life death/animation/menu path, not a fake UI.

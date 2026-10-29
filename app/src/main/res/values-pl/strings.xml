@@ -46,4 +46,22 @@
     <string name="import_recovery_error">"Nie można przywrócić danych po przerwanym imporcie. Kopia została zachowana. Zwolnij trochę miejsca i spróbuj ponownie. Szczegóły: "</string>
     <string name="import_config_error">Nieprawidłowa konfiguracja w paczce.</string>
     <string name="save_tools_credit">Inspiracja: Claw Web — Arthur Boss i współtwórcy (GPLv3). Adaptacja na Androida: OpenAI Codex / LLM.</string>
+
+    <string name="touch_layout_title">Sterowanie dotykowe</string>
+    <string-array name="touch_layout_names"><item>Klasyczny</item><item>Komfortowy</item><item>Skok obok ataku</item><item>Leworęczny</item></string-array>
+    <string-array name="touch_layout_descriptions"><item>Dotychczasowy joystick i przyciski.</item><item>Większe przyciski do szybkich skoków i walki.</item><item>Zamiana miejscami SKOKU i ATAKU.</item><item>Joystick po prawej, przyciski akcji po lewej.</item></string-array>
+    <string name="difficulty_title">Poziom trudności</string>
+    <string name="difficulty_help">Zmieniają się wyłącznie otrzymywane obrażenia i leczenie z przedmiotów. Pola natychmiastowej śmierci i pozostałe zasady pozostają bez zmian.</string>
+    <string name="movement_title">Sposób poruszania</string>
+    <string name="deadzone">Martwa strefa joysticka</string>
+    <string name="deadzone_help">Niższa wartość oznacza reakcję na mniejsze ruchy kciuka.</string>
+    <string name="edit_touch_buttons">Edytuj przyciski dotykowe</string>
+    <string name="button_size">Rozmiar (%)</string>
+    <string name="button_x">Przesunięcie w poziomie</string>
+    <string name="button_y">Przesunięcie w pionie</string>
+    <string name="reset_touch_buttons">Przywróć przyciski dotykowe</string>
+    <string name="button_editor_help">Wybierz przycisk i zmień jego rozmiar oraz położenie. Zmiany zapisują się po puszczeniu suwaka i działają po powrocie do gry. Przyciski pozostają na ekranie; unikaj ich nakładania.</string>
+    <string-array name="difficulty_names"><item>Łatwy — obrażenia 50%, leczenie 150%</item><item>Normalny — obrażenia 100%, leczenie 100%</item><item>Trudny — obrażenia 150%, leczenie 50%</item></string-array>
+    <string-array name="movement_names"><item>Stały joystick</item><item>Ruchomy joystick</item><item>Przyciski kierunkowe</item></string-array>
+    <string-array name="touch_button_names"><item>Skok</item><item>Atak</item><item>Strzał</item><item>Broń</item><item>Pauza</item></string-array>
 </resources>
