@@ -446,11 +446,14 @@ bool PazurCombatProbe::Handle(const std::vector<std::string>& args, const ActorM
         jumpTrace.baseY=claw->GetPositionComponent()->GetY();
         return true;
     }
-    if ((args[0] == "combatstage" || args[0] == "combatdummy") && args.size() == 4) {
+    if (((args[0] == "combatstage" || args[0] == "combatdummy") && args.size() == 4) ||
+        (args[0] == "combatstagezero" && args.size() == 5)) {
         if (claw->GetRawComponent<ClawControllableComponent>(true)->IsDying()) {
             SDL_Log("Pazur probe rejected: player is dying; start a fresh process");
             return true;
         }
+        const int zeroDelay = args[0] == "combatstagezero" ? std::stoi(args[4]) : -1;
+        if (zeroDelay < -1 || zeroDelay > 2000) return true;
         ResetKeys();
         const int index = std::stoi(args[1]);
         if (index < -1 || index >= int(sizeof(combatPrototypes)/sizeof(combatPrototypes[0]))) return true;
@@ -517,6 +520,20 @@ bool PazurCombatProbe::Handle(const std::vector<std::string>& args, const ActorM
                         name=="PunkRatAIStateComponent" || name=="RollEnemyAIStateComponent") xml->RemoveChild(e);
                     e=next;
                 }
+            }
+            if (zeroDelay >= 0) {
+                // Synthetic frame-zero regression fixture, never persisted to game data.
+                auto melee = xml->FirstChildElement("MeleeAttackAIStateComponent");
+                assert(melee);
+                melee->FirstChildElement("Attacks")->FirstChildElement("AttackAction")
+                    ->FirstChildElement("AttackAnimFrameIdx")->FirstChild()->SetValue("0");
+                auto delay = melee->FirstChildElement("AttackDelay");
+                if (!delay) {
+                    delay = new TiXmlElement("AttackDelay");
+                    delay->LinkEndChild(new TiXmlText("0"));
+                    melee->LinkEndChild(delay);
+                }
+                delay->FirstChild()->SetValue(std::to_string(zeroDelay));
             }
             target = logic->VCreateActor(xml,nullptr);
             delete xml;

@@ -1,5 +1,7 @@
 # Enemy attack-speed audit - 2026-10-30
 
+Follow-up: [debug 0.4.37 fixes and final tests](UPDATE-0.4.37.md) address the confirmed frame/dispatch/delay issues below. Original analysis also confirms Gabriel uniform selection; unused weights are not a balancing defect. This report retains its original debug36 scope.
+
 **Result: 26 of 76 configured attack actions use a different frame from the original ANI event-1 marker; 40 match it and 10 require custom-handler analysis. The port timing inventory is complete for its packaged enemy prototypes, but exact original-game cadence parity is not established.** Confirmed port issues and reconstruction gaps are listed separately. This audit changes no combat balance or APK. Analysis, documentation and fixtures were produced by OpenAI Codex (LLM), following anonymous human feedback.
 
 ## What was checked

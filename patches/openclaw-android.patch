@@ -955,7 +955,7 @@ index beef2e6..3c6a06c 100644
 \ No newline at end of file
 +}*/
 diff --git a/OpenClaw/Engine/Actor/Components/EnemyAI/EnemyAIStateComponent.cpp b/OpenClaw/Engine/Actor/Components/EnemyAI/EnemyAIStateComponent.cpp
-index 5520bba..bf9536b 100644
+index 5520bba..bee7949 100644
 --- a/OpenClaw/Engine/Actor/Components/EnemyAI/EnemyAIStateComponent.cpp
 +++ b/OpenClaw/Engine/Actor/Components/EnemyAI/EnemyAIStateComponent.cpp
 @@ -433,6 +433,9 @@ void PatrolEnemyAIStateComponent::VPostInit()
@@ -1005,15 +1005,23 @@ index 5520bba..bf9536b 100644
  
      if (TiXmlElement* pElem = pData->FirstChildElement("AttackSpeech"))
      {
-@@ -999,7 +1008,7 @@ void BaseAttackAIStateComponent::VOnStateEnter(BaseEnemyAIStateComponent* pPrevi
+@@ -998,14 +1007,14 @@ void BaseAttackAIStateComponent::VOnStateEnter(BaseEnemyAIStateComponent* pPrevi
+     m_IsActive = true;
  
      m_CurrentAttackActionIdx = 0;
-     VExecuteAttack();
+-    VExecuteAttack();
 -    m_pAnimationComponent->SetDelay(m_AttackDelay);
-+    m_pAnimationComponent->SetDelay(m_SelectedAttackDelay);
++    BeginAttack(true);
  }
  
  void BaseAttackAIStateComponent::VOnStateLeave(BaseEnemyAIStateComponent* pNextState)
+ {
+     m_IsActive = false;
+     m_CurrentAttackActionIdx = 0;
++    m_FirstFramePending = m_FirstFrameReady = false;
+ }
+ 
+ void BaseAttackAIStateComponent::VExecuteAttack()
 @@ -1026,7 +1035,14 @@ void BaseAttackAIStateComponent::VExecuteAttack()
          m_pRenderComponent->SetMirrored(true);
      }
@@ -1030,27 +1038,99 @@ index 5520bba..bf9536b 100644
  
      // TODO: Pick randomly melee action ?
  
-@@ -1048,7 +1064,7 @@ void BaseAttackAIStateComponent::VOnAnimationLooped(Animation* pAnimation)
+@@ -1047,13 +1063,12 @@ void BaseAttackAIStateComponent::VOnAnimationLooped(Animation* pAnimation)
+         m_pEnemyAIComponent->EnterBestState(true);
          if (m_IsActive)
          {
-             VExecuteAttack();
+-            VExecuteAttack();
 -            m_pAnimationComponent->SetDelay(m_AttackDelay);
-+            m_pAnimationComponent->SetDelay(m_SelectedAttackDelay);
++            BeginAttack(true);
          }
      }
      else
-@@ -1090,6 +1106,10 @@ void BaseAttackAIStateComponent::VOnAnimationFrameChanged(
-             offset = Point(offset.x * -1.0, offset.y);
-         }
+     {
+-        VExecuteAttack();
++        BeginAttack(false);
+     }
+ }
  
-+        static int attackFrameLogs = 0;
-+        if (g_pApp->GetDebugOptions()->bPreviewIncompleteLevel14 && attackFrameLogs++ < 2000)
-+            SDL_Log("Pazur attack frame: actor=%s animation=%s frame=%u direction=%d damage=%u",
-+                m_pOwner->GetName().c_str(),pAttack->animation.c_str(),pNewFrame->idx,(int)dir,pAttack->damage);
-         VOnAttackFrame(pAttack, dir, offset);
+@@ -1078,22 +1093,63 @@ void BaseAttackAIStateComponent::VOnAnimationFrameChanged(
+         return;
+     }
  
-         m_CurrentAttackActionIdx++;
-@@ -1173,7 +1193,7 @@ Point BaseAttackAIStateComponent::FindClosestHostileActorOffset()
+-    if (m_AttackActions[m_CurrentAttackActionIdx]->attackAnimFrameIdx == pNewFrame->idx)
+-    {
+-        std::shared_ptr<EnemyAttackAction> pAttack = m_AttackActions[m_CurrentAttackActionIdx];
++    if (m_AttackActions[m_CurrentAttackActionIdx]->attackAnimFrameIdx == pNewFrame->idx &&
++        (!m_FirstFramePending || m_FirstFrameReady))
++        ExecuteCurrentAttackFrame();
++}
+ 
+-        Direction dir = Direction_Left;
+-        Point offset = pAttack->attackSpawnPositionOffset;
+-        if (m_pRenderComponent->IsMirrored())
+-        {
+-            dir = Direction_Right;
+-            offset = Point(offset.x * -1.0, offset.y);
+-        }
++void BaseAttackAIStateComponent::BeginAttack(bool applySequenceDelay)
++{
++    m_FirstFramePending = m_FirstFrameReady = false;
++    VExecuteAttack();
++    const int delay = applySequenceDelay ? m_SelectedAttackDelay : 0;
++    if (applySequenceDelay) m_pAnimationComponent->SetDelay(delay);
++    auto animation = m_pAnimationComponent->GetCurrentAnimation();
++    m_FirstFramePending = animation->IsAtFirstAnimFrame() &&
++        m_AttackActions[m_CurrentAttackActionIdx]->attackAnimFrameIdx == 0;
++    m_FirstFrameReady = delay == 0;
++    // A sensor can enter an attack state while Box2D is stepping. Creating a
++    // frame-zero damage body there is unsafe; VUpdate emits it once after the
++    // sequence delay, even if the animation has already advanced by one frame.
++    static int cycleLogs = 0;
++    if (g_pApp->GetDebugOptions()->bPreviewIncompleteLevel14 && cycleLogs++ < 2000)
++        SDL_Log("Pazur attack cycle: actor=%s animation=%s delay=%d first_frame=%u tick=%u",
++            m_pOwner->GetName().c_str(), animation->GetName().c_str(), delay,
++            animation->GetCurrentAnimationFrame()->idx, SDL_GetTicks());
++}
+ 
+-        VOnAttackFrame(pAttack, dir, offset);
++void BaseAttackAIStateComponent::VUpdate(uint32)
++{
++    if (m_IsActive && m_FirstFramePending && m_FirstFrameReady)
++        ExecuteCurrentAttackFrame();
++}
++
++void BaseAttackAIStateComponent::VOnAnimationEndedDelay(Animation* animation)
++{
++    if (m_IsActive && m_FirstFramePending &&
++        animation == m_pAnimationComponent->GetCurrentAnimation().get())
++        m_FirstFrameReady = true;
++}
+ 
+-        m_CurrentAttackActionIdx++;
++void BaseAttackAIStateComponent::ExecuteCurrentAttackFrame()
++{
++    if (!m_IsActive || m_CurrentAttackActionIdx >= m_AttackActions.size()) return;
++    auto attack = m_AttackActions[m_CurrentAttackActionIdx];
++    if (m_pAnimationComponent->GetCurrentAnimationName() != attack->animation) return;
++    m_FirstFramePending = m_FirstFrameReady = false;
++    Direction direction = Direction_Left;
++    Point offset = attack->attackSpawnPositionOffset;
++    if (m_pRenderComponent->IsMirrored()) {
++        direction = Direction_Right;
++        offset.x *= -1;
+     }
++    static int attackFrameLogs = 0;
++    if (g_pApp->GetDebugOptions()->bPreviewIncompleteLevel14 && attackFrameLogs++ < 2000)
++        SDL_Log("Pazur attack frame: actor=%s animation=%s frame=%u direction=%d damage=%u tick=%u",
++            m_pOwner->GetName().c_str(), attack->animation.c_str(),
++            attack->attackAnimFrameIdx, (int)direction, attack->damage, SDL_GetTicks());
++    VOnAttackFrame(attack, direction, offset);
++    ++m_CurrentAttackActionIdx;
+ }
+ 
+ void BaseAttackAIStateComponent::OnEnemyEnterAgroRange(Actor* pEnemy)
+@@ -1173,7 +1229,7 @@ Point BaseAttackAIStateComponent::FindClosestHostileActorOffset()
  
  bool BaseAttackAIStateComponent::VCanEnter()
  {
@@ -1059,7 +1139,7 @@ index 5520bba..bf9536b 100644
      {
          return false;
      }
-@@ -1182,7 +1202,9 @@ bool BaseAttackAIStateComponent::VCanEnter()
+@@ -1182,7 +1238,9 @@ bool BaseAttackAIStateComponent::VCanEnter()
      // Since the first found actor is picked
  
      // TODO: Revisit this if enemy ever has more than one attack action per AttackAIStateComponent
@@ -1070,7 +1150,7 @@ index 5520bba..bf9536b 100644
  
      // Check if enemy is within line of sight
      Point fromPoint = m_pOwner->GetPositionComponent()->GetPosition() + action.agroSensorFixture.offset;
-@@ -1238,6 +1260,9 @@ bool MeleeAttackAIStateComponent::VDelegateInit(TiXmlElement* pData)
+@@ -1238,6 +1296,9 @@ bool MeleeAttackAIStateComponent::VDelegateInit(TiXmlElement* pData)
  
  void MeleeAttackAIStateComponent::VOnAttackFrame(std::shared_ptr<EnemyAttackAction> pAttack, Direction dir, const Point& offset)
  {
@@ -1080,7 +1160,7 @@ index 5520bba..bf9536b 100644
      ActorTemplates::CreateAreaDamage(
          m_pPositionComponent->GetPosition() + offset,
          pAttack->attackAreaSize,
-@@ -1893,6 +1918,8 @@ bool RollEnemyAIStateComponent::VDelegateInit(TiXmlElement* pData)
+@@ -1893,6 +1954,8 @@ bool RollEnemyAIStateComponent::VDelegateInit(TiXmlElement* pData)
      assert(m_pPhysics);
  
      DO_AND_CHECK(ParseValueFromXmlElem(&m_RollSpeed, pData->FirstChildElement("RollSpeed")));
@@ -1089,7 +1169,7 @@ index 5520bba..bf9536b 100644
      DO_AND_CHECK(ParseValueFromXmlElem(&m_ForwardRollAnimation, pData->FirstChildElement("ForwardRollAnimation")));
      DO_AND_CHECK(ParseValueFromXmlElem(&m_BackwardRollAnimation, pData->FirstChildElement("BackwardRollAnimation")));
      m_RollSensorFixtureDef = ActorTemplates::XmlToActorFixtureDef(pData->FirstChildElement("RollSensorFixtureDef"));
-@@ -1920,7 +1947,10 @@ void RollEnemyAIStateComponent::VPostPostInit()
+@@ -1920,7 +1983,10 @@ void RollEnemyAIStateComponent::VPostPostInit()
  
  void RollEnemyAIStateComponent::VUpdate(uint32 msDiff)
  {
@@ -1100,7 +1180,7 @@ index 5520bba..bf9536b 100644
  
      if (m_IsActive)
      {
-@@ -1937,7 +1967,7 @@ void RollEnemyAIStateComponent::VUpdate(uint32 msDiff)
+@@ -1937,7 +2003,7 @@ void RollEnemyAIStateComponent::VUpdate(uint32 msDiff)
  
  bool RollEnemyAIStateComponent::VCanEnter()
  {
@@ -1109,7 +1189,7 @@ index 5520bba..bf9536b 100644
      return bCanEnter;
  }
  
-@@ -1950,7 +1980,11 @@ void RollEnemyAIStateComponent::VOnStateEnter(BaseEnemyAIStateComponent* pPrevio
+@@ -1950,7 +2016,11 @@ void RollEnemyAIStateComponent::VOnStateEnter(BaseEnemyAIStateComponent* pPrevio
     
      Direction rollDirection = DetermineRollDirection();
  
@@ -1122,7 +1202,7 @@ index 5520bba..bf9536b 100644
      if (rollDirection == Direction_Left)
      {
          speed.x *= -1.0;
-@@ -1967,8 +2001,9 @@ void RollEnemyAIStateComponent::VOnStateEnter(BaseEnemyAIStateComponent* pPrevio
+@@ -1967,8 +2037,9 @@ void RollEnemyAIStateComponent::VOnStateEnter(BaseEnemyAIStateComponent* pPrevio
  void RollEnemyAIStateComponent::VOnStateLeave(BaseEnemyAIStateComponent* pNextState)
  {
      m_IsActive = false;
@@ -1133,7 +1213,7 @@ index 5520bba..bf9536b 100644
      m_pPhysics->VSetLinearSpeed(m_pOwner->GetGUID(), zeroSpeed);
  }
  
-@@ -2012,7 +2047,7 @@ void RollEnemyAIStateComponent::VOnAnimationLooped(Animation* pAnimation)
+@@ -2012,7 +2083,7 @@ void RollEnemyAIStateComponent::VOnAnimationLooped(Animation* pAnimation)
          return;
      }
  
@@ -1143,7 +1223,7 @@ index 5520bba..bf9536b 100644
      m_pEnemyAIComponent->EnterBestState(true);
  }
 diff --git a/OpenClaw/Engine/Actor/Components/EnemyAI/EnemyAIStateComponent.h b/OpenClaw/Engine/Actor/Components/EnemyAI/EnemyAIStateComponent.h
-index f120148..b3d612d 100644
+index f120148..3a1fe68 100644
 --- a/OpenClaw/Engine/Actor/Components/EnemyAI/EnemyAIStateComponent.h
 +++ b/OpenClaw/Engine/Actor/Components/EnemyAI/EnemyAIStateComponent.h
 @@ -225,6 +225,8 @@ public:
@@ -1164,8 +1244,32 @@ index f120148..b3d612d 100644
      std::string m_ForwardRollAnimation;
      std::string m_BackwardRollAnimation;
      ActorFixtureDef m_RollSensorFixtureDef;
-@@ -404,6 +408,8 @@ private:
+@@ -381,7 +385,7 @@ public:
+     virtual bool VDelegateInit(TiXmlElement* pData) override;
+ 
+     // EnemyAIStateComponent API
+-    virtual void VUpdate(uint32 msDiff) override { };
++    virtual void VUpdate(uint32 msDiff) override;
+     virtual void VOnStateEnter(BaseEnemyAIStateComponent* pPreviousState) override;
+     virtual void VOnStateLeave(BaseEnemyAIStateComponent* pNextState) override;
+     virtual EnemyAIState VGetStateType() const override = 0;
+@@ -390,6 +394,8 @@ public:
+     virtual void VOnAnimationLooped(Animation* pAnimation) override;
+     virtual void VOnAnimationFrameChanged(Animation* pAnimation, AnimationFrame* pLastFrame, AnimationFrame* pNewFrame) override;
+ 
++    virtual void VOnAnimationEndedDelay(Animation* pAnimation) override;
++
+     // BaseAttackAIStateComponent API
+     virtual void VExecuteAttack();
+     virtual void VOnAttackFrame(std::shared_ptr<EnemyAttackAction> pAttack, Direction dir, const Point& offset) = 0;
+@@ -402,8 +408,14 @@ public:
+ 
+ private:
      void ClawHealthBelowZeroDelegate(IEventDataPtr pEventData);
++    void BeginAttack(bool applySequenceDelay);
++    void ExecuteCurrentAttackFrame();
++    bool m_FirstFramePending = false;
++    bool m_FirstFrameReady = false;
  
      int m_AttackDelay;
 +    int m_MaxAttackDelay = 0;
@@ -1173,6 +1277,21 @@ index f120148..b3d612d 100644
  
      SoundList m_AttackSpeechSoundList;
      int m_AttackSpeechSoundPlayChance;
+diff --git a/OpenClaw/Engine/Actor/Components/EnemyAI/Gabriel/GabrielEncounter.cpp b/OpenClaw/Engine/Actor/Components/EnemyAI/Gabriel/GabrielEncounter.cpp
+index 76bbb94..49e1763 100644
+--- a/OpenClaw/Engine/Actor/Components/EnemyAI/Gabriel/GabrielEncounter.cpp
++++ b/OpenClaw/Engine/Actor/Components/EnemyAI/Gabriel/GabrielEncounter.cpp
+@@ -202,6 +202,10 @@ void GabrielAIStateComponent::VUpdate(uint32 msDiff)
+     m_TimeSinceLastAction += msDiff;
+     if (m_TimeSinceLastAction > m_CurrActionDelay)
+     {
++        // REA original selector 0x445740 chooses rand()%3. Uniform selection is
++        // deliberate; the legacy vector's probability/reuse fields are unused
++        // metadata, not verified original cooldowns. Original idle/prelude gates
++        // still need a separate encounter reconstruction and runtime test.
+         GabrielAction action = Util::GetRandomValueFromVector(m_GabrielActionList);
+         std::string playedSound;
+         switch (action.actionType)
 diff --git a/OpenClaw/Engine/Actor/Components/EnemyAI/Marrow/MarrowEncounter.cpp b/OpenClaw/Engine/Actor/Components/EnemyAI/Marrow/MarrowEncounter.cpp
 index 6e48419..2130716 100644
 --- a/OpenClaw/Engine/Actor/Components/EnemyAI/Marrow/MarrowEncounter.cpp

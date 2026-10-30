@@ -55,3 +55,5 @@ Open human-reported regression: [level 2 platform blockage](validation/LEVEL2-PL
 Debug35 provides [automatic local movement/contact history](BACKGROUND-DEBUGGING.md). Its wall-push candidates support investigation; they do not close the open collision report or campaign gates.
 
 October 30: [menu cleanup](validation/MENU-AUDIT-2026-10-30.md), [forest ladder/rope corrections](validation/FOREST-MOTION-2026-10-30.md), and [original boss evidence with cadence approximation](validation/LERAUX-ORIGINAL-2026-10-30.md). Human rechecks remain necessary; these are not full campaign or original-parity certification.
+
+Attack comparison follow-up: [debug 0.4.37](validation/UPDATE-0.4.37.md) fixes supported emission frames and first-frame dispatch. Remaining original AI policies and damage-window work are recorded in the [custom-handler investigation](validation/ORIGINAL-CUSTOM-EVENTS-0.4.37.md); this does not close the full original-parity or campaign gate.

@@ -1,5 +1,7 @@
 # Special enemy and boss timing - 2026-10-30
 
+Follow-up: [debug 0.4.37 fixes and final tests](UPDATE-0.4.37.md) address the confirmed frame/dispatch/delay issues below. Original analysis also confirms Gabriel uniform selection; unused weights are not a balancing defect. This report retains its original debug36 scope.
+
 OpenAI Codex (LLM) reviewed the debug 0.4.36 source and packaged XML. This is a source audit, not original-Windows runtime verification. The [full inventory](ENEMY-ATTACK-INVENTORY-2026-10-30.md) contains every concrete EnemyAI/encounter prototype; the [comparison](ENEMY-ATTACK-AUDIT-2026-10-30.md) records evidence and remaining gaps. All times below are milliseconds.
 
 | Actor / mechanism | Effective port behavior | Important qualification |
