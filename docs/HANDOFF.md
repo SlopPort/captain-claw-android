@@ -18,6 +18,8 @@ The phone's existing debug installation was not migrated or uninstalled.
 
 ## Latest verified behavior
 
+[Enemy attack-speed audit](validation/ENEMY-ATTACK-AUDIT-2026-10-30.md): 55 packaged enemy/encounter prototypes and 76 attacks inventoried, 15 ordinary Huawei cadence cases plus one ranged case measured. Original ANI event mapping is traced: 26 configured actions differ from event-1 markers, 40 match and ten need custom handlers. Red Tail has an ignored nested delay; frame-zero first-hit behavior and unused Gabriel action metadata need follow-up. Exact original timing for every family remains unresolved. This source/documentation batch changes no APK or balance.
+
 Current build/test summary: [debug 0.4.36](validation/UPDATE-0.4.36.md). This is the final tested local debug build, not a signed public release.
 
 
