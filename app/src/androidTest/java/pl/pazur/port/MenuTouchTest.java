@@ -143,7 +143,7 @@ public class MenuTouchTest extends Instrumentation {
         try {
             for(int selected=0;selected<4;selected++) {
                 ActivityMonitor monitor=addMonitor("pl.pazur.port.ControllerSettingsActivity",null,false);
-                tap(270,302);
+                tap(270,267);
                 Activity settings=waitForMonitorWithTimeout(monitor,5000);removeMonitor(monitor);
                 if(settings==null)throw new AssertionError("Options > Controls did not open settings");
                 final int id=2000+selected;
@@ -198,7 +198,7 @@ public class MenuTouchTest extends Instrumentation {
                 if(((GameActivity)game).getTouchLayout()!=selected)throw new AssertionError("Native layout getter mismatch");
             }
             ActivityMonitor difficultyMonitor=addMonitor("pl.pazur.port.ControllerSettingsActivity",null,false);
-            tap(270,267);
+            tap(270,232);
             Activity difficulty=waitForMonitorWithTimeout(difficultyMonitor,5000);removeMonitor(difficultyMonitor);
             if(difficulty==null)throw new AssertionError("Options > Difficulty not available");
             for(int selected=0;selected<3;selected++) {
@@ -252,18 +252,18 @@ public class MenuTouchTest extends Instrumentation {
                 for(int i=0;i<cycles;i++) {
                     tap(185,217);
                     if(i%5==0)capture("stress-single");
-                    tap(228,217);tap(290,427);tap(290,392);
+                    tap(228,217);tap(290,427);tap(290,322);
                 }
             } else {
-            tap(200,252);tap(275,392);capture("help-index");tap(335,462);capture("help");
+            tap(275,322);capture("help-index");tap(335,462);capture("help");
             tap(275,427);
             tap(185,217);capture("single");tap(228,217);capture("levels");
-            tap(288,427);tap(276,392);
-            tap(248,322);capture("options");controlLayouts();tap(270,337);capture("audio");tap(220,268);tap(220,302);
+            tap(288,427);tap(276,322);
+            tap(248,252);capture("options");controlLayouts();tap(270,302);capture("audio");tap(220,268);tap(220,302);
             if(audioSliders)audioSliderCases();
-            tap(276,372);tap(276,407);
-            tap(248,357);capture("credits");tap(276,427);
-            tap(282,427);capture("quit");tap(302,342);capture("returned");
+            tap(276,372);tap(276,337);
+            tap(248,287);capture("credits");tap(276,427);
+            tap(282,357);capture("quit");tap(302,342);capture("returned");
             escape();escape();capture("keyboard-return");
             }
             result.putString("menu","PASS: focused-window navigation completed in "+language+"; page logs and screenshots require verification");code=0;

@@ -1,3 +1,4 @@
+#include "Engine/Actor/Components/RopeComponent.h"
 #include "GameplayBalance.h"
 #include "TouchControls.h"
 #include "CombatProbe.h"
@@ -364,6 +365,19 @@ bool PazurCombatProbe::Handle(const std::vector<std::string>& args, const ActorM
             edgeClaw=claw;
         }
         SDL_Log("Pazur edge fixture: left=205872 right=206128 top=768 catch=2368");
+        return true;
+    }
+    if (args[0]=="ropestatus") {
+        for (const auto& pair : actors) {
+            auto rope=pair.second;
+            if (!rope->GetRawComponent<RopeComponent>(false)) continue;
+            auto animation=rope->GetRawComponent<AnimationComponent>(true)->GetCurrentAnimation();
+            const auto p=rope->GetPositionComponent()->GetPosition();
+            const auto c=claw->GetPositionComponent()->GetPosition();
+            SDL_Log("Pazur rope status: id=%u x=%.1f y=%.1f frame=%u phase=%.4f attached=%d hero=%.2f,%.2f",
+                rope->GetGUID(),p.x,p.y,animation->GetCurrentAnimationFrame()->idx,
+                animation->GetFrameProgress(),claw->GetRawComponent<ClawControllableComponent>(true)->VIsAttachedToRope(),c.x,c.y);
+        }
         return true;
     }
     if (args[0]=="ladderstatus") {

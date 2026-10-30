@@ -582,6 +582,19 @@ index 5dd2581..ad5586d 100644
 -}
 \ No newline at end of file
 +}
+diff --git a/OpenClaw/Engine/Actor/Components/Animation.h b/OpenClaw/Engine/Actor/Components/Animation.h
+index 03ef8f5..5939cf6 100644
+--- a/OpenClaw/Engine/Actor/Components/Animation.h
++++ b/OpenClaw/Engine/Actor/Components/Animation.h
+@@ -44,6 +44,8 @@ public:
+     AnimationFrame* GetCurrentAnimationFrame() { return &_currentAnimationFrame; }
+ 
+     void Update(uint32 msDiff);
++    double GetFrameProgress() const { return _currentAnimationFrame.duration ?
++        (double)_currentTime / _currentAnimationFrame.duration : 0.0; }
+     void Reset();
+     void SetNextFrame();
+     void SetAnimationFrame(int idx) { assert(idx < (int)_animationFrames.size()); _currentAnimationFrame = _animationFrames[idx]; }
 diff --git a/OpenClaw/Engine/Actor/Components/AreaDamageComponent.cpp b/OpenClaw/Engine/Actor/Components/AreaDamageComponent.cpp
 index eba8809..834d82f 100644
 --- a/OpenClaw/Engine/Actor/Components/AreaDamageComponent.cpp
@@ -942,7 +955,7 @@ index beef2e6..3c6a06c 100644
 \ No newline at end of file
 +}*/
 diff --git a/OpenClaw/Engine/Actor/Components/EnemyAI/EnemyAIStateComponent.cpp b/OpenClaw/Engine/Actor/Components/EnemyAI/EnemyAIStateComponent.cpp
-index 5520bba..119a004 100644
+index 5520bba..bf9536b 100644
 --- a/OpenClaw/Engine/Actor/Components/EnemyAI/EnemyAIStateComponent.cpp
 +++ b/OpenClaw/Engine/Actor/Components/EnemyAI/EnemyAIStateComponent.cpp
 @@ -433,6 +433,9 @@ void PatrolEnemyAIStateComponent::VPostInit()
@@ -984,7 +997,49 @@ index 5520bba..119a004 100644
      return (parryChance >= parryRand);
  }
  
-@@ -1090,6 +1098,10 @@ void BaseAttackAIStateComponent::VOnAnimationFrameChanged(
+@@ -954,6 +962,7 @@ bool BaseAttackAIStateComponent::VDelegateInit(TiXmlElement* pData)
+     }
+ 
+     ParseValueFromXmlElem(&m_AttackDelay, pData->FirstChildElement("AttackDelay"));
++    ParseValueFromXmlElem(&m_MaxAttackDelay, pData->FirstChildElement("MaxAttackDelay"));
+ 
+     if (TiXmlElement* pElem = pData->FirstChildElement("AttackSpeech"))
+     {
+@@ -999,7 +1008,7 @@ void BaseAttackAIStateComponent::VOnStateEnter(BaseEnemyAIStateComponent* pPrevi
+ 
+     m_CurrentAttackActionIdx = 0;
+     VExecuteAttack();
+-    m_pAnimationComponent->SetDelay(m_AttackDelay);
++    m_pAnimationComponent->SetDelay(m_SelectedAttackDelay);
+ }
+ 
+ void BaseAttackAIStateComponent::VOnStateLeave(BaseEnemyAIStateComponent* pNextState)
+@@ -1026,7 +1035,14 @@ void BaseAttackAIStateComponent::VExecuteAttack()
+         m_pRenderComponent->SetMirrored(true);
+     }
+ 
+-    srand((long)this + time(NULL));
++    // A delay range is enabled only for Le Rauxe. It approximates the original
++    // Home decision pause rather than claiming a complete original AI remake.
++    // The delay uses Util randomness; it needs no legacy global rand reseed.
++    m_SelectedAttackDelay = m_AttackDelay;
++    if (m_MaxAttackDelay > m_AttackDelay)
++        m_SelectedAttackDelay = Util::GetRandomNumber(m_AttackDelay, m_MaxAttackDelay);
++    else
++        srand((long)this + time(NULL));
+ 
+     // TODO: Pick randomly melee action ?
+ 
+@@ -1048,7 +1064,7 @@ void BaseAttackAIStateComponent::VOnAnimationLooped(Animation* pAnimation)
+         if (m_IsActive)
+         {
+             VExecuteAttack();
+-            m_pAnimationComponent->SetDelay(m_AttackDelay);
++            m_pAnimationComponent->SetDelay(m_SelectedAttackDelay);
+         }
+     }
+     else
+@@ -1090,6 +1106,10 @@ void BaseAttackAIStateComponent::VOnAnimationFrameChanged(
              offset = Point(offset.x * -1.0, offset.y);
          }
  
@@ -995,7 +1050,7 @@ index 5520bba..119a004 100644
          VOnAttackFrame(pAttack, dir, offset);
  
          m_CurrentAttackActionIdx++;
-@@ -1173,7 +1185,7 @@ Point BaseAttackAIStateComponent::FindClosestHostileActorOffset()
+@@ -1173,7 +1193,7 @@ Point BaseAttackAIStateComponent::FindClosestHostileActorOffset()
  
  bool BaseAttackAIStateComponent::VCanEnter()
  {
@@ -1004,7 +1059,7 @@ index 5520bba..119a004 100644
      {
          return false;
      }
-@@ -1182,7 +1194,9 @@ bool BaseAttackAIStateComponent::VCanEnter()
+@@ -1182,7 +1202,9 @@ bool BaseAttackAIStateComponent::VCanEnter()
      // Since the first found actor is picked
  
      // TODO: Revisit this if enemy ever has more than one attack action per AttackAIStateComponent
@@ -1015,7 +1070,7 @@ index 5520bba..119a004 100644
  
      // Check if enemy is within line of sight
      Point fromPoint = m_pOwner->GetPositionComponent()->GetPosition() + action.agroSensorFixture.offset;
-@@ -1238,6 +1252,9 @@ bool MeleeAttackAIStateComponent::VDelegateInit(TiXmlElement* pData)
+@@ -1238,6 +1260,9 @@ bool MeleeAttackAIStateComponent::VDelegateInit(TiXmlElement* pData)
  
  void MeleeAttackAIStateComponent::VOnAttackFrame(std::shared_ptr<EnemyAttackAction> pAttack, Direction dir, const Point& offset)
  {
@@ -1025,7 +1080,7 @@ index 5520bba..119a004 100644
      ActorTemplates::CreateAreaDamage(
          m_pPositionComponent->GetPosition() + offset,
          pAttack->attackAreaSize,
-@@ -1893,6 +1910,8 @@ bool RollEnemyAIStateComponent::VDelegateInit(TiXmlElement* pData)
+@@ -1893,6 +1918,8 @@ bool RollEnemyAIStateComponent::VDelegateInit(TiXmlElement* pData)
      assert(m_pPhysics);
  
      DO_AND_CHECK(ParseValueFromXmlElem(&m_RollSpeed, pData->FirstChildElement("RollSpeed")));
@@ -1034,7 +1089,7 @@ index 5520bba..119a004 100644
      DO_AND_CHECK(ParseValueFromXmlElem(&m_ForwardRollAnimation, pData->FirstChildElement("ForwardRollAnimation")));
      DO_AND_CHECK(ParseValueFromXmlElem(&m_BackwardRollAnimation, pData->FirstChildElement("BackwardRollAnimation")));
      m_RollSensorFixtureDef = ActorTemplates::XmlToActorFixtureDef(pData->FirstChildElement("RollSensorFixtureDef"));
-@@ -1920,7 +1939,10 @@ void RollEnemyAIStateComponent::VPostPostInit()
+@@ -1920,7 +1947,10 @@ void RollEnemyAIStateComponent::VPostPostInit()
  
  void RollEnemyAIStateComponent::VUpdate(uint32 msDiff)
  {
@@ -1045,7 +1100,7 @@ index 5520bba..119a004 100644
  
      if (m_IsActive)
      {
-@@ -1937,7 +1959,7 @@ void RollEnemyAIStateComponent::VUpdate(uint32 msDiff)
+@@ -1937,7 +1967,7 @@ void RollEnemyAIStateComponent::VUpdate(uint32 msDiff)
  
  bool RollEnemyAIStateComponent::VCanEnter()
  {
@@ -1054,7 +1109,7 @@ index 5520bba..119a004 100644
      return bCanEnter;
  }
  
-@@ -1950,7 +1972,11 @@ void RollEnemyAIStateComponent::VOnStateEnter(BaseEnemyAIStateComponent* pPrevio
+@@ -1950,7 +1980,11 @@ void RollEnemyAIStateComponent::VOnStateEnter(BaseEnemyAIStateComponent* pPrevio
     
      Direction rollDirection = DetermineRollDirection();
  
@@ -1067,7 +1122,7 @@ index 5520bba..119a004 100644
      if (rollDirection == Direction_Left)
      {
          speed.x *= -1.0;
-@@ -1967,8 +1993,9 @@ void RollEnemyAIStateComponent::VOnStateEnter(BaseEnemyAIStateComponent* pPrevio
+@@ -1967,8 +2001,9 @@ void RollEnemyAIStateComponent::VOnStateEnter(BaseEnemyAIStateComponent* pPrevio
  void RollEnemyAIStateComponent::VOnStateLeave(BaseEnemyAIStateComponent* pNextState)
  {
      m_IsActive = false;
@@ -1078,7 +1133,7 @@ index 5520bba..119a004 100644
      m_pPhysics->VSetLinearSpeed(m_pOwner->GetGUID(), zeroSpeed);
  }
  
-@@ -2012,7 +2039,7 @@ void RollEnemyAIStateComponent::VOnAnimationLooped(Animation* pAnimation)
+@@ -2012,7 +2047,7 @@ void RollEnemyAIStateComponent::VOnAnimationLooped(Animation* pAnimation)
          return;
      }
  
@@ -1088,7 +1143,7 @@ index 5520bba..119a004 100644
      m_pEnemyAIComponent->EnterBestState(true);
  }
 diff --git a/OpenClaw/Engine/Actor/Components/EnemyAI/EnemyAIStateComponent.h b/OpenClaw/Engine/Actor/Components/EnemyAI/EnemyAIStateComponent.h
-index f120148..8278995 100644
+index f120148..b3d612d 100644
 --- a/OpenClaw/Engine/Actor/Components/EnemyAI/EnemyAIStateComponent.h
 +++ b/OpenClaw/Engine/Actor/Components/EnemyAI/EnemyAIStateComponent.h
 @@ -225,6 +225,8 @@ public:
@@ -1109,6 +1164,15 @@ index f120148..8278995 100644
      std::string m_ForwardRollAnimation;
      std::string m_BackwardRollAnimation;
      ActorFixtureDef m_RollSensorFixtureDef;
+@@ -404,6 +408,8 @@ private:
+     void ClawHealthBelowZeroDelegate(IEventDataPtr pEventData);
+ 
+     int m_AttackDelay;
++    int m_MaxAttackDelay = 0;
++    int m_SelectedAttackDelay = 0;
+ 
+     SoundList m_AttackSpeechSoundList;
+     int m_AttackSpeechSoundPlayChance;
 diff --git a/OpenClaw/Engine/Actor/Components/EnemyAI/Marrow/MarrowEncounter.cpp b/OpenClaw/Engine/Actor/Components/EnemyAI/Marrow/MarrowEncounter.cpp
 index 6e48419..2130716 100644
 --- a/OpenClaw/Engine/Actor/Components/EnemyAI/Marrow/MarrowEncounter.cpp
@@ -1547,10 +1611,18 @@ index 39554a3..d399e83 100644
  #endif
 \ No newline at end of file
 diff --git a/OpenClaw/Engine/Actor/Components/PhysicsComponent.cpp b/OpenClaw/Engine/Actor/Components/PhysicsComponent.cpp
-index ade3b61..6c111a8 100644
+index ade3b61..ea5bdf7 100644
 --- a/OpenClaw/Engine/Actor/Components/PhysicsComponent.cpp
 +++ b/OpenClaw/Engine/Actor/Components/PhysicsComponent.cpp
-@@ -433,26 +433,25 @@ void PhysicsComponent::VUpdate(uint32 msDiff)
+@@ -29,6 +29,7 @@ PhysicsComponent::PhysicsComponent() :
+     m_HasConstantSpeed(false),
+     m_NumFootContacts(0),
+     m_IsClimbing(false),
++    m_LastClimbWasUp(false),
+     m_IsStopped(false),
+     m_IsRunning(false),
+     m_Direction(Direction_Right),
+@@ -433,26 +434,26 @@ void PhysicsComponent::VUpdate(uint32 msDiff)
      // I will give 100$ to someone who will refactor this method so that it is extendable
      // and does not contain uncomprehandable state machine
  
@@ -1558,7 +1630,8 @@ index ade3b61..6c111a8 100644
 +    // A ladder sensor may still overlap the feet when standing on its cap.
 +    // Finish ascent once no overlapping ladder extends above the feet; otherwise
 +    // held Up repeatedly reattaches and pumps the actor above the platform.
-+    const bool reachedLadderTop=m_ClimbingSpeed.y < -DBL_EPSILON && !HasClimbSpaceAbove();
++    const bool reachedLadderTop=CompleteLadderAscent() ||
++        (m_ClimbingSpeed.y < -DBL_EPSILON && !HasClimbSpaceAbove());
 +    // A real floor ends descent. The special one-way cap must remain passable
 +    // from above; its contact is disabled in the ordinary climbing branch.
 +    const bool reachedLadderFloor=m_ClimbingSpeed.y > DBL_EPSILON
@@ -1594,7 +1667,7 @@ index ade3b61..6c111a8 100644
          if (fabs(m_ClimbingSpeed.y) > DBL_EPSILON)
          {
              m_CurrentSpeed = Point(0, 0);
-@@ -802,7 +801,11 @@ set_velocity:
+@@ -802,7 +803,11 @@ set_velocity:
              {
                  m_pControllableComponent->VOnRun();
              }
@@ -1607,10 +1680,64 @@ index ade3b61..6c111a8 100644
              {
                  m_pControllableComponent->VOnStopMoving();
              }
-@@ -977,6 +980,23 @@ void PhysicsComponent::SetJumping(bool jumping)
+@@ -977,6 +982,77 @@ void PhysicsComponent::SetJumping(bool jumping)
      }
  }
  
++// The Level 3 leafy ladder sensor starts at +12, but its cap starts at +5.
++// Use the real support face rather than the sensor edge when mounting a ladder.
++namespace {
++class LadderCapQuery : public b2QueryCallback {
++public:
++    LadderCapQuery(double x, double sensorTop) : x(x), top(sensorTop), distance(33.0), found(false) {}
++    bool ReportFixture(b2Fixture* fixture) override {
++        if (fixture->GetUserData() != (void*)FixtureType_TopLadderGround) return true;
++        const auto a = MetersToPixels(fixture->GetAABB(0).lowerBound);
++        const auto b = MetersToPixels(fixture->GetAABB(0).upperBound);
++        const double delta = fabs(a.y - top);
++        if (x > a.x && x < b.x && delta < distance) {
++            surface = a.y; distance = delta; found = true;
++        }
++        return true;
++    }
++    double x, top, distance, surface;
++    bool found;
++};
++static double LadderSurface(const b2Fixture* ladder, double x, bool* found = nullptr) {
++    const double sensorTop = MetersToPixels(ladder->GetAABB(0).lowerBound).y;
++    LadderCapQuery query(x, sensorTop);
++    b2AABB area;
++    area.lowerBound = PixelsToMeters(b2Vec2(x - 1, sensorTop - 32));
++    area.upperBound = PixelsToMeters(b2Vec2(x + 1, sensorTop + 32));
++    const_cast<b2World*>(ladder->GetBody()->GetWorld())->QueryAABB(&query, area);
++    if (found) *found = query.found;
++    return query.found ? query.surface : sensorTop;
++}
++}
++
++bool PhysicsComponent::CompleteLadderAscent() {
++    if (!m_IsClimbing || !m_LastClimbWasUp || m_CurrentSpeed.y < -DBL_EPSILON ||
++        m_ClimbingSpeed.y > DBL_EPSILON || GetVelocity().y > 0.1) return false;
++    const auto box = m_pPhysics->VGetAABB(m_pOwner->GetGUID(), true);
++    const double feet = box.y + box.h;
++    const double x = m_pOwner->GetPositionComponent()->GetX();
++    for (const auto* ladder : m_OverlappingLaddersList) {
++        const auto a = MetersToPixels(ladder->GetAABB(0).lowerBound);
++        const auto b = MetersToPixels(ladder->GetAABB(0).upperBound);
++        if (x <= a.x || x >= b.x || fabs(feet - a.y) > 16.0) continue;
++        bool hasCap = false;
++        const double surface = LadderSurface(ladder, x, &hasCap);
++        if (!hasCap) continue;
++        // Complete only the last small mounting step, also when Up is released.
++        // Never pull a descending climber or a character far below the cap up.
++        if (feet < surface - 3.0 || feet > surface + 12.0) continue;
++        const Point position = m_pPhysics->VGetPosition(m_pOwner->GetGUID());
++        m_pPhysics->VSetPosition(m_pOwner->GetGUID(), Point(position.x, position.y + surface - 2.0 - feet));
++        return true;
++    }
++    return false;
++}
++
 +bool PhysicsComponent::HasClimbSpaceAbove() const
 +{
 +    const auto box = m_pPhysics->VGetAABB(m_pOwner->GetGUID(), true);
@@ -1623,7 +1750,7 @@ index ade3b61..6c111a8 100644
 +        const auto bottom = MetersToPixels(bounds.upperBound);
 +        // Two pixels cover Box2D skin/rounded integer bounds. Consider every
 +        // overlapping segment so stacked ladder tiles remain traversable.
-+        if (x > top.x && x < bottom.x && feet > top.y + 2.0) return true;
++        if (x > top.x && x < bottom.x && feet > LadderSurface(ladder, x) + 2.0) return true;
 +    }
 +    return false;
 +}
@@ -1631,7 +1758,7 @@ index ade3b61..6c111a8 100644
  bool PhysicsComponent::AttachToLadder()
  {
      if (!m_CanClimb)
-@@ -989,6 +1009,8 @@ bool PhysicsComponent::AttachToLadder()
+@@ -989,6 +1065,8 @@ bool PhysicsComponent::AttachToLadder()
          return false;
      }
  
@@ -1640,18 +1767,35 @@ index ade3b61..6c111a8 100644
      // Unit can attach to ladder but check if it is standing on ground and that the ground
      // is not the top-side ladder ground patch
      if (m_ClimbingSpeed.y > DBL_EPSILON)
+@@ -1031,6 +1109,7 @@ bool PhysicsComponent::AttachToLadder()
+ void PhysicsComponent::RequestClimb(Point climbMovement)
+ {
+     m_ClimbingSpeed = climbMovement;
++    if (fabs(climbMovement.y) > DBL_EPSILON) m_LastClimbWasUp = climbMovement.y < 0;
+ 
+     if (!m_IsClimbing)
+     {
 diff --git a/OpenClaw/Engine/Actor/Components/PhysicsComponent.h b/OpenClaw/Engine/Actor/Components/PhysicsComponent.h
-index 261ed61..2c69e2a 100644
+index 261ed61..7156855 100644
 --- a/OpenClaw/Engine/Actor/Components/PhysicsComponent.h
 +++ b/OpenClaw/Engine/Actor/Components/PhysicsComponent.h
-@@ -120,6 +120,7 @@ public:
+@@ -120,6 +120,8 @@ public:
      void SetExternalConveyorBeltSpeed(const Point& extSpeed) { m_ExternalConveyorBeltSpeed = extSpeed; }
  
  private:
 +    bool HasClimbSpaceAbove() const;
++    bool CompleteLadderAscent();
      // Configurable data read from XML
      bool m_CanClimb;
      bool m_CanBounce;
+@@ -133,6 +135,7 @@ private:
+     int32 m_NumFootContacts;
+ 
+     bool m_IsClimbing;
++    bool m_LastClimbWasUp;
+     bool m_IsStopped;
+     bool m_IsRunning;
+     Direction m_Direction;
 diff --git a/OpenClaw/Engine/Actor/Components/PickupComponents/PickupComponent.cpp b/OpenClaw/Engine/Actor/Components/PickupComponents/PickupComponent.cpp
 index 4ca30db..0687f1e 100644
 --- a/OpenClaw/Engine/Actor/Components/PickupComponents/PickupComponent.cpp
@@ -1706,6 +1850,117 @@ index 340580a..94745b9 100644
 -}
 \ No newline at end of file
 +}
+diff --git a/OpenClaw/Engine/Actor/Components/RopeComponent.cpp b/OpenClaw/Engine/Actor/Components/RopeComponent.cpp
+index b96a413..1f0b13d 100644
+--- a/OpenClaw/Engine/Actor/Components/RopeComponent.cpp
++++ b/OpenClaw/Engine/Actor/Components/RopeComponent.cpp
+@@ -179,7 +179,9 @@ void RopeComponent::VPostPostInit()
+ {
+     shared_ptr<AnimationComponent>pAnimationComponent =
+         MakeStrongPtr(m_pOwner->GetComponent<AnimationComponent>());
+-    //pAnimationComponent->SetDelay(1000000);
++    // Rope owns its clock so handle motion can be sampled every game update.
++    // Other animation timing (especially attacks) remains unchanged.
++    pAnimationComponent->GetCurrentAnimation()->Pause();
+ 
+     ActorBodyDef triggerDef;
+     triggerDef.bodyType = b2_dynamicBody;
+@@ -204,24 +206,31 @@ void RopeComponent::VPostPostInit()
+ void RopeComponent::VUpdate(uint32 msDiff)
+ {
+     m_TimeStanceAttach += msDiff;
++    auto animation = MakeStrongPtr(m_pOwner->GetComponent<AnimationComponent>())->GetCurrentAnimation();
++    animation->Resume();
++    animation->Update(msDiff);
++    // Recover missed 25 ms rope frames after a slow render update. Bound work
++    // to a full cycle; the normal path advances zero or one frame.
++    for (unsigned count = 0; count < 120 && animation->GetFrameProgress() >= 1.0; ++count)
++        animation->Update(0);
++    animation->Pause();
++    const int frame = animation->GetCurrentAnimationFrame()->idx;
++    const double fraction = (std::min)(1.0, animation->GetFrameProgress());
++    const Point base = m_pOwner->GetPositionComponent()->GetPosition();
++    const Point a = GetRopeEndFramePosition(base, frame);
++    const Point b = GetRopeEndFramePosition(base, (frame + 1) % 120);
++    const Point position(a.x + (b.x-a.x)*fraction, a.y + (b.y-a.y)*fraction);
++    IEventMgr::Get()->VTriggerEvent(IEventDataPtr(new EventData_Teleport_Actor(
++        m_pRopeEndTriggerActor->GetGUID(), position)));
++    if (m_pAttachedActor) {
++        auto claw = MakeStrongPtr(m_pAttachedActor->GetComponent<ClawControllableComponent>());
++        if (!claw->VIsAttachedToRope()) DetachActor();
++        else UpdateAttachedActorPosition(position, true);
++    }
+ }
+ 
+ void RopeComponent::VOnAnimationFrameChanged(Animation* pAnimation, AnimationFrame* pLastFrame, AnimationFrame* pNewFrame)
+ {
+-    Point newPosition = GetRopeEndFramePosition(m_pOwner->GetPositionComponent()->GetPosition(), pNewFrame->idx);
+-    if (pNewFrame->idx > 60)
+-    {
+-        IEventMgr::Get()->VQueueEvent(IEventDataPtr(new EventData_Teleport_Actor(
+-            m_pRopeEndTriggerActor->GetGUID(),
+-            newPosition)));
+-    }
+-    else
+-    {
+-        IEventMgr::Get()->VQueueEvent(IEventDataPtr(new EventData_Teleport_Actor(
+-            m_pRopeEndTriggerActor->GetGUID(),
+-            newPosition)));
+-    }
+-
+     if (m_pAttachedActor != NULL)
+     {
+         shared_ptr<ClawControllableComponent> pClawComponent =
+@@ -235,8 +244,6 @@ void RopeComponent::VOnAnimationFrameChanged(Animation* pAnimation, AnimationFra
+             return;
+         }
+ 
+-        UpdateAttachedActorPosition(newPosition);
+-
+         shared_ptr<PhysicsComponent> pRopeActorPhysicsComponent = m_pAttachedActor->GetPhysicsComponent();
+         assert(pRopeActorPhysicsComponent != nullptr);
+ 
+@@ -302,13 +309,16 @@ void RopeComponent::VOnActorLeftTrigger(Actor* pActorWhoLeft, FixtureType trigge
+     pClawComponent->VDetachFromRope();
+ }
+ 
+-void RopeComponent::UpdateAttachedActorPosition(const Point& newPosition)
++void RopeComponent::UpdateAttachedActorPosition(const Point& newPosition, bool immediate)
+ {
+     assert(m_pAttachedActor != NULL);
+ 
+-    IEventMgr::Get()->VQueueEvent(IEventDataPtr(new EventData_Teleport_Actor(
+-        m_pAttachedActor->GetGUID(),
+-        newPosition)));
++    const IEventDataPtr movement(new EventData_Teleport_Actor(
++        m_pAttachedActor->GetGUID(), newPosition));
++    // A trigger callback runs inside Box2D's locked Step: defer its first
++    // attachment placement. Ordinary per-frame interpolation runs outside Step.
++    if (immediate) IEventMgr::Get()->VTriggerEvent(movement);
++    else IEventMgr::Get()->VQueueEvent(movement);
+ }
+ 
+ void RopeComponent::DetachActor()
+diff --git a/OpenClaw/Engine/Actor/Components/RopeComponent.h b/OpenClaw/Engine/Actor/Components/RopeComponent.h
+index 82d64e7..160abdc 100644
+--- a/OpenClaw/Engine/Actor/Components/RopeComponent.h
++++ b/OpenClaw/Engine/Actor/Components/RopeComponent.h
+@@ -28,7 +28,7 @@ public:
+     virtual void VOnAnimationFrameChanged(Animation* pAnimation, AnimationFrame* pLastFrame, AnimationFrame* pNewFrame) override;
+ 
+ private:
+-    void UpdateAttachedActorPosition(const Point& newPosition);
++    void UpdateAttachedActorPosition(const Point& newPosition, bool immediate = false);
+     void DetachActor();
+ 
+     // Internal state
+@@ -37,4 +37,4 @@ private:
+     Actor* m_pRopeEndTriggerActor;
+ };
+ 
+-#endif
+\ No newline at end of file
++#endif
 diff --git a/OpenClaw/Engine/Actor/Components/TriggerComponents/BossStagerTriggerComponent.cpp b/OpenClaw/Engine/Actor/Components/TriggerComponents/BossStagerTriggerComponent.cpp
 index 2dc615f..edaa1ab 100644
 --- a/OpenClaw/Engine/Actor/Components/TriggerComponents/BossStagerTriggerComponent.cpp
@@ -2769,7 +3024,7 @@ index 2bb4694..74a47c3 100644
  };
  
 diff --git a/OpenClaw/Engine/Physics/ClawPhysics.cpp b/OpenClaw/Engine/Physics/ClawPhysics.cpp
-index 0c037b8..a00505f 100644
+index 0c037b8..b2e21b3 100644
 --- a/OpenClaw/Engine/Physics/ClawPhysics.cpp
 +++ b/OpenClaw/Engine/Physics/ClawPhysics.cpp
 @@ -1,4 +1,12 @@
@@ -2932,7 +3187,18 @@ index 0c037b8..a00505f 100644
  
      b2PolygonShape polygonShape;
      polygonShape.SetAsBox((b2BodySize.x / 2) - PixelsToMeters(2), (b2BodySize.y - b2BodySize.x) / 2);
-@@ -1431,6 +1552,16 @@ void ClawPhysics::VScaleActor(uint32_t actorId, double scale)
+@@ -1150,7 +1271,9 @@ void ClawPhysics::VSetPosition(uint32_t actorId, const Point& position)
+ //
+ Point ClawPhysics::VGetPosition(uint32_t actorId)
+ {
+-    assert(false && "VGetPosition: implement me");
++    if (b2Body* body = FindBox2DBody(actorId))
++        return b2Vec2ToPoint(MetersToPixels(body->GetPosition()));
++    assert(false && "VGetPosition: actor body missing");
+     return Point();
+ }
+ 
+@@ -1431,6 +1554,16 @@ void ClawPhysics::VScaleActor(uint32_t actorId, double scale)
  // Private implementations
  //=====================================================================================================================
  
@@ -3371,7 +3637,7 @@ index 49c7f1e..78d568c 100644
          customData.tap = tap;
          sdlEvent.user.code = type;
 diff --git a/OpenClaw/Engine/UserInterface/UserInterface.cpp b/OpenClaw/Engine/UserInterface/UserInterface.cpp
-index 9966337..b06d490 100644
+index 9966337..b1cd8de 100644
 --- a/OpenClaw/Engine/UserInterface/UserInterface.cpp
 +++ b/OpenClaw/Engine/UserInterface/UserInterface.cpp
 @@ -1,3 +1,6 @@
@@ -3615,21 +3881,37 @@ index 9966337..b06d490 100644
                  if (SDL_HasIntersection(&clickRect, &itemRect))
                  {
                      if (pMenuItem->CanBeFocused())
-@@ -811,6 +931,13 @@ bool ScreenElementMenuPage::Initialize(TiXmlElement* pElem)
+@@ -811,6 +931,29 @@ bool ScreenElementMenuPage::Initialize(TiXmlElement* pElem)
          pMenuItemElem != NULL;
          pMenuItemElem = pMenuItemElem->NextSiblingElement("MenuItem"))
      {
 +#ifdef __ANDROID__
 +        auto itemName=pMenuItemElem->FirstChildElement("Name");
-+        if(itemName && itemName->GetText() && std::string(itemName->GetText())=="MULTIPLAYER_BUTTON") {
-+            SDL_Log("Pazur menu removed: MULTIPLAYER_BUTTON");
++        const std::string name=itemName && itemName->GetText()?itemName->GetText():"";
++        bool unsupported=name=="MULTIPLAYER_BUTTON";
++        // Android settings shortcuts have a native destination outside the XML.
++        // Other actions need a real page; do not leave dead disabled promises.
++        if(!PazurMenuLabels::SettingsShortcut(name)) {
++            for(auto event=pMenuItemElem->FirstChildElement("GeneratedEvent");event;event=event->NextSiblingElement("GeneratedEvent")) {
++                auto type=event->FirstChildElement("Type"),target=event->FirstChildElement("PageName");
++                if(!type || !type->GetText() || std::string(type->GetText())!="SwitchPage" || !target || !target->GetText())continue;
++                bool present=false;
++                for(auto page=pElem->Parent()->FirstChildElement("MenuPage");page;page=page->NextSiblingElement("MenuPage")) {
++                    auto destination=page->FirstChildElement("PageName");
++                    if(destination && destination->GetText() && std::string(destination->GetText())==target->GetText()){present=true;break;}
++                }
++                if(!present)unsupported=true;
++            }
++        }
++        if(unsupported) {
++            SDL_Log("Pazur menu removed: %s (unsupported action)",name.c_str());
 +            continue;
 +        }
 +#endif
          shared_ptr<ScreenElementMenuItem> pItem(new ScreenElementMenuItem(m_pRenderer));
          if (!pItem->Initialize(pMenuItemElem))
          {
-@@ -896,6 +1023,9 @@ bool ScreenElementMenuPage::MoveToMenuItemIdx(int oldIdx, int idxIncrement, bool
+@@ -896,6 +1039,9 @@ bool ScreenElementMenuPage::MoveToMenuItemIdx(int oldIdx, int idxIncrement, bool
          return false;
      }
  
@@ -3639,7 +3921,7 @@ index 9966337..b06d490 100644
      DeactivateAllMenuItems();
  
      // Moving up
-@@ -904,7 +1034,10 @@ bool ScreenElementMenuPage::MoveToMenuItemIdx(int oldIdx, int idxIncrement, bool
+@@ -904,7 +1050,10 @@ bool ScreenElementMenuPage::MoveToMenuItemIdx(int oldIdx, int idxIncrement, bool
  
      while (true)
      {
@@ -3651,7 +3933,7 @@ index 9966337..b06d490 100644
  
          // At first button and we pressed "up" -> move to last button
          if (buttonIdx < 0 && idxIncrement < 0)
-@@ -926,6 +1059,11 @@ bool ScreenElementMenuPage::MoveToMenuItemIdx(int oldIdx, int idxIncrement, bool
+@@ -926,6 +1075,11 @@ bool ScreenElementMenuPage::MoveToMenuItemIdx(int oldIdx, int idxIncrement, bool
          tryCount++;
      }
  
@@ -3663,7 +3945,7 @@ index 9966337..b06d490 100644
      if (playSound)
      {
          // Play sound
-@@ -939,6 +1077,9 @@ bool ScreenElementMenuPage::MoveToMenuItemIdx(int oldIdx, int idxIncrement, bool
+@@ -939,6 +1093,9 @@ bool ScreenElementMenuPage::MoveToMenuItemIdx(int oldIdx, int idxIncrement, bool
  
  void ScreenElementMenuPage::OnPageLoaded()
  {
@@ -3673,7 +3955,7 @@ index 9966337..b06d490 100644
      // Focus on first active button
      MoveToMenuItemIdx(m_MenuItems.size() - 1, 1, false);
  }
-@@ -1042,6 +1183,9 @@ bool ScreenElementMenuItem::VOnEvent(SDL_Event& evt)
+@@ -1042,6 +1199,9 @@ bool ScreenElementMenuItem::VOnEvent(SDL_Event& evt)
  
  bool ScreenElementMenuItem::Initialize(TiXmlElement* pElem)
  {
@@ -3683,7 +3965,7 @@ index 9966337..b06d490 100644
      SetPointIfDefined(&m_Position, pElem->FirstChildElement("Position"), "x", "y");
      SetPointIfDefined(&m_DefaultPosition, pElem->FirstChildElement("Position"), "x", "y");
      ParseValueFromXmlElem(&m_Name, pElem->FirstChildElement("Name"));
-@@ -1138,14 +1282,23 @@ bool ScreenElementMenuItem::Initialize(TiXmlElement* pElem)
+@@ -1138,14 +1298,23 @@ bool ScreenElementMenuItem::Initialize(TiXmlElement* pElem)
  
      if (shared_ptr<Image> pImage = LoadImageFromXmlElement(pElem->FirstChildElement("DisabledImage")))
      {
@@ -3707,14 +3989,28 @@ index 9966337..b06d490 100644
          m_Images.insert(std::make_pair(MenuItemState_Active, pImage));
      }
  
-@@ -1274,11 +1427,54 @@ bool ScreenElementMenuItem::Initialize(TiXmlElement* pElem)
+@@ -1274,11 +1443,68 @@ bool ScreenElementMenuItem::Initialize(TiXmlElement* pElem)
          return false;
      }
  
 +#ifdef __ANDROID__
 +    if(localizedMenuLabels) {
-+        PazurMenuLabels::Position(m_Name,m_Position);
-+        PazurMenuLabels::Position(m_Name,m_DefaultPosition);
++        std::string layoutPage;
++        auto page=pElem->Parent()->ToElement();
++        if(page) {
++            auto pageName=page->FirstChildElement("PageName");
++            if(pageName && pageName->GetText())layoutPage=pageName->GetText();
++            // Pause shares MenuPage_Main but has no title. Its existing layout
++            // stays unchanged, as does its smaller Options page.
++            bool fullMenu=false;
++            for(auto item=page->FirstChildElement("MenuItem");item;item=item->NextSiblingElement("MenuItem")) {
++                auto name=item->FirstChildElement("Name");
++                if(name && name->GetText() && (std::string(name->GetText())=="MAIN_MENU_TEXT" || std::string(name->GetText())=="OPTIONS_TEXT"))fullMenu=true;
++            }
++            if((layoutPage=="MenuPage_Main"||layoutPage=="MenuPage_Options") && !fullMenu)layoutPage.clear();
++        }
++        PazurMenuLabels::Position(m_Name,m_Position,layoutPage);
++        PazurMenuLabels::Position(m_Name,m_DefaultPosition,layoutPage);
 +    }
 +    // Voices and ambient sounds currently share the master Sound option.
 +    // Do not expose their inherited no-op buttons as independent toggles.
@@ -3762,7 +4058,7 @@ index 9966337..b06d490 100644
      if (CanBeFocused())
      {
          if (m_GeneratedEventList.empty())
-@@ -1305,6 +1501,11 @@ bool ScreenElementMenuItem::Press()
+@@ -1305,6 +1531,11 @@ bool ScreenElementMenuItem::Press()
  
  bool ScreenElementMenuItem::SetState(MenuItemState state)
  {
@@ -3774,7 +4070,7 @@ index 9966337..b06d490 100644
      if (m_Images.find(state) != m_Images.end())
      {
          if (state != m_State)
-@@ -1380,4 +1581,4 @@ SDL_Rect ScreenElementMenuItem::GetMenuItemRect()
+@@ -1380,4 +1611,4 @@ SDL_Rect ScreenElementMenuItem::GetMenuItemRect()
      itemRect.h = itemHeight;
  
      return itemRect;
