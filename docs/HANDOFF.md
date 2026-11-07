@@ -2,6 +2,8 @@
 
 Current state: **2026-11-07**. Adaptation code, documentation, investigation and automated tests were performed by OpenAI Codex (LLM), guided by anonymous human requirements and feedback. OpenClaw and dependency authorship remain separate.
 
+The [detailed TODO](../TODO.md) tracks remaining work with stable task IDs and completion criteria.
+
 ## Current state and boundaries
 
 - Main Huawei installation: **ARM64 debug 0.4.38-dev**. Only Huawei is allocated to this task now. **Do not query, install on or otherwise operate Redmi without a new allocation.** Earlier Redmi results below are historical, not permission to use it now.
@@ -24,12 +26,12 @@ The phone's existing debug installation was not migrated or uninstalled.
 
 [Enemy attack-speed audit](validation/ENEMY-ATTACK-AUDIT-2026-10-30.md): 55 packaged enemy/encounter prototypes and 76 attacks inventoried, 15 ordinary Huawei cadence cases plus one ranged case measured. Original ANI event mapping is traced: 26 configured actions differ from event-1 markers, 40 match and ten need custom handlers. Red Tail has an ignored nested delay; frame-zero first-hit behavior and unused Gabriel action metadata need follow-up. Exact original timing for every family remains unresolved. This source/documentation batch changes no APK or balance.
 
-Current build/test summary: [debug 0.4.37](validation/UPDATE-0.4.37.md). This is the latest tested local debug build, not a signed public release. [Debug36](validation/UPDATE-0.4.36.md) remains historical evidence.
+Current build/test summary: [debug 0.4.38](validation/UPDATE-0.4.38.md). This is the latest tested local debug build, not a signed public release. [Debug36](validation/UPDATE-0.4.36.md) remains historical evidence.
 
 
 After reviewing commit 425cdb1 (touch customization and working three-preset difficulty), debug36 removes six unsupported menu actions and compacts the main/single-player/options lists. Controls and Difficulty remain functional port features. [Menu audit](validation/MENU-AUDIT-2026-10-30.md) records physical PL/EN navigation and translation coverage.
 
-The forest update addresses leafy-ladder cap geometry and interpolates rope carrying with a rope-specific clock; [forest evidence](validation/FOREST-MOTION-2026-10-30.md) preserves caught intermediate failures and validation scope. [Le Rauxe investigation](validation/LERAUX-ORIGINAL-2026-10-30.md) distinguishes original pause-branch evidence from debug36's boss-only 300–600 ms cadence approximation. Exact original parry percentages and full encounter parity are unresolved. Public signed distribution remains 0.4.32-test; debug36 is not a public signed release.
+The forest update addresses leafy-ladder cap geometry and interpolates rope carrying with a rope-specific clock; [forest evidence](validation/FOREST-MOTION-2026-10-30.md) preserves caught intermediate failures and validation scope. [Le Rauxe investigation](validation/LERAUX-ORIGINAL-2026-10-30.md) distinguishes original pause-branch evidence from debug36's boss-only 300–600 ms cadence approximation. The ordinary melee block predicate was subsequently recovered in debug38; full encounter parity remains unresolved. Public signed distribution remains 0.4.32-test; debug36 is not a public signed release.
 
 
 Debug35 adds an automatic, bounded local [background gameplay recorder](BACKGROUND-DEBUGGING.md). It retains movement/action/contact history and candidate wall-push reports without enabling combat fixtures. [Physical evidence and limits](validation/FLIGHT-RECORDER-0.4.35.md) distinguish candidate detection from a proved bug. The level 2 blockage remains open. Public signed distribution remains 0.4.32-test.

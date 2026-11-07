@@ -47,6 +47,8 @@ To report a problem, give the APK version, phone model, Android version, level, 
 
 ## Build or contribute
 
+See the [detailed TODO and release backlog](TODO.md) for remaining work, priorities and completion criteria.
+
 Read the [build guide](docs/BUILDING.en.md), [contribution guide](CONTRIBUTING.en.md) and [current handoff](docs/HANDOFF.md). Dependencies are pinned in `sources.lock.json`. Bootstrap downloads open-source dependencies and applies patches, not the commercial game.
 
 With the development tools configured:
