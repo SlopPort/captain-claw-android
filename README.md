@@ -33,7 +33,7 @@ OpenClaw supplies the existing engine and much of the gameplay. See the [upstrea
 
 ## Test status and limitations
 
-Reports identify the exact APK and setup. Results for older builds are not automatic proof for the current source.
+Reports identify the exact APK and setup. Results for older builds are not automatic proof for the current source. Start with [known limitations](docs/KNOWN-LIMITATIONS.md) and the [original-behavior ledger](docs/ORIGINAL-BEHAVIOR-LEDGER.md).
 
 - [0.4.32 floor/wall/Catnip checks](docs/validation/EDGE-SUPPORT-0.4.32.md) and [REA comparison](docs/ORIGINAL-BEHAVIOR-REA-2.md): reproduced tiny-floor-join snag, support classification and bonus damage.
 - [0.4.29 regressions](docs/validation/USER-REGRESSIONS-0.4.29.md): pause, Catnip pickup audio, Game Over input and a short melee tap during hurt; [Redmi follow-up](docs/validation/REDMI-0.4.29.md).

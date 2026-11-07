@@ -32,7 +32,15 @@ def main():
    row['handle_error_px']=math.hypot(row['x']-expected[0],row['y']-expected[1])
    assert row['handle_error_px']<25,row
    time.sleep(.08)
-  s.command('combatkey jump 100');time.sleep(.22);detached=status();assert not detached['attached'],detached
-  result=dict(passed=True,apk_sha256=installed_apk_sha256(),natural_playthrough=False,attachment='real trigger after teleport setup',samples=rows,detach=detached,visual_smoothness_verified=False)
+  # ADB status can arrive after an entire short jump and legitimate re-grab.
+  # Observe game-thread states through takeoff instead of assuming the final
+  # remote sample must still be detached. Keep failures as measured evidence.
+  start=len(s.logs());s.command('laddertrace rope-release 1800')
+  s.command('combatkey jump 100');time.sleep(1.9);detached=status()
+  trace=[line for line in s.logs()[start:].splitlines() if 'ladder trace: label=rope-release ' in line]
+  released=any('animation=jump ' in line and 'jumping=1' in line for line in trace)
+  result=dict(passed=released,apk_sha256=installed_apk_sha256(),natural_playthrough=False,attachment='real trigger after teleport setup',samples=rows,final_status=detached,release_trace=trace,transient_jump_observed=released,visual_smoothness_verified=False)
+  (s.report/'results.json').write_text(json.dumps(result,indent=2),encoding='utf-8')
+  assert released, 'No game-thread jump observed after release input; see trace'
   (s.report/'results.json').write_text(json.dumps(result,indent=2),encoding='utf-8');print(json.dumps(dict(passed=True,samples=len(rows),max_handle_error=max(v['handle_error_px'] for v in rows))))
 if __name__=='__main__':main()

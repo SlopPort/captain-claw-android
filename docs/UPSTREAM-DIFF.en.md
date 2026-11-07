@@ -46,3 +46,7 @@ For the later flat-foot and hurt-state investigation, see [REA evidence and limi
 ## Original-supported enemy behavior (0.4.38)
 
 OpenAI Codex (LLM) added opt-in Siren burst/cooldown behavior and custom moving melee windows/moves for Hermit Crab, Fish and Tiger Guard, reconstructed Gabriel command phases, shared Red Tail's decision timer across its attacks, and recovered Le Rauxe's cached integer-domain melee block rule. A coincident-target line-of-sight crash found during these fixtures was also corrected. See the [exact artifact, device tests and limitations](validation/UPDATE-0.4.38.md). These are independently implemented observations from the supplied executable, not recovered original source or a claim of complete original AI parity.
+
+## Ambient audio follow-up (0.4.39)
+
+The Android local ambient path now applies master gain once and respects master mute when a new source starts. A production-component/SDL mixer fixture checks live gain and muted entry; per-batch p99 and skipped-gap reporting improve performance evidence without changing physics timing. See [exact scope and results](validation/UPDATE-0.4.39.md). The temporary sensor and scalar mixer diagnostics are adaptation test work, not original game data.

@@ -151,6 +151,10 @@ def main():
             'early_pair_filtering':args.pair_filter,
             'player_invincible_fixture':args.protect_player,'teleported':bool(args.scene),'ammo_modified':False,
             'apk_sha256':None}
+        # Quantiles are per 300-interval batch, not pooled frame telemetry.
+        result['frame_sample_p99_ms']=[int(value) for value in re.findall(r'Pazur frame sample: fps=[\d.]+ p95=\d+ ms max=\d+ ms p99=(\d+) ms',log[start:])]
+        result['skipped_frame_gaps_ms']=[int(value) for value in re.findall(r'Pazur frame gap: interval=(\d+) ms simulation_skipped=1',log[start:])]
+        result['frame_quantile_scope']='300-loop batches; skipped >1000 ms intervals listed separately'
         # A concurrent emulator build can replace the local build output with
         # another ABI. Identify the installed binary, not a workstation path.
         installed=adb('shell','pm','path','pl.pazur.port').strip().splitlines()[0]

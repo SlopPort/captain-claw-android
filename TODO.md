@@ -4,9 +4,13 @@ Updated **2026-11-07** by OpenAI Codex (LLM), guided by anonymous human requirem
 
 This is the detailed, actionable backlog. The [roadmap](docs/ROADMAP-1.0.md) summarizes release gates; the [handoff](docs/HANDOFF.md) records current state and operating constraints. An unchecked item means work or evidence is still required, not necessarily that a defect has been proved.
 
+## Completed in the current follow-up
+
+[0.4.39 evidence](docs/validation/UPDATE-0.4.39.md) records actual results, including failed fixture attempts. Original comparison ledger, explicit known limitations, targeted source-comment review and a sequential restoration-verifying test runner are now present. Other items retain their individual open conditions.
+
 ## Baseline: do not repeat completed work without a reason
 
-- Current installed Huawei build: **0.4.38-dev, ARM64, r9**. Public signed distribution remains **0.4.32-test**. Neither is a finished 1.0 release.
+- Current installed Huawei build: **0.4.39-dev, ARM64**. Public signed distribution remains **0.4.32-test**. Neither is a finished 1.0 release.
 - [0.4.38 results](docs/validation/UPDATE-0.4.38.md) cover reconstructed Siren, Crab, Fish, Tiger Guard, Gabriel and Red Tail behavior, the Le Rauxe ordinary melee block predicate, and the zero-length line-of-sight guard. These are bounded technical results, not complete original-game parity.
 - [0.4.37](docs/validation/UPDATE-0.4.37.md) corrected effective attack emission frames and deferred frame-zero handling. Do not replace these with arbitrary global attack-speed changes.
 - Prior builds addressed double audio attenuation, Game Over instructions, floor joins, wall-only grounding, leafy-ladder caps, rope interpolation and unsupported menu entries. Their exact-build reports remain evidence; final-build regression checks below remain necessary.
@@ -16,7 +20,7 @@ This is the detailed, actionable backlog. The [roadmap](docs/ROADMAP-1.0.md) sum
 
 ## How to maintain this list
 
-Priorities: **P0** blocks a credible 1.0 release; **P1** requires investigation, verification or an explicit documented scope decision; **P2** is optional follow-up. Statuses: **OPEN** means a reported unresolved issue; **VERIFY** means evidence is incomplete or historical; **RESEARCH** means original behavior is not established; **DEFERRED** means do not start without scope reactivation.
+Priorities: **P0** blocks a credible 1.0 release; **P1** requires investigation, verification or an explicit documented scope decision; **P2** is optional follow-up. Statuses: **DONE** means the documented completion scope has dated evidence; **OPEN** means a reported unresolved issue; **VERIFY** means evidence is incomplete or historical; **RESEARCH** means original behavior is not established; **DEFERRED** means do not start without scope reactivation.
 
 Keep the stable IDs in reports and commits. When closing an item, add a dated evidence link, exact APK/version/hash, device/ABI/data edition, steps and result. Record failed trials and fixture limitations. A successful compilation, absent log message or unreproduced report does not close a runtime bug. If a research item is accepted as an intentional difference, record the decision and player impact instead of claiming original parity.
 
@@ -138,19 +142,19 @@ For each level record: APK/data edition and difficulty, entry resources, checkpo
 
 ## Original-game investigation and upstream maintenance
 
-- [ ] **ORIGINAL-01 / P1 / RESEARCH:** Keep a behavior comparison ledger: observation, supplied-binary finding, inference, intentional port difference or unknown. Include exact binary/data version and evidence limits for each conclusion.
+- [x] **ORIGINAL-01 / P1 / DONE:** Keep a behavior comparison ledger: observation, supplied-binary finding, inference, intentional port difference or unknown. Include exact binary/data version and evidence limits for each conclusion.
 - [ ] **ORIGINAL-02 / P1 / RESEARCH:** Where feasible, capture controlled original Windows behavior for jump height, ledges, ladders, hurt recovery and boss timing using a matching edition. No original-runtime timing has been established by static analysis alone.
-- [ ] **ORIGINAL-03 / P1 / VERIFY:** Preserve provenance: the supplied CrazyHook-distributed CLAW.EXE used for current research is not certified pristine 1997 and is not original source code. Keep raw executable/disassembly/assets private; publish concise independent findings and adaptation patches.
-- [ ] **SOURCE-01 / P1 / VERIFY:** Review relevant source TODOs/comments against executable paths and current behavior. Mark obsolete comments or document genuine gaps; incomplete export helpers alone do not prove gameplay defects.
+- [x] **ORIGINAL-03 / P1 / DONE:** Preserve provenance: the supplied CrazyHook-distributed CLAW.EXE used for current research is not certified pristine 1997 and is not original source code. Keep raw executable/disassembly/assets private; publish concise independent findings and adaptation patches.
+- [x] **SOURCE-01 / P1 / DONE:** Review relevant source TODOs/comments against executable paths and current behavior. Mark obsolete comments or document genuine gaps; incomplete export helpers alone do not prove gameplay defects.
 - [ ] **SOURCE-02 / P0 / VERIFY:** Reproduce the final source build from a clean checkout using documented upstream revisions and patches. Confirm no required ignored local file is missing. Keep build outputs separate from commercial data.
-- [ ] **SOURCE-03 / P1 / VERIFY:** Update upstream-difference documentation and attribution for imported ideas/code. Distinguish this Android adaptation from OpenClaw work and from findings in other repositories.
-- [ ] **SOURCE-04 / P1 / VERIFY:** Keep regression tests focused on observed failures and real contracts. Validate fixtures actually exercise the intended state; retain meaningful failed attempts instead of counting setup failures as passes.
+- [x] **SOURCE-03 / P1 / DONE:** Update upstream-difference documentation and attribution for imported ideas/code. Distinguish this Android adaptation from OpenClaw work and from findings in other repositories.
+- [x] **SOURCE-04 / P1 / DONE:** Keep regression tests focused on observed failures and real contracts. Validate fixtures actually exercise the intended state; retain meaningful failed attempts instead of counting setup failures as passes.
 
 ## Public documentation, privacy and release
 
 - [ ] **DOC-01 / P1 / VERIFY:** Keep GitHub guides in clear English with a short novice installation path. Preserve Polish instructions/UI support where intended. Check links, filenames, screenshots, current versions and terminology after candidate changes.
 - [ ] **DOC-02 / P1 / VERIFY:** Keep this backlog, roadmap, handoff and known limitations consistent. Archive historical results with exact versions; never silently upgrade old evidence to the newest APK.
-- [ ] **DOC-03 / P1 / VERIFY:** Explain remaining original differences, Android coverage, English-voice limitations, controller scope and engine-staged finale. Mark supported port-specific features clearly.
+- [x] **DOC-03 / P1 / DONE:** Explain remaining original differences, Android coverage, English-voice limitations, controller scope and engine-staged finale. Mark supported port-specific features clearly.
 - [ ] **LEGAL-01 / P0 / VERIFY:** Check the distributable source/APK/archive contains no commercial game assets, supplied executable, raw proprietary dumps, user saves, identifiers or private reports. Preserve GPL and third-party notices; do not assume the game's copyright expired.
 - [ ] **LEGAL-02 / P0 / VERIFY:** Preserve anonymous human participation, explicit OpenAI Codex (LLM) adaptation disclosure and separate upstream authorship in public docs and metadata. Review public history using the private-pattern check without committing its private input.
 - [ ] **RELEASE-01 / P0 / VERIFY:** Prepare the exact signed candidate, matching source commit/tag and SHA-256 checksums. Verify signing/update identity; keep keystore/password material private and backed up outside public distribution.

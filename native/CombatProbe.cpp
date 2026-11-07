@@ -154,6 +154,18 @@ bool PazurCombatProbe::Handle(const std::vector<std::string>& args, const ActorM
     auto claw = logic->GetClawActor();
     if (!claw) return false;
     auto physics = logic->VGetGamePhysics();
+    if(args[0]=="ambientfixture" && args.size()==1) {
+        // Opt-in technical fixture: a real sensor/production ambient component,
+        // with a user-supplied stock sound loop. Never write it to map/save data.
+        LocalAmbientSoundDef sound;
+        sound.sound="/CLAW/SOUNDS/SWORDSWISH.WAV";
+        sound.volume=100;sound.soundAreaSize=Point(600,600);
+        auto xml=ActorTemplates::CreateXmlData_LocalAmbientSound(
+            ActorPrototype_LocalAmbientSound,claw->GetPositionComponent()->GetPosition(),sound);
+        auto actor=logic->VCreateActor(xml,nullptr);delete xml;
+        SDL_Log("Pazur ambient fixture: actor=%u",actor?actor->GetGUID():0);
+        return true;
+    }
     if(args[0]=="campaignposition" && (args.size()==3 || args.size()==4)) {
         // Explicit setup fixture: ordinary console teleport retains terminal
         // fall velocity, making subsequent button-contact tests USB dependent.
