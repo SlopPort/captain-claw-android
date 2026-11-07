@@ -438,6 +438,15 @@ bool PazurCombatProbe::Handle(const std::vector<std::string>& args, const ActorM
         heldKeys[found->second]=SDL_GetTicks()+(std::max)(20,(std::min)(6000,std::stoi(args[2])));
         return true;
     }
+    if (args[0] == "combatrayzero" && args.size() == 1) {
+        const auto position = claw->GetPositionComponent()->GetPosition();
+        for (const auto& end : {position, position + Point(0.000001, 0)}) {
+            const auto result = physics->VRayCast(position, end, CollisionFlag_Solid);
+            assert(!result.foundIntersection);
+        }
+        SDL_Log("Pazur zero ray regression: exact and float-collapsed rays passed");
+        return true;
+    }
     if (args[0] == "combatstatus") { status(); return true; }
     if (args[0] == "combatjumpmeasure" && args.size()==2) {
         jumpTrace=JumpTrace{};
@@ -446,7 +455,7 @@ bool PazurCombatProbe::Handle(const std::vector<std::string>& args, const ActorM
         jumpTrace.baseY=claw->GetPositionComponent()->GetY();
         return true;
     }
-    if (((args[0] == "combatstage" || args[0] == "combatdummy") && args.size() == 4) ||
+    if (((args[0] == "combatstage" || args[0] == "combatstagefixed" || args[0] == "combatdummy") && args.size() == 4) ||
         (args[0] == "combatstagezero" && args.size() == 5)) {
         if (claw->GetRawComponent<ClawControllableComponent>(true)->IsDying()) {
             SDL_Log("Pazur probe rejected: player is dying; start a fresh process");
@@ -507,6 +516,11 @@ bool PazurCombatProbe::Handle(const std::vector<std::string>& args, const ActorM
             if (auto patrol = xml->FirstChildElement("PatrolEnemyAIStateComponent")) {
                 for (const auto& value : {std::make_pair("LeftPatrolBorder",199200), std::make_pair("RightPatrolBorder",200800)})
                     if (auto e=patrol->FirstChildElement(value.first)) e->FirstChild()->SetValue(std::to_string(value.second));
+                // Fixed-position technical timing fixture; never changes saved XML.
+                if (args[0]=="combatstagefixed") {
+                    if (auto e=patrol->FirstChildElement("IsAlwaysIdle")) e->FirstChild()->SetValue("true");
+                    if (auto e=patrol->FirstChildElement("PatrolSpeed")) e->FirstChild()->SetValue("0");
+                }
                 if (args[0]=="combatdummy") {
                     if (auto e=patrol->FirstChildElement("IsAlwaysIdle")) e->FirstChild()->SetValue("true");
                     if (auto e=patrol->FirstChildElement("PatrolSpeed")) e->FirstChild()->SetValue("0");

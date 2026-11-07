@@ -1,10 +1,10 @@
 # Project handoff
 
-Current state: **2026-10-30**. Adaptation code, documentation, investigation and automated tests were performed by OpenAI Codex (LLM), guided by anonymous human requirements and feedback. OpenClaw and dependency authorship remain separate.
+Current state: **2026-11-07**. Adaptation code, documentation, investigation and automated tests were performed by OpenAI Codex (LLM), guided by anonymous human requirements and feedback. OpenClaw and dependency authorship remain separate.
 
 ## Current state and boundaries
 
-- Main Huawei installation: **ARM64 debug 0.4.37-dev**. Only Huawei is allocated to this task now. **Do not query, install on or otherwise operate Redmi without a new allocation.** Earlier Redmi results below are historical, not permission to use it now.
+- Main Huawei installation: **ARM64 debug 0.4.38-dev**. Only Huawei is allocated to this task now. **Do not query, install on or otherwise operate Redmi without a new allocation.** Earlier Redmi results below are historical, not permission to use it now.
 - Huawei supplies internet over USB. Do not reboot it, change USB/tethering/network settings, disconnect it or restart the shared ADB server to repair a test. Select the authorized device with a process-local `ANDROID_SERIAL`; never publish device serials.
 - The human owns natural campaign playtesting. Do not resume autonomous traversal. Technical reproductions of reported bugs are allowed, but teleports, invulnerability and resource edits must be labelled as fixtures, never natural campaign evidence.
 - This is not release 1.0. Full campaign completion, original-game parity and a universal FPS minimum are not established. Broad physical controller testing was deferred; later specific pause/input bug reports remain in scope.
@@ -17,6 +17,8 @@ with [exact artifact/signing/runtime limits](validation/RELEASE-0.4.32.md).
 The phone's existing debug installation was not migrated or uninstalled.
 
 ## Latest verified behavior
+
+[Debug 0.4.38](validation/UPDATE-0.4.38.md) reconstructs Siren bursts, Crab active windows, Fish target-crossing lunges, Tiger Guard moves, Gabriel command phases and Red Tail shared timing. Le Rauxe now uses the recovered cached 100/1001 ordinary melee block predicate. The exact installed r9 APK passed the six main Huawei fixture groups. The report records intermediate failures, source-only newline cleanup and remaining original-AI/collision boundaries. Public signed distribution remains 0.4.32-test; this is not 1.0 or a natural campaign clear.
 
 [Debug 0.4.37](validation/UPDATE-0.4.37.md) corrects 28 effective emission-frame configurations, makes Red Tail's configured delay effective, and fixes deferred first-frame attacks. Final Huawei tests passed ten ordinary cases, three synthetic first-frame delays and two real boss arenas. [Original custom-handler findings](validation/ORIGINAL-CUSTOM-EVENTS-0.4.37.md) identify the remaining full-AI/window work. Public signed distribution remains 0.4.32-test.
 

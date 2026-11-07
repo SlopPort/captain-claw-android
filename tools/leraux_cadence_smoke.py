@@ -41,6 +41,9 @@ def main():
    if i==5:s.command('combatkey down 6000')
    s.command('combatkey sword 80');time.sleep(.55)
   after=boss();assert after['hp']<before['hp'],(before,after)
-  result=dict(passed=True,apk_sha256=installed_apk_sha256(),natural_playthrough=False,player_protected=True,boss_hp_edited=False,emission_timing=emissions,intervals=intervals,median_interval_s=statistics.median(intervals),before=before,after=after,parry_probabilities_changed=False,original_exact_cadence_verified=False)
+  block_rows=[tuple(map(int,row)) for row in re.findall(r'Pazur LeRaux block: roll=(\d+) denominator=1001 threshold=100 state=(\d+) resisted=(\d+)',s.logs())]
+  assert block_rows,'Original melee predicate was not exercised'
+  assert all(0<=roll<=1000 and bool(resisted)==(state==2 or roll<100) for roll,state,resisted in block_rows),block_rows
+  result=dict(passed=True,apk_sha256=installed_apk_sha256(),natural_playthrough=False,player_protected=True,boss_hp_edited=False,emission_timing=emissions,melee_block_observations=block_rows,intervals=intervals,median_interval_s=statistics.median(intervals),before=before,after=after,parry_probabilities_changed=True,melee_block_policy="cached per-update integer roll,100/1001 outside existing parry state",original_exact_cadence_verified=False)
   (s.report/'results.json').write_text(json.dumps(result,indent=2),encoding='utf-8');print(json.dumps(result),flush=True)
 if __name__=='__main__':main()

@@ -46,13 +46,19 @@
     </PatrolEnemyAIStateComponent>
     <RangedAttackAIStateComponent>
         <StatePriority>10</StatePriority>
-        <AttackDelay>500</AttackDelay>
+        <AttackDelay>0</AttackDelay>
+        <!-- Original singing: four notes, 300 ms apart, gate from first note. -->
+        <SirenBurst>
+            <Count>4</Count>
+            <SpacingMs>300</SpacingMs>
+            <EntryCooldownMs>4000</EntryCooldownMs>
+        </SirenBurst>
         <Attacks>
             <AttackAction>
                 <Animation>strike1</Animation>
                 <AttackAnimFrameIdx>1</AttackAnimFrameIdx>
                 <ProjectilePrototype>ActorPrototype_Level11_SirenProjectile</ProjectilePrototype>
-                <AttackSpawnPositionOffset x="-32" y="2" />
+                <AttackSpawnPositionOffset x="-28" y="-10" />
                 <AttackAreaSize width="0" height="0" />
                 <Damage>0</Damage>
                 <AgroSensorFixture>

@@ -42,3 +42,7 @@ Components integrate through OpenClaw's actor factory/events. `tools/export_patc
 Historical **0.4.3** inventory: 34 engine files changed, 572 added/45 removed lines, 11 native files and 17 override XML files, in addition to Android sources, tests, tools and build configuration. See [the retained statistics](upstream-diff-statistics.json). These counts and the 0.4.18 counts above belong to their recorded versions; they are not current-source counts or completeness claims.
 
 For the later flat-foot and hurt-state investigation, see [REA evidence and limitations](ORIGINAL-BEHAVIOR-REA.md). The patch includes original integration work and adapted upstream behavior; none of these counts measures independent originality or exact game parity.
+
+## Original-supported enemy behavior (0.4.38)
+
+OpenAI Codex (LLM) added opt-in Siren burst/cooldown behavior and custom moving melee windows/moves for Hermit Crab, Fish and Tiger Guard, reconstructed Gabriel command phases, shared Red Tail's decision timer across its attacks, and recovered Le Rauxe's cached integer-domain melee block rule. A coincident-target line-of-sight crash found during these fixtures was also corrected. See the [exact artifact, device tests and limitations](validation/UPDATE-0.4.38.md). These are independently implemented observations from the supplied executable, not recovered original source or a claim of complete original AI parity.

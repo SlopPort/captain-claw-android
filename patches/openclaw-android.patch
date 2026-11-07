@@ -340,10 +340,10 @@ index b8c34a3..08c7a38 100644
      // Resource from which this actor was loaded
      std::string _resource;
 diff --git a/OpenClaw/Engine/Actor/ActorFactory.cpp b/OpenClaw/Engine/Actor/ActorFactory.cpp
-index d219dde..e41bf46 100644
+index d219dde..6a479a8 100644
 --- a/OpenClaw/Engine/Actor/ActorFactory.cpp
 +++ b/OpenClaw/Engine/Actor/ActorFactory.cpp
-@@ -2,6 +2,11 @@
+@@ -2,6 +2,12 @@
  
  #include "ActorFactory.h"
  #include "Actor.h"
@@ -351,11 +351,12 @@ index d219dde..e41bf46 100644
 +#include "LavaGeyserComponent.h"
 +#include "OmarEncounterComponent.h"
 +#include "AquatisArena.h"
++#include "OriginalMeleeAttack.h"
 +#endif
  #include "../Logger/Logger.h"
  #include "../SharedDefines.h"
  #include "../Util/Util.h"
-@@ -62,6 +67,14 @@
+@@ -62,6 +68,14 @@
  
  ActorFactory::ActorFactory()
  {
@@ -370,6 +371,18 @@ index d219dde..e41bf46 100644
      _lastActorGUID = 0;
  
      _componentFactory.Register<PositionComponent>(ActorComponent::GetIdFromName(PositionComponent::g_Name));
+@@ -100,7 +114,11 @@ ActorFactory::ActorFactory()
+     _componentFactory.Register<EnemyAIComponent>(EnemyAIComponent::GetIdFromName(EnemyAIComponent::g_Name));
+     _componentFactory.Register<PatrolEnemyAIStateComponent>(PatrolEnemyAIStateComponent::GetIdFromName(PatrolEnemyAIStateComponent::g_Name));
+     _componentFactory.Register<ParryEnemyAIStateComponent>(ParryEnemyAIStateComponent::GetIdFromName(ParryEnemyAIStateComponent::g_Name));
++#ifdef __ANDROID__
++    _componentFactory.Register<OriginalMeleeAttackAIStateComponent>(MeleeAttackAIStateComponent::GetIdFromName(MeleeAttackAIStateComponent::g_Name));
++#else
+     _componentFactory.Register<MeleeAttackAIStateComponent>(MeleeAttackAIStateComponent::GetIdFromName(MeleeAttackAIStateComponent::g_Name));
++#endif
+     _componentFactory.Register<DuckMeleeAttackAIStateComponent>(DuckMeleeAttackAIStateComponent::GetIdFromName(DuckMeleeAttackAIStateComponent::g_Name));
+     _componentFactory.Register<RangedAttackAIStateComponent>(RangedAttackAIStateComponent::GetIdFromName(RangedAttackAIStateComponent::g_Name));
+     _componentFactory.Register<DuckRangedAttackAIStateComponent>(DuckRangedAttackAIStateComponent::GetIdFromName(DuckRangedAttackAIStateComponent::g_Name));
 diff --git a/OpenClaw/Engine/Actor/ActorTemplates.cpp b/OpenClaw/Engine/Actor/ActorTemplates.cpp
 index aff4a25..bbef0cf 100644
 --- a/OpenClaw/Engine/Actor/ActorTemplates.cpp
@@ -917,10 +930,38 @@ index a0cfe72..7b7275b 100644
 \ No newline at end of file
 +}
 diff --git a/OpenClaw/Engine/Actor/Components/EnemyAI/EnemyAIComponent.cpp b/OpenClaw/Engine/Actor/Components/EnemyAI/EnemyAIComponent.cpp
-index beef2e6..3c6a06c 100644
+index beef2e6..7442336 100644
 --- a/OpenClaw/Engine/Actor/Components/EnemyAI/EnemyAIComponent.cpp
 +++ b/OpenClaw/Engine/Actor/Components/EnemyAI/EnemyAIComponent.cpp
-@@ -158,6 +158,9 @@ void EnemyAIComponent::VUpdate(uint32 msDiff)
+@@ -106,8 +106,27 @@ void EnemyAIComponent::VPostPostInit()
+     EnterBestState(true);
+ }
+ 
++uint32 EnemyAIComponent::StartAttackEntryDelay()
++{
++    m_AttackEntryRemaining = Util::GetRandomNumber(m_AttackEntryMin, m_AttackEntryMax);
++    return m_AttackEntryRemaining;
++}
++
+ void EnemyAIComponent::VUpdate(uint32 msDiff)
+ {
++    if (!m_bDead && m_AttackEntryRemaining > 0)
++    {
++        m_AttackEntryRemaining = msDiff >= m_AttackEntryRemaining ? 0 : m_AttackEntryRemaining - msDiff;
++        if (m_AttackEntryRemaining == 0)
++        {
++            // Reconsider an idle patrol when its gate opens. Hurt, parry and
++            // active attack states finish through their existing callbacks;
++            // timer expiry must not cut their animation short.
++            BaseEnemyAIStateComponent* current = GetCurrentState();
++            if (!current || current->VGetStateType() == EnemyAIState_Patrolling)
++                EnterBestState(true);
++        }
++    }
+     if (m_bDead)
+     {
+         // I want it to disappear after ~900ms
+@@ -158,6 +177,9 @@ void EnemyAIComponent::VUpdate(uint32 msDiff)
  
  void EnemyAIComponent::VOnHealthBelowZero(DamageType damageType, int sourceActorId)
  {
@@ -930,7 +971,7 @@ index beef2e6..3c6a06c 100644
      m_bDead = true;
      for (const auto &stateComponentIter : m_StateMap)
      {
-@@ -191,7 +194,7 @@ void EnemyAIComponent::VOnHealthBelowZero(DamageType damageType, int sourceActor
+@@ -191,7 +213,7 @@ void EnemyAIComponent::VOnHealthBelowZero(DamageType damageType, int sourceActor
  void EnemyAIComponent::VOnHealthChanged(int32 oldHealth, int32 newHealth, DamageType damageType, Point impactPoint, int sourceActorId)
  {
      // If he died we do not care
@@ -939,7 +980,7 @@ index beef2e6..3c6a06c 100644
      {
          if (HasState("TakeDamageState"))
          {
-@@ -287,6 +290,7 @@ void EnemyAIComponent::AcquireStateLock(BaseEnemyAIStateComponent* pNewState)
+@@ -287,6 +309,7 @@ void EnemyAIComponent::AcquireStateLock(BaseEnemyAIStateComponent* pNewState)
  
  bool EnemyAIComponent::EnterBestState(bool canForceEnter)
  {
@@ -947,18 +988,54 @@ index beef2e6..3c6a06c 100644
      BaseEnemyAIStateComponent* pCurrentState = GetCurrentState();
  
      // If some other state has state lock we will not force him to exit.
-@@ -422,4 +426,4 @@ bool EnemyAIComponent::TryPlaySpeechSound(int chance, const SoundList& speechSou
+@@ -422,4 +445,4 @@ bool EnemyAIComponent::TryPlaySpeechSound(int chance, const SoundList& speechSou
      }
  
      return found;
 -}*/
 \ No newline at end of file
 +}*/
+diff --git a/OpenClaw/Engine/Actor/Components/EnemyAI/EnemyAIComponent.h b/OpenClaw/Engine/Actor/Components/EnemyAI/EnemyAIComponent.h
+index 65a7e17..208b7e7 100644
+--- a/OpenClaw/Engine/Actor/Components/EnemyAI/EnemyAIComponent.h
++++ b/OpenClaw/Engine/Actor/Components/EnemyAI/EnemyAIComponent.h
+@@ -51,6 +51,15 @@ public:
+ 
+     BaseEnemyAIStateComponent* GetCurrentState();
+ 
++    // Opt-in encounter decision gate, shared by melee and ranged states.
++    // Ordinary enemies retain their existing animation delays and cadence.
++    void ConfigureAttackEntryDelay(uint32 minimum, uint32 maximum)
++    { m_AttackEntryMin = minimum; m_AttackEntryMax = maximum; m_AttackEntryRemaining = 0; }
++    bool HasAttackEntryDelay() const { return m_AttackEntryMax != 0; }
++    bool IsAttackEntryReady() const { return m_AttackEntryRemaining == 0; }
++    uint32 StartAttackEntryDelay();
++    void ResetAttackEntryDelay() { m_AttackEntryRemaining = 0; }
++
+ private:
+     void LeaveAllStates(BaseEnemyAIStateComponent* pNextState);
+     bool HasState(const std::string &stateName);
+@@ -61,6 +70,10 @@ private:
+     void AcquireStateLock(BaseEnemyAIStateComponent* pNewState);
+     BaseEnemyAIStateComponent* GetState(EnemyAIState state);
+ 
++    uint32 m_AttackEntryMin = 0;
++    uint32 m_AttackEntryMax = 0;
++    uint32 m_AttackEntryRemaining = 0;
++
+     bool m_bInitialized;
+     bool m_bDead;
+     bool m_bHasStateLock;
 diff --git a/OpenClaw/Engine/Actor/Components/EnemyAI/EnemyAIStateComponent.cpp b/OpenClaw/Engine/Actor/Components/EnemyAI/EnemyAIStateComponent.cpp
-index 5520bba..bee7949 100644
+index 5520bba..0f3afa0 100644
 --- a/OpenClaw/Engine/Actor/Components/EnemyAI/EnemyAIStateComponent.cpp
 +++ b/OpenClaw/Engine/Actor/Components/EnemyAI/EnemyAIStateComponent.cpp
-@@ -433,6 +433,9 @@ void PatrolEnemyAIStateComponent::VPostInit()
+@@ -1,3 +1,4 @@
++#include "OriginalBossPolicies.h"
+ #include "EnemyAIStateComponent.h"
+ 
+ #include "EnemyAIComponent.h"
+@@ -433,6 +434,9 @@ void PatrolEnemyAIStateComponent::VPostInit()
  {
      BaseEnemyAIStateComponent::VPostInit();
  
@@ -968,7 +1045,7 @@ index 5520bba..bee7949 100644
      m_pAnimationComponent->AddObserver(this);
  
      Point noSpeed(0, 0);
-@@ -576,14 +579,14 @@ void PatrolEnemyAIStateComponent::CalculatePatrolBorders()
+@@ -576,14 +580,14 @@ void PatrolEnemyAIStateComponent::CalculatePatrolBorders()
          LOG_WARNING("Did not find raycastResultLeft intersection for actor: " + m_pOwner->GetName() +
              " with position: " + m_pOwner->GetPositionComponent()->GetPosition().ToString());
          // Dummy large value, should be sufficient
@@ -985,7 +1062,31 @@ index 5520bba..bee7949 100644
      }
  
      double patrolLeftBorder = 0.0;
-@@ -909,6 +912,11 @@ bool ParryEnemyAIStateComponent::CanParry(DamageType damageType, EnemyAIState cu
+@@ -889,6 +893,23 @@ bool ParryEnemyAIStateComponent::CanParry(DamageType damageType, EnemyAIState cu
+         }
+     }
+ 
++    // Only Le Rauxe uses this verified original integer-domain melee rule.
++    // Keep other damage types on their configured resistance paths.
++    if (damageType == DamageType_MeleeAttack)
++    {
++        auto boss = m_pOwner->GetRawComponent<LaRauxBossAIStateComponent>();
++        if (boss)
++        {
++            int roll = boss->GetMeleeBlockRoll();
++            // Preserve ongoing block protection in the port's collision pipeline.
++            // Exact original block-flag overlap handling remains a separate gap.
++            bool blocked = currentState == EnemyAIState_Parry || OriginalBossPolicies::LeRauxBlocksMelee(roll);
++            if (g_pApp->GetDebugOptions()->bPreviewIncompleteLevel14)
++                SDL_Log("Pazur LeRaux block: roll=%d denominator=1001 threshold=100 state=%d resisted=%d", roll, int(currentState), int(blocked));
++            return blocked;
++        }
++    }
++
+     int parryChance = findIt->second;
+     int parryRand = Util::GetRandomNumber(1, 100);
+ 
+@@ -909,6 +930,11 @@ bool ParryEnemyAIStateComponent::CanParry(DamageType damageType, EnemyAIState cu
          }
      }*/
  
@@ -997,7 +1098,7 @@ index 5520bba..bee7949 100644
      return (parryChance >= parryRand);
  }
  
-@@ -954,6 +962,7 @@ bool BaseAttackAIStateComponent::VDelegateInit(TiXmlElement* pData)
+@@ -954,6 +980,7 @@ bool BaseAttackAIStateComponent::VDelegateInit(TiXmlElement* pData)
      }
  
      ParseValueFromXmlElem(&m_AttackDelay, pData->FirstChildElement("AttackDelay"));
@@ -1005,12 +1106,13 @@ index 5520bba..bee7949 100644
  
      if (TiXmlElement* pElem = pData->FirstChildElement("AttackSpeech"))
      {
-@@ -998,14 +1007,14 @@ void BaseAttackAIStateComponent::VOnStateEnter(BaseEnemyAIStateComponent* pPrevi
+@@ -998,14 +1025,15 @@ void BaseAttackAIStateComponent::VOnStateEnter(BaseEnemyAIStateComponent* pPrevi
      m_IsActive = true;
  
      m_CurrentAttackActionIdx = 0;
 -    VExecuteAttack();
 -    m_pAnimationComponent->SetDelay(m_AttackDelay);
++    m_AttackSequenceCompleted = false;
 +    BeginAttack(true);
  }
  
@@ -1022,7 +1124,7 @@ index 5520bba..bee7949 100644
  }
  
  void BaseAttackAIStateComponent::VExecuteAttack()
-@@ -1026,7 +1035,14 @@ void BaseAttackAIStateComponent::VExecuteAttack()
+@@ -1026,7 +1054,14 @@ void BaseAttackAIStateComponent::VExecuteAttack()
          m_pRenderComponent->SetMirrored(true);
      }
  
@@ -1038,7 +1140,11 @@ index 5520bba..bee7949 100644
  
      // TODO: Pick randomly melee action ?
  
-@@ -1047,13 +1063,12 @@ void BaseAttackAIStateComponent::VOnAnimationLooped(Animation* pAnimation)
+@@ -1044,16 +1079,16 @@ void BaseAttackAIStateComponent::VOnAnimationLooped(Animation* pAnimation)
+     if (m_CurrentAttackActionIdx > (m_AttackActions.size() - 1))
+     {
+         m_CurrentAttackActionIdx = 0;
++        m_AttackSequenceCompleted = true;
          m_pEnemyAIComponent->EnterBestState(true);
          if (m_IsActive)
          {
@@ -1054,18 +1160,14 @@ index 5520bba..bee7949 100644
      }
  }
  
-@@ -1078,22 +1093,63 @@ void BaseAttackAIStateComponent::VOnAnimationFrameChanged(
+@@ -1078,22 +1113,74 @@ void BaseAttackAIStateComponent::VOnAnimationFrameChanged(
          return;
      }
  
 -    if (m_AttackActions[m_CurrentAttackActionIdx]->attackAnimFrameIdx == pNewFrame->idx)
 -    {
 -        std::shared_ptr<EnemyAttackAction> pAttack = m_AttackActions[m_CurrentAttackActionIdx];
-+    if (m_AttackActions[m_CurrentAttackActionIdx]->attackAnimFrameIdx == pNewFrame->idx &&
-+        (!m_FirstFramePending || m_FirstFrameReady))
-+        ExecuteCurrentAttackFrame();
-+}
- 
+-
 -        Direction dir = Direction_Left;
 -        Point offset = pAttack->attackSpawnPositionOffset;
 -        if (m_pRenderComponent->IsMirrored())
@@ -1073,12 +1175,32 @@ index 5520bba..bee7949 100644
 -            dir = Direction_Right;
 -            offset = Point(offset.x * -1.0, offset.y);
 -        }
+-
+-        VOnAttackFrame(pAttack, dir, offset);
++    if (m_AttackActions[m_CurrentAttackActionIdx]->attackAnimFrameIdx == pNewFrame->idx &&
++        (!m_FirstFramePending || m_FirstFrameReady))
++        ExecuteCurrentAttackFrame();
++}
+ 
+-        m_CurrentAttackActionIdx++;
+-    }
 +void BaseAttackAIStateComponent::BeginAttack(bool applySequenceDelay)
 +{
 +    m_FirstFramePending = m_FirstFrameReady = false;
 +    VExecuteAttack();
-+    const int delay = applySequenceDelay ? m_SelectedAttackDelay : 0;
++    // Red Tail's original kick/gun entries start a shared 1000-1500 ms
++    // next-decision gate. It runs during the action, not before its animation.
++    const bool decisionGate = m_pEnemyAIComponent->HasAttackEntryDelay();
++    const int delay = applySequenceDelay && !decisionGate ? m_SelectedAttackDelay : 0;
 +    if (applySequenceDelay) m_pAnimationComponent->SetDelay(delay);
++    if (applySequenceDelay && decisionGate)
++    {
++        m_AttackSequenceCompleted = false;
++        uint32 duration = m_pEnemyAIComponent->StartAttackEntryDelay();
++        static int decisionLogs = 0;
++        if (g_pApp->GetDebugOptions()->bPreviewIncompleteLevel14 && decisionLogs++ < 200)
++            SDL_Log("Pazur attack decision: actor=%s delay=%u tick=%u", m_pOwner->GetName().c_str(), duration, SDL_GetTicks());
++    }
 +    auto animation = m_pAnimationComponent->GetCurrentAnimation();
 +    m_FirstFramePending = animation->IsAtFirstAnimFrame() &&
 +        m_AttackActions[m_CurrentAttackActionIdx]->attackAnimFrameIdx == 0;
@@ -1092,8 +1214,7 @@ index 5520bba..bee7949 100644
 +            m_pOwner->GetName().c_str(), animation->GetName().c_str(), delay,
 +            animation->GetCurrentAnimationFrame()->idx, SDL_GetTicks());
 +}
- 
--        VOnAttackFrame(pAttack, dir, offset);
++
 +void BaseAttackAIStateComponent::VUpdate(uint32)
 +{
 +    if (m_IsActive && m_FirstFramePending && m_FirstFrameReady)
@@ -1106,8 +1227,7 @@ index 5520bba..bee7949 100644
 +        animation == m_pAnimationComponent->GetCurrentAnimation().get())
 +        m_FirstFrameReady = true;
 +}
- 
--        m_CurrentAttackActionIdx++;
++
 +void BaseAttackAIStateComponent::ExecuteCurrentAttackFrame()
 +{
 +    if (!m_IsActive || m_CurrentAttackActionIdx >= m_AttackActions.size()) return;
@@ -1119,7 +1239,7 @@ index 5520bba..bee7949 100644
 +    if (m_pRenderComponent->IsMirrored()) {
 +        direction = Direction_Right;
 +        offset.x *= -1;
-     }
++    }
 +    static int attackFrameLogs = 0;
 +    if (g_pApp->GetDebugOptions()->bPreviewIncompleteLevel14 && attackFrameLogs++ < 2000)
 +        SDL_Log("Pazur attack frame: actor=%s animation=%s frame=%u direction=%d damage=%u tick=%u",
@@ -1130,16 +1250,20 @@ index 5520bba..bee7949 100644
  }
  
  void BaseAttackAIStateComponent::OnEnemyEnterAgroRange(Actor* pEnemy)
-@@ -1173,7 +1229,7 @@ Point BaseAttackAIStateComponent::FindClosestHostileActorOffset()
+@@ -1173,7 +1260,11 @@ Point BaseAttackAIStateComponent::FindClosestHostileActorOffset()
  
  bool BaseAttackAIStateComponent::VCanEnter()
  {
 -    if (m_EnemyAgroList.empty())
++    // Never let another sensor callback interrupt an already-running attack.
++    // Once its sequence finishes, the shared encounter timer blocks re-entry.
++    if ((!m_IsActive || m_AttackSequenceCompleted) && !m_pEnemyAIComponent->IsAttackEntryReady())
++        return false;
 +    if (m_EnemyAgroList.empty() || m_AttackActions.empty())
      {
          return false;
      }
-@@ -1182,7 +1238,9 @@ bool BaseAttackAIStateComponent::VCanEnter()
+@@ -1182,7 +1273,9 @@ bool BaseAttackAIStateComponent::VCanEnter()
      // Since the first found actor is picked
  
      // TODO: Revisit this if enemy ever has more than one attack action per AttackAIStateComponent
@@ -1150,7 +1274,7 @@ index 5520bba..bee7949 100644
  
      // Check if enemy is within line of sight
      Point fromPoint = m_pOwner->GetPositionComponent()->GetPosition() + action.agroSensorFixture.offset;
-@@ -1238,6 +1296,9 @@ bool MeleeAttackAIStateComponent::VDelegateInit(TiXmlElement* pData)
+@@ -1238,6 +1331,9 @@ bool MeleeAttackAIStateComponent::VDelegateInit(TiXmlElement* pData)
  
  void MeleeAttackAIStateComponent::VOnAttackFrame(std::shared_ptr<EnemyAttackAction> pAttack, Direction dir, const Point& offset)
  {
@@ -1160,7 +1284,153 @@ index 5520bba..bee7949 100644
      ActorTemplates::CreateAreaDamage(
          m_pPositionComponent->GetPosition() + offset,
          pAttack->attackAreaSize,
-@@ -1893,6 +1954,8 @@ bool RollEnemyAIStateComponent::VDelegateInit(TiXmlElement* pData)
+@@ -1321,11 +1417,42 @@ bool RangedAttackAIStateComponent::VDelegateInit(TiXmlElement* pData)
+         return false;
+     }
+ 
++    if (auto burst = pData->FirstChildElement("SirenBurst"))
++    {
++        ParseValueFromXmlElem(&m_BurstCount, burst->FirstChildElement("Count"));
++        ParseValueFromXmlElem(&m_BurstSpacing, burst->FirstChildElement("SpacingMs"));
++        ParseValueFromXmlElem(&m_BurstCooldown, burst->FirstChildElement("EntryCooldownMs"));
++        if (m_BurstCount < 1 || m_BurstCount > 4 || m_BurstSpacing < 1 || m_BurstCooldown < 1)
++            return false;
++    }
+     return true;
+ }
+ 
+ void RangedAttackAIStateComponent::VOnAttackFrame(std::shared_ptr<EnemyAttackAction> pAttack, Direction dir, const Point& offset)
+ {
++    if (m_BurstCount > 1)
++    {
++        m_BurstStarted = true;
++        m_BurstJustStarted = true;
++        m_BurstAttack = pAttack;
++        m_BurstDirection = dir;
++        m_BurstOffset = offset;
++        m_ShotRemaining = m_BurstCount - 1;
++        m_SpacingRemaining = m_BurstSpacing;
++        m_CooldownRemaining = m_BurstCooldown;
++        // Original singing ends with its sound, not the animation loop.
++        const auto& sounds = m_pEnemyAIComponent->GetRangedAttackSounds();
++        m_SingingRemaining = sounds.empty() ? 0 : Util::GetSoundDurationMs(sounds.front());
++    }
++    EmitProjectile(pAttack, dir, offset, true);
++}
++
++void RangedAttackAIStateComponent::EmitProjectile(std::shared_ptr<EnemyAttackAction> pAttack,
++                                                Direction dir, const Point& offset, bool playSound)
++{
++    if (m_BurstCount > 1 && g_pApp->GetDebugOptions()->bPreviewIncompleteLevel14)
++        SDL_Log("Pazur siren shot: actor=%u shot=%d tick=%u", m_pOwner->GetGUID(),
++                m_BurstCount - m_ShotRemaining, SDL_GetTicks());
+     if (pAttack->projectileProto == ActorPrototype_None)
+     {
+         ActorTemplates::CreateProjectile(
+@@ -1340,18 +1467,88 @@ void RangedAttackAIStateComponent::VOnAttackFrame(std::shared_ptr<EnemyAttackAct
+     }
+     else
+     {
+-        ActorTemplates::CreateActor_Projectile(
++        auto projectile = ActorTemplates::CreateActor_Projectile(
+             pAttack->projectileProto,
+             m_pPositionComponent->GetPosition() + offset,
+             dir,
+             m_pOwner->GetGUID());
++        if (projectile && m_BurstCount > 1)
++        {
++            // Original Siren: +/-200 pixels/s. Set the float velocity directly:
++            // the generic left-projectile XML helper truncates fractional speeds.
++            const Point speed(PixelsToMeters(dir == Direction_Left ? -200.0f : 200.0f), 0);
++            g_pApp->GetGameLogic()->VGetGamePhysics()->VSetLinearSpeed(projectile->GetGUID(), speed);
++            if (g_pApp->GetDebugOptions()->bPreviewIncompleteLevel14)
++                SDL_Log("Pazur siren geometry: actor=%u offset=%.1f,%.1f speed=%.3f,%.3f",
++                        m_pOwner->GetGUID(), offset.x, offset.y, speed.x, speed.y);
++        }
+     }
+ 
+     // Play ranged attack sound
+-    Util::PlayRandomSoundFromList(m_pEnemyAIComponent->GetRangedAttackSounds());
++    if (playSound) Util::PlayRandomSoundFromList(m_pEnemyAIComponent->GetRangedAttackSounds());
+ }
+ 
+ //=====================================================================================================================
++// Original 0x48d640/0x48d7b0: image 202, up to four notes, 300 ms
++// spacing and a 4000 ms gate from the first note. Game-time timers pause.
++void RangedAttackAIStateComponent::VUpdate(uint32 msDiff)
++{
++    const bool justStarted = m_BurstJustStarted;
++    m_BurstJustStarted = false;
++    const bool wasCooling = m_CooldownRemaining > 0;
++    if (!justStarted)
++        m_CooldownRemaining = (std::max)(0, m_CooldownRemaining - int(msDiff));
++    if (m_BurstCount > 1 && wasCooling && m_CooldownRemaining == 0 && !m_IsActive)
++    {
++        auto state = m_pEnemyAIComponent->GetCurrentState();
++        if (state && state->VGetStateType() == EnemyAIState_Patrolling)
++            m_pEnemyAIComponent->EnterBestState(true);
++    }
++    BaseAttackAIStateComponent::VUpdate(msDiff);
++    if (m_BurstCount <= 1 || !m_IsActive || !m_BurstStarted) return;
++    // Animation callbacks run before this component in the same update. Do not
++    // charge the already-elapsed frame again to timers started by that callback.
++    if (justStarted) return;
++    m_SpacingRemaining -= int(msDiff);
++    m_SingingRemaining -= int(msDiff);
++    if (m_ShotRemaining > 0 && m_SpacingRemaining <= 0)
++    {
++        --m_ShotRemaining;
++        EmitProjectile(m_BurstAttack, m_BurstDirection, m_BurstOffset, false);
++        // Original resets to current game time; no catch-up volley on a stall.
++        m_SpacingRemaining = m_BurstSpacing;
++    }
++    if (m_SingingRemaining <= 0) m_pEnemyAIComponent->EnterBestState(true);
++}
++
++bool RangedAttackAIStateComponent::VCanEnter()
++{
++    if (m_BurstCount <= 1) return BaseAttackAIStateComponent::VCanEnter();
++    if (m_IsActive) return !m_BurstStarted || m_SingingRemaining > 0;
++    return m_CooldownRemaining == 0 && BaseAttackAIStateComponent::VCanEnter();
++}
++
++void RangedAttackAIStateComponent::VOnStateEnter(BaseEnemyAIStateComponent* previous)
++{
++    m_BurstStarted = m_BurstJustStarted = false;
++    m_ShotRemaining = 0;
++    BaseAttackAIStateComponent::VOnStateEnter(previous);
++}
++
++void RangedAttackAIStateComponent::VOnStateLeave(BaseEnemyAIStateComponent* next)
++{
++    m_BurstStarted = m_BurstJustStarted = false;
++    m_ShotRemaining = 0;
++    m_BurstAttack.reset();
++    BaseAttackAIStateComponent::VOnStateLeave(next);
++}
++
++void RangedAttackAIStateComponent::VOnAnimationLooped(Animation* animation)
++{
++    if (m_BurstCount <= 1) BaseAttackAIStateComponent::VOnAnimationLooped(animation);
++    // Singing loops cannot restart the burst. Hurt/death cancels it normally.
++}
++
+ // DuckRangedAttackAIStateComponent
+ //=====================================================================================================================
+ 
+@@ -1732,7 +1929,10 @@ bool LaRauxBossAIStateComponent::VDelegateInit(TiXmlElement* pData)
+ 
+ void LaRauxBossAIStateComponent::VUpdate(uint32 msDiff)
+ {
+-
++    // Original sharedupdate 0x44e880 calls 0x451060(1000) once per update;
++    // simultaneous incoming hits therefore share one draw, not independent rolls.
++    if (m_bBossFightStarted)
++        m_MeleeBlockRoll = Util::GetRandomNumber(0, 1000);
+ }
+ 
+ void LaRauxBossAIStateComponent::VOnStateEnter(BaseEnemyAIStateComponent* pPreviousState)
+@@ -1893,6 +2093,8 @@ bool RollEnemyAIStateComponent::VDelegateInit(TiXmlElement* pData)
      assert(m_pPhysics);
  
      DO_AND_CHECK(ParseValueFromXmlElem(&m_RollSpeed, pData->FirstChildElement("RollSpeed")));
@@ -1169,7 +1439,7 @@ index 5520bba..bee7949 100644
      DO_AND_CHECK(ParseValueFromXmlElem(&m_ForwardRollAnimation, pData->FirstChildElement("ForwardRollAnimation")));
      DO_AND_CHECK(ParseValueFromXmlElem(&m_BackwardRollAnimation, pData->FirstChildElement("BackwardRollAnimation")));
      m_RollSensorFixtureDef = ActorTemplates::XmlToActorFixtureDef(pData->FirstChildElement("RollSensorFixtureDef"));
-@@ -1920,7 +1983,10 @@ void RollEnemyAIStateComponent::VPostPostInit()
+@@ -1920,7 +2122,10 @@ void RollEnemyAIStateComponent::VPostPostInit()
  
  void RollEnemyAIStateComponent::VUpdate(uint32 msDiff)
  {
@@ -1180,7 +1450,7 @@ index 5520bba..bee7949 100644
  
      if (m_IsActive)
      {
-@@ -1937,7 +2003,7 @@ void RollEnemyAIStateComponent::VUpdate(uint32 msDiff)
+@@ -1937,7 +2142,7 @@ void RollEnemyAIStateComponent::VUpdate(uint32 msDiff)
  
  bool RollEnemyAIStateComponent::VCanEnter()
  {
@@ -1189,7 +1459,7 @@ index 5520bba..bee7949 100644
      return bCanEnter;
  }
  
-@@ -1950,7 +2016,11 @@ void RollEnemyAIStateComponent::VOnStateEnter(BaseEnemyAIStateComponent* pPrevio
+@@ -1950,7 +2155,11 @@ void RollEnemyAIStateComponent::VOnStateEnter(BaseEnemyAIStateComponent* pPrevio
     
      Direction rollDirection = DetermineRollDirection();
  
@@ -1202,7 +1472,7 @@ index 5520bba..bee7949 100644
      if (rollDirection == Direction_Left)
      {
          speed.x *= -1.0;
-@@ -1967,8 +2037,9 @@ void RollEnemyAIStateComponent::VOnStateEnter(BaseEnemyAIStateComponent* pPrevio
+@@ -1967,8 +2176,9 @@ void RollEnemyAIStateComponent::VOnStateEnter(BaseEnemyAIStateComponent* pPrevio
  void RollEnemyAIStateComponent::VOnStateLeave(BaseEnemyAIStateComponent* pNextState)
  {
      m_IsActive = false;
@@ -1213,7 +1483,7 @@ index 5520bba..bee7949 100644
      m_pPhysics->VSetLinearSpeed(m_pOwner->GetGUID(), zeroSpeed);
  }
  
-@@ -2012,7 +2083,7 @@ void RollEnemyAIStateComponent::VOnAnimationLooped(Animation* pAnimation)
+@@ -2012,7 +2222,7 @@ void RollEnemyAIStateComponent::VOnAnimationLooped(Animation* pAnimation)
          return;
      }
  
@@ -1223,7 +1493,7 @@ index 5520bba..bee7949 100644
      m_pEnemyAIComponent->EnterBestState(true);
  }
 diff --git a/OpenClaw/Engine/Actor/Components/EnemyAI/EnemyAIStateComponent.h b/OpenClaw/Engine/Actor/Components/EnemyAI/EnemyAIStateComponent.h
-index f120148..3a1fe68 100644
+index f120148..8ff1088 100644
 --- a/OpenClaw/Engine/Actor/Components/EnemyAI/EnemyAIStateComponent.h
 +++ b/OpenClaw/Engine/Actor/Components/EnemyAI/EnemyAIStateComponent.h
 @@ -225,6 +225,8 @@ public:
@@ -1262,7 +1532,7 @@ index f120148..3a1fe68 100644
      // BaseAttackAIStateComponent API
      virtual void VExecuteAttack();
      virtual void VOnAttackFrame(std::shared_ptr<EnemyAttackAction> pAttack, Direction dir, const Point& offset) = 0;
-@@ -402,8 +408,14 @@ public:
+@@ -402,8 +408,15 @@ public:
  
  private:
      void ClawHealthBelowZeroDelegate(IEventDataPtr pEventData);
@@ -1270,6 +1540,7 @@ index f120148..3a1fe68 100644
 +    void ExecuteCurrentAttackFrame();
 +    bool m_FirstFramePending = false;
 +    bool m_FirstFrameReady = false;
++    bool m_AttackSequenceCompleted = false;
  
      int m_AttackDelay;
 +    int m_MaxAttackDelay = 0;
@@ -1277,21 +1548,314 @@ index f120148..3a1fe68 100644
  
      SoundList m_AttackSpeechSoundList;
      int m_AttackSpeechSoundPlayChance;
+@@ -471,11 +484,29 @@ public:
+ 
+     virtual bool VDelegateInit(TiXmlElement* pData) override;
+ 
++    virtual void VUpdate(uint32 msDiff) override;
++    virtual bool VCanEnter() override;
++    virtual void VOnStateEnter(BaseEnemyAIStateComponent* previous) override;
++    virtual void VOnStateLeave(BaseEnemyAIStateComponent* next) override;
++    virtual void VOnAnimationLooped(Animation* animation) override;
++
+     // EnemyAIStateComponent API
+     virtual EnemyAIState VGetStateType() const override { return EnemyAIState_RangedAttacking; }
+ 
+     // BaseAttackAIStateComponent API
+     virtual void VOnAttackFrame(std::shared_ptr<EnemyAttackAction> pAttack, Direction dir, const Point& offset) override;
++private:
++    // Opt-in Siren policy; ordinary ranged actors retain their shared shot.
++    void EmitProjectile(std::shared_ptr<EnemyAttackAction> attack, Direction direction,
++                        const Point& offset, bool playSound);
++    int m_BurstCount = 1, m_BurstSpacing = 0, m_BurstCooldown = 0;
++    int m_CooldownRemaining = 0, m_ShotRemaining = 0, m_SpacingRemaining = 0;
++    int m_SingingRemaining = 0;
++    bool m_BurstStarted = false;
++    bool m_BurstJustStarted = false;
++    std::shared_ptr<EnemyAttackAction> m_BurstAttack;
++    Direction m_BurstDirection = Direction_Left;
++    Point m_BurstOffset;
+ };
+ 
+ //=====================================================================================================================
+@@ -614,12 +645,16 @@ public:
+     virtual void VOnStateLeave(BaseEnemyAIStateComponent* pNextState) override;
+     virtual EnemyAIState VGetStateType() const override { return EnemyAIState_BrainLaRaux; }
+ 
++    int GetMeleeBlockRoll() const { return m_MeleeBlockRoll; }
++
+     // Can enemy enter this state ?
+     virtual bool VCanEnter() override { return m_bBossFightStarted == false; }
+ 
+ protected:
+     virtual void VOnBossFightStarted() override;
+     virtual void VOnBossFightEnded(bool isBossDead) override;
++private:
++    int m_MeleeBlockRoll = 1000;
+ };
+ 
+ //=====================================================================================================================
 diff --git a/OpenClaw/Engine/Actor/Components/EnemyAI/Gabriel/GabrielEncounter.cpp b/OpenClaw/Engine/Actor/Components/EnemyAI/Gabriel/GabrielEncounter.cpp
-index 76bbb94..49e1763 100644
+index 76bbb94..d2e2f9c 100644
 --- a/OpenClaw/Engine/Actor/Components/EnemyAI/Gabriel/GabrielEncounter.cpp
 +++ b/OpenClaw/Engine/Actor/Components/EnemyAI/Gabriel/GabrielEncounter.cpp
-@@ -202,6 +202,10 @@ void GabrielAIStateComponent::VUpdate(uint32 msDiff)
+@@ -31,7 +31,9 @@ GabrielAIStateComponent::GabrielAIStateComponent()
+     m_FireCannonAnimFrameIdx(0),
+     m_TimeSinceLastAction(0),
+     m_CurrActionDelay(0),
+-    m_bShouldThrowBombs(false)
++    m_bShouldThrowBombs(false),
++    m_IdleAnimationCompleted(false),
++    m_PirateSpawnPending(false)
+ {
+ 
+ }
+@@ -96,7 +98,7 @@ void GabrielAIStateComponent::VPostInit()
+ 
+     m_pQuestionMark = m_pOwner->GetRawComponent<FollowableComponent>(true);
+ 
+-    m_CurrActionDelay = Util::GetRandomNumber(m_ActionMinInterval, m_ActionMaxInterval);
++    m_CurrActionDelay = 1000;
+     
+     // Populate his actions, should be data-driven but this is unique instance
+     GabrielAction throwBombAction;
+@@ -133,6 +135,11 @@ void GabrielAIStateComponent::VOnWorldFinishedLoading()
+ void GabrielAIStateComponent::VOnStateEnter(BaseEnemyAIStateComponent* pPreviousState)
+ {
+     m_pAnimationComponent->SetAnimation(m_IdleAnim);
++    m_pAnimationComponent->ResetAnimation();
++    m_CurrentAction = GabrielActionType_None;
++    m_TimeSinceLastAction = 0;
++    m_IdleAnimationCompleted = false;
++    m_PirateSpawnPending = false;
+ 
+     m_IsActive = true;
+ }
+@@ -140,6 +147,8 @@ void GabrielAIStateComponent::VOnStateEnter(BaseEnemyAIStateComponent* pPrevious
+ void GabrielAIStateComponent::VOnStateLeave(BaseEnemyAIStateComponent* pNextState)
+ {
+     m_IsActive = false;
++    m_CurrentAction = GabrielActionType_None;
++    m_PirateSpawnPending = false;
+ }
+ 
+ void GabrielAIStateComponent::VOnAnimationFrameChanged(Animation* pAnimation, AnimationFrame* pLastFrame, AnimationFrame* pNewFrame)
+@@ -149,7 +158,14 @@ void GabrielAIStateComponent::VOnAnimationFrameChanged(Animation* pAnimation, An
+         return;
+     }
+ 
+-    if (pAnimation->GetName() == m_ThrowBombAnim && pNewFrame->idx == m_ThrowBombAnimFrameIdx)
++    if (pAnimation != m_pAnimationComponent->GetCurrentAnimation().get() ||
++        pAnimation->GetCurrentAnimationFrame() != pNewFrame || m_ActionEffectExecuted)
++        return;
++
++    // Original bomb and cannon commands share strike7. Their action state,
++    // rather than animation name alone, chooses which effect image 401 triggers.
++    if (m_CurrentAction == GabrielActionType_ThrowBombs &&
++        pAnimation->GetName() == m_ThrowBombAnim && pNewFrame->idx == m_ThrowBombAnimFrameIdx)
+     {
+         static const SoundList s_BombFallSoundList =
+         {
+@@ -158,7 +174,11 @@ void GabrielAIStateComponent::VOnAnimationFrameChanged(Animation* pAnimation, An
+             "/LEVEL8/SOUNDS/GABRIELBOMB/BOMBWHISTLE3.WAV"
+         };
+ 
++        m_ActionEffectExecuted = true;
+         Util::PlayRandomSoundFromList(s_BombFallSoundList);
++        static int bombLogs = 0;
++        if (g_pApp->GetDebugOptions()->bPreviewIncompleteLevel14 && bombLogs++ < 200)
++            SDL_Log("Pazur Gabriel event: event=bombs tick=%u", SDL_GetTicks());
+ 
+         for (int i = 0; i < m_NumThrownBombs; i++)
+         {
+@@ -174,9 +194,14 @@ void GabrielAIStateComponent::VOnAnimationFrameChanged(Animation* pAnimation, An
+             g_pApp->GetGameLogic()->VGetGamePhysics()->VApplyLinearImpulse(pBomb->GetGUID(), bombVelocity);
+         }
+     }
+-    else if (pAnimation->GetName() == m_FireCannonAnim && pNewFrame->idx == m_FireCannonAnimFrameIdx)
++    else if (m_CurrentAction == GabrielActionType_FireCannon &&
++        pAnimation->GetName() == m_FireCannonAnim && pNewFrame->idx == m_FireCannonAnimFrameIdx)
+     {
++        m_ActionEffectExecuted = true;
+         m_pGabrielCannonComponent->Fire();
++        static int cannonLogs = 0;
++        if (g_pApp->GetDebugOptions()->bPreviewIncompleteLevel14 && cannonLogs++ < 200)
++            SDL_Log("Pazur Gabriel event: event=cannon tick=%u", SDL_GetTicks());
+     }
+ }
+ 
+@@ -187,7 +212,28 @@ void GabrielAIStateComponent::VOnAnimationLooped(Animation* pAnimation)
+         return;
+     }
+ 
++    if (pAnimation != m_pAnimationComponent->GetCurrentAnimation().get())
++        return;
++    if (pAnimation->GetName() == m_IdleAnim)
++    {
++        m_IdleAnimationCompleted = true;
++        return;
++    }
++    // Original 0x445b60 creates the pirate on summon completion.
++    // Defer world mutation until VUpdate, outside animation callbacks.
++    if (m_CurrentAction == GabrielActionType_SummonPirate &&
++        pAnimation->GetName() == m_SpawnPirateAnim && !m_ActionEffectExecuted)
++    {
++        m_ActionEffectExecuted = true;
++        m_PirateSpawnPending = true;
++    }
++    else if (!((m_CurrentAction == GabrielActionType_ThrowBombs && pAnimation->GetName() == m_ThrowBombAnim) ||
++               (m_CurrentAction == GabrielActionType_FireCannon && pAnimation->GetName() == m_FireCannonAnim)))
++        return;
++    m_CurrentAction = GabrielActionType_None;
+     m_pAnimationComponent->SetAnimation(m_IdleAnim);
++    m_TimeSinceLastAction = 0;
++    m_IdleAnimationCompleted = false;
+ }
+ 
+ void GabrielAIStateComponent::VUpdate(uint32 msDiff)
+@@ -199,35 +245,74 @@ void GabrielAIStateComponent::VUpdate(uint32 msDiff)
+         return;
+     }
+ 
++    // Original summon entry refuses while two pirates are active. Weak actor
++    // ownership and health approximate its counter lifecycle without leaking slots.
++    for (auto it = m_SummonedPirates.begin(); it != m_SummonedPirates.end(); )
++    {
++        StrongActorPtr pirate = it->lock();
++        HealthComponent* health = pirate ? pirate->GetRawComponent<HealthComponent>() : nullptr;
++        if (!pirate || (health && health->GetCurrentHealth() <= 0))
++            it = m_SummonedPirates.erase(it);
++        else
++            ++it;
++    }
++    if (m_PirateSpawnPending)
++    {
++        m_PirateSpawnPending = false;
++        if (m_SummonedPirates.size() < 2)
++        {
++            StrongActorPtr pirate = ActorTemplates::CreateActor(ActorPrototype_Level8_GabrielPirate, pirateSpawnPos);
++            if (pirate) m_SummonedPirates.push_back(pirate);
++            static int summonLogs = 0;
++            if (g_pApp->GetDebugOptions()->bPreviewIncompleteLevel14 && summonLogs++ < 200)
++                SDL_Log("Pazur Gabriel event: event=summon pirates=%u tick=%u", unsigned(m_SummonedPirates.size()), SDL_GetTicks());
++        }
++    }
++    // Original idle 0x4456d0 needs animation completion and its 1000 ms gate.
++    // Time spent attacking must not interrupt an action or advance idle time.
++    if (m_pAnimationComponent->GetCurrentAnimationName() != m_IdleAnim)
++        return;
      m_TimeSinceLastAction += msDiff;
-     if (m_TimeSinceLastAction > m_CurrActionDelay)
+-    if (m_TimeSinceLastAction > m_CurrActionDelay)
++    if (m_IdleAnimationCompleted && m_TimeSinceLastAction >= m_CurrActionDelay)
      {
 +        // REA original selector 0x445740 chooses rand()%3. Uniform selection is
 +        // deliberate; the legacy vector's probability/reuse fields are unused
-+        // metadata, not verified original cooldowns. Original idle/prelude gates
-+        // still need a separate encounter reconstruction and runtime test.
++        // metadata, not verified original cooldowns. Idle and prelude gates
++        // below are reconstructed separately from original binary evidence.
          GabrielAction action = Util::GetRandomValueFromVector(m_GabrielActionList);
          std::string playedSound;
++        m_CurrentAction = action.actionType;
++        m_ActionEffectExecuted = false;
          switch (action.actionType)
+         {
+             case GabrielActionType_ThrowBombs:
+             {
+                 m_pAnimationComponent->SetAnimation(m_ThrowBombAnim);
++                m_pAnimationComponent->SetDelay(500); // Original 0x4458e0.
+                 playedSound = Util::PlayRandomSoundFromList(m_ThrowBombSoundList);
+                 break;
+             }
+ 
+             case GabrielActionType_SummonPirate:
++                if (m_SummonedPirates.size() >= 2)
++                {
++                    m_CurrentAction = GabrielActionType_None;
++                    m_TimeSinceLastAction = 0;
++                    m_IdleAnimationCompleted = false;
++                    m_pAnimationComponent->ResetAnimation();
++                    return;
++                }
+                 m_pAnimationComponent->SetAnimation(m_SpawnPirateAnim);
+                 playedSound = Util::PlayRandomSoundFromList(m_SpawnPirateSoundList);
+                 
+-                ActorTemplates::CreateActor(ActorPrototype_Level8_GabrielPirate, pirateSpawnPos);
+ 
+                 break;
+ 
+             case GabrielActionType_FireCannon:
+-                if (!m_pGabrielCannonComponent->IsReadyToFire())
+-                {
+-                    return;
+-                };
+-
++                // Original selector always enters its cannon command. A busy
++                // cannon is handled by Fire(), not by per-frame action rerolls.
+                 m_pAnimationComponent->SetAnimation(m_FireCannonAnim);
++                m_pAnimationComponent->SetDelay(500); // Original 0x445c50.
+                 playedSound = Util::PlayRandomSoundFromList(m_FireCannonSoundList);
+                 break;
+ 
+@@ -242,8 +327,14 @@ void GabrielAIStateComponent::VUpdate(uint32 msDiff)
+         }
+ 
+         // Reset the timer
+-        m_CurrActionDelay = Util::GetRandomNumber(m_ActionMinInterval, m_ActionMaxInterval);
++        m_CurrActionDelay = 1000;
+         m_TimeSinceLastAction = 0;
++        m_IdleAnimationCompleted = false;
++        static int actionLogs = 0;
++        if (g_pApp->GetDebugOptions()->bPreviewIncompleteLevel14 && actionLogs++ < 200)
++            SDL_Log("Pazur Gabriel action: action=%d pirates=%u prelude=%d tick=%u",
++                int(action.actionType), unsigned(m_SummonedPirates.size()),
++                action.actionType == GabrielActionType_SummonPirate ? 0 : 500, SDL_GetTicks());
+     }
+ }
+ 
+@@ -254,12 +345,19 @@ void GabrielAIStateComponent::VOnBossFightStarted()
+     // To refresh contact list after Claw's death
+     g_pApp->GetGameLogic()->VGetGamePhysics()->VActivate(m_pOwner->GetGUID());
+ 
++    // The same brain is already active during the introduction. Best-state
++    // selection retains it and would leave the dialog animation running forever.
++    // Explicit re-entry starts the post-introduction idle animation and gate.
+     m_pEnemyAIComponent->EnterBestState(true);
++    if (m_pEnemyAIComponent->GetCurrentState() == this)
++        VOnStateEnter(this);
+ }
+ 
+ void GabrielAIStateComponent::VOnBossFightEnded(bool isBossDead)
+ {
+     BaseBossAIStateComponennt::VOnBossFightEnded(isBossDead);
++    m_PirateSpawnPending = false;
++    m_IdleAnimationCompleted = false;
+ 
+     if (isBossDead)
+     {
+@@ -280,7 +378,7 @@ void GabrielAIStateComponent::VOnBossFightEnded(bool isBossDead)
+         g_pApp->GetGameLogic()->VGetGamePhysics()->VDeactivate(m_pOwner->GetGUID());
+ 
+         m_TimeSinceLastAction = 0;
+-        m_CurrActionDelay = Util::GetRandomNumber(m_ActionMinInterval, m_ActionMaxInterval);
++        m_CurrActionDelay = 1000;
+     }
+ }
+ 
+diff --git a/OpenClaw/Engine/Actor/Components/EnemyAI/Gabriel/GabrielEncounter.h b/OpenClaw/Engine/Actor/Components/EnemyAI/Gabriel/GabrielEncounter.h
+index 59be8ac..aed840b 100644
+--- a/OpenClaw/Engine/Actor/Components/EnemyAI/Gabriel/GabrielEncounter.h
++++ b/OpenClaw/Engine/Actor/Components/EnemyAI/Gabriel/GabrielEncounter.h
+@@ -107,6 +107,11 @@ private:
+     int m_CurrActionDelay;
+ 
+     bool m_bShouldThrowBombs;
++    GabrielActionType m_CurrentAction = GabrielActionType_None;
++    bool m_ActionEffectExecuted = false;
++    bool m_IdleAnimationCompleted;
++    bool m_PirateSpawnPending;
++    std::vector<WeakActorPtr> m_SummonedPirates;
+ };
+ 
+ class GabrielCannonButtonComponent : public ActorComponent, public TriggerObserver
 diff --git a/OpenClaw/Engine/Actor/Components/EnemyAI/Marrow/MarrowEncounter.cpp b/OpenClaw/Engine/Actor/Components/EnemyAI/Marrow/MarrowEncounter.cpp
 index 6e48419..2130716 100644
 --- a/OpenClaw/Engine/Actor/Components/EnemyAI/Marrow/MarrowEncounter.cpp
@@ -1660,6 +2224,57 @@ index 5ca1b5e..e09e162 100644
  
  #endif
 \ No newline at end of file
+diff --git a/OpenClaw/Engine/Actor/Components/EnemyAI/OriginalBossPolicies.h b/OpenClaw/Engine/Actor/Components/EnemyAI/OriginalBossPolicies.h
+new file mode 100644
+index 0000000..a1dfe90
+--- /dev/null
++++ b/OpenClaw/Engine/Actor/Components/EnemyAI/OriginalBossPolicies.h
+@@ -0,0 +1,13 @@
++#pragma once
++
++// Original-supported predicates reconstructed by OpenAI Codex (LLM).
++// The supplied executable is analyzed evidence, not published original source.
++// Le Rauxe's shared update picks rand()%1001; his incoming-melee branch blocks
++// values [0,100). Keeping the integer domain avoids rounding it to 10/100.
++namespace OriginalBossPolicies
++{
++    inline bool LeRauxBlocksMelee(int roll)
++    {
++        return roll >= 0 && roll < 100;
++    }
++}
+diff --git a/OpenClaw/Engine/Actor/Components/EnemyAI/RedTail/RedTailEncounter.cpp b/OpenClaw/Engine/Actor/Components/EnemyAI/RedTail/RedTailEncounter.cpp
+index 50c3f36..88c19dd 100644
+--- a/OpenClaw/Engine/Actor/Components/EnemyAI/RedTail/RedTailEncounter.cpp
++++ b/OpenClaw/Engine/Actor/Components/EnemyAI/RedTail/RedTailEncounter.cpp
+@@ -47,6 +47,9 @@ void RedTailAIStateComponent::VPostInit()
+ {
+     BaseBossAIStateComponennt::VPostInit();
+ 
++    // Original kick/gun entries 0x4836b0/0x483ae0 share this next-action gate.
++    m_pEnemyAIComponent->ConfigureAttackEntryDelay(1000, 1500);
++
+     m_pAnimationComponent = m_pOwner->GetRawComponent<AnimationComponent>(true);
+     m_pAnimationComponent->AddObserver(this);
+ 
+@@ -93,6 +96,8 @@ void RedTailAIStateComponent::VUpdate(uint32 msDiff)
+ 
+ void RedTailAIStateComponent::VOnBossFightStarted()
+ {
++    BaseBossAIStateComponennt::VOnBossFightStarted();
++    m_pEnemyAIComponent->ResetAttackEntryDelay();
+     // To refresh contact list after Claw's death
+     g_pApp->GetGameLogic()->VGetGamePhysics()->VActivate(m_pOwner->GetGUID());
+ 
+@@ -101,6 +106,8 @@ void RedTailAIStateComponent::VOnBossFightStarted()
+ 
+ void RedTailAIStateComponent::VOnBossFightEnded(bool isBossDead)
+ {
++    BaseBossAIStateComponennt::VOnBossFightEnded(isBossDead);
++    m_pEnemyAIComponent->ResetAttackEntryDelay();
+     if (isBossDead)
+     {
+         SoundInfo soundInfo(SOUND_GAME_AMULET_RISE);
 diff --git a/OpenClaw/Engine/Actor/Components/FloorSpikeComponent.cpp b/OpenClaw/Engine/Actor/Components/FloorSpikeComponent.cpp
 index cb989c1..02d284f 100644
 --- a/OpenClaw/Engine/Actor/Components/FloorSpikeComponent.cpp
@@ -3143,7 +3758,7 @@ index 2bb4694..74a47c3 100644
  };
  
 diff --git a/OpenClaw/Engine/Physics/ClawPhysics.cpp b/OpenClaw/Engine/Physics/ClawPhysics.cpp
-index 0c037b8..b2e21b3 100644
+index 0c037b8..d0d7ab4 100644
 --- a/OpenClaw/Engine/Physics/ClawPhysics.cpp
 +++ b/OpenClaw/Engine/Physics/ClawPhysics.cpp
 @@ -1,4 +1,12 @@
@@ -3317,7 +3932,19 @@ index 0c037b8..b2e21b3 100644
      return Point();
  }
  
-@@ -1431,6 +1554,16 @@ void ClawPhysics::VScaleActor(uint32_t actorId, double scale)
+@@ -1342,6 +1465,11 @@ RaycastResult ClawPhysics::VRayCast(const Point& fromPoint, const Point& toPoint
+     b2Vec2 b2fromPoint = PixelsToMeters(PointToB2Vec2(fromPoint));
+     b2Vec2 b2toPoint = PixelsToMeters(PointToB2Vec2(toPoint));
+ 
++    // Attackers can share the target's X coordinate after a committed lunge.
++    // Box2D rejects zero-length rays; conversion to float physics units can
++    // also collapse distinct pixel coordinates. There is no intervening segment.
++    if ((b2toPoint - b2fromPoint).LengthSquared() == 0.0f)
++        return RaycastResult();
+     m_pWorld->RayCast(&callback, b2fromPoint, b2toPoint);
+ 
+     return callback.GetRaycastResult();
+@@ -1431,6 +1559,16 @@ void ClawPhysics::VScaleActor(uint32_t actorId, double scale)
  // Private implementations
  //=====================================================================================================================
  
@@ -3335,14 +3962,16 @@ index 0c037b8..b2e21b3 100644
  {
      ActorIDToBox2DBodyMap::const_iterator found = m_ActorToBodyMap.find(actorId);
 diff --git a/OpenClaw/Engine/Physics/ClawPhysics.h b/OpenClaw/Engine/Physics/ClawPhysics.h
-index 4a75abc..5db0385 100644
+index 4a75abc..0eaa397 100644
 --- a/OpenClaw/Engine/Physics/ClawPhysics.h
 +++ b/OpenClaw/Engine/Physics/ClawPhysics.h
-@@ -74,6 +74,8 @@ public:
+@@ -74,6 +74,10 @@ public:
  
      virtual void VScaleActor(uint32_t actorId, double scale) override;
  
 +    bool IsRegisteredBody(const b2Body* body) const;
++    // Read-only lifetime check before optional gameplay hit-window queries.
++    bool HasActorBody(uint32 actorId) const { return m_ActorToBodyMap.find(actorId) != m_ActorToBodyMap.end(); }
 +
  private:
      b2Body* FindBox2DBody(uint32 actorId);

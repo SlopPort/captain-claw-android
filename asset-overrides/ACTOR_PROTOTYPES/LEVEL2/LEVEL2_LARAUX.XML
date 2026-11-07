@@ -31,7 +31,9 @@
             <ParryChance DamageType="DamageType_Bullet" Chance="100" />
             <ParryChance DamageType="DamageType_Magic" Chance="100" />
             <ParryChance DamageType="DamageType_Explosion" Chance="100" />
-            <ParryChance DamageType="DamageType_MeleeAttack" Chance="50" />
+            <!-- Engine uses the original cached 100/1001 melee rule for Le Rauxe.
+                 10 is a readable rounded fallback, not its exact denominator. -->
+            <ParryChance DamageType="DamageType_MeleeAttack" Chance="10" />
         </ParryChances>
         <ParrySounds>
             <ParrySound>/LEVEL2/SOUNDS/RAUX/BLOCK1.WAV</ParrySound>

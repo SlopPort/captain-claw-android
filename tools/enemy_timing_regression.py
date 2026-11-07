@@ -1,4 +1,4 @@
-"""Physical attack emission regression checks for debug37; OpenAI Codex (LLM).
+"""Physical shared-attack emission regression checks; OpenAI Codex (LLM).
 
 Temporary protected arenas and synthetic frame-zero actions are fixtures only.
 User files are restored by CampaignSession. Select an authorized device first.
@@ -70,6 +70,7 @@ def main():
     apk_sha = installed_apk_sha256()
     assert apk_sha == hashlib.sha256(apk.read_bytes()).hexdigest(), 'Installed APK mismatch'
     # index, actor name, animation, separation, frame, ANI offset, delay, cycle.
+    # Siren uses its original burst policy; see siren_behavior_smoke.py.
     cases = [
         (14, 'Officer', 'strike', 70, 3, 480, 0, 770),
         (16, 'Soldier', 'strike1', 70, 2, 60, 0, 630),
@@ -80,7 +81,6 @@ def main():
         (33, 'Level7_BearSailor', 'strike1', 70, 2, 270, 0, 590),
         (10, 'Level13_Chameleon', 'strike1', 70, 1, 50, 150, 400),
         (27, 'Level5_TownGuard1', 'strike2', 70, 4, 310, 0, 570),
-        (5, 'Level11_Siren', 'strike1', 70, 1, 180, 500, 1780),
     ]
     inventory = json.loads((PORT / 'reports/combat-audit/inventory.json').read_text(encoding='utf-8'))
     result = dict(apk_sha256=apk_sha, natural_playthrough=False, player_protected=True,
