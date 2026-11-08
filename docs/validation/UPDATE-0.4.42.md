@@ -34,3 +34,7 @@ The corrected APK passed known-pattern privacy checks (375 members), both-ABI pa
 ## Unarmed diagnostic regression
 
 The corrected exact APK passed the sequential `touch-jump`, `game-over`, `save-errors` and `ambient` cases on Huawei. The runner verified fresh configuration/progress restoration and unchanged installed APK after every case. Private report: `todo-regression-0.4.42-r2/results.json`. The jump trace recorded one upward cycle for each of six normal fixture inputs, including short, long and drift cases. These are bounded app-local inputs, not a physical multitouch or controller test. No previous debug41 emulator/menu/boss result is automatically transferred to debug42.
+
+An additional [eight-case movement, lifecycle and data-safety batch](MOVEMENT-LIFECYCLE-0.4.42.md) passed on this exact APK. Its bounded evidence does not close all corresponding TODO requirements.
+
+That report also records held virtual climbing input released during pause, selected attack audio at 10%/100%, raw-Start pause and prepared Catnip music transitions. Physical controller transport, complete audible cue coverage and real-pickup cold frame time remain unverified by these fixtures.

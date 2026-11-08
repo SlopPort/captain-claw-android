@@ -22,6 +22,7 @@ CASES = {
     'wall-jump': ('wall_jump_smoke.py',),
     'forest': ('forest_motion_smoke.py',),
     'ladder-pause': ('ladder_pause_smoke.py',),
+    'ladder-held-pause': ('ladder_held_pause_smoke.py',),
     'checkpoint-reload-walk': ('checkpoint_local_smoke.py', '--walk-after-reload'),
     'checkpoint-respawn-walk': ('checkpoint_local_smoke.py', '--walk-after-reload', '--ordinary-death'),
     'rope': ('rope_attached_smoke.py',),

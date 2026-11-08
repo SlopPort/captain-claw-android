@@ -52,6 +52,8 @@ Debug42 adds [input triggered after actual enemy damage](docs/validation/UPDATE-
 
 Movement follow-up: [debug41 first/leafy ladders, flat edges, attached rope and pause checks](docs/validation/LADDER-EDGES-0.4.41.md) passed their stated assertions. Remaining natural snag, ladder interruption/transfer combinations and rope visual/slow-frame cases above stay open; this is not a blanket movement pass.
 
+[Debug42 movement/lifecycle follow-up](docs/validation/MOVEMENT-LIFECYCLE-0.4.42.md) repeats leafy caps, neutral ladder pause, attached rope and ordinary-death checkpoint movement on the current installed artifact. Both selected cyclic-platform transfers landed without Catnip. Focus/held-axis release, isolated interrupted-import recovery and late save export also passed. Broader geometry, physical input, provider UI and interruption requirements remain open.
+
 Checkpoint follow-up: [debug41 reload and ordinary-death respawn movement](docs/validation/CHECKPOINT-RESPAWN-0.4.41.md) passed right/left/right traversal at level-1 checkpoint 1 without jumping. A failed premature fade read is retained separately. This does not close every MOVE-09 geometry/input combination.
 
 ## Ordinary enemies, hitboxes and recovery

@@ -72,7 +72,7 @@ Versioned reports keep their exact-build scope. Prior compatibility results do n
 - **0.4.26:** [import/picker checks](validation/IMPORT-FLOW-0.4.26.md) and [signed candidate evidence](validation/RELEASE-0.4.26.md).
 - **0.4.25:** [readiness and retained failures](validation/READINESS-0.4.25.md), [Redmi Android 16 results](validation/REDMI-0.4.25.md), [twenty-minute Huawei observation](validation/SUSTAINED-HUAWEI-0.4.25.md) and [bounded full-disk tests](validation/IMPORT-FULL-DISK.md).
 
-The accepted performance target is at least 55 FPS in the measured heavy Huawei scene, with 60 FPS an optimization target. This is not a proved minimum for every frame or level. Preserve image quality and report stalls separately.
+The desired performance target is 55 FPS in the measured heavy Huawei scene, with 60 FPS desirable. On 2026-11-08 the human allowed accepting lower FPS if sensible measurement-led optimizations do not help; 55 FPS is no longer a mandatory release floor. Neither target is a proved minimum for every frame or level. Preserve image quality and report stalls separately.
 
 ## Historical natural route and test ownership
 
