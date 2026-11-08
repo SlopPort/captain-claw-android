@@ -33,3 +33,21 @@ python tools/ladder_smoke.py --report unique-report-name --expect-fixed --first-
 ```
 
 MOVE-02/03 remain broader than this fixture: both user-recorded natural snag locations, crouching/reversal, real tile joins and false wall footholds retain their own checks. MOVE-04 still includes leafy level-3 ladders. MOVE-05 still needs interruption by hurt/death and pause/restoration while attached. MOVE-01's unreproduced level-2 blockage remains open. Do not generalize this pass to all geometry or original-game parity.
+
+## Additional leafy-ladder, rope and pause checks
+
+The same exact Huawei debug41 subsequently passed:
+
+- **Leafy ladder caps:** production level-3 tile types 668 and 667. A 20 ms Up pulse near each calibrated summit followed by release ended grounded and not climbing (feet at 6339/6014, within the asserted surface tolerance). Down re-entry remained attached and moved below the cap. Pausing input mid-ladder left Claw attached without a phantom ground contact. Teleport setup and removed enemies are explicit fixtures. These cases do not cover every jump/side-transfer/interruption combination.
+- **First level-3 rope:** attachment occurred through its real trigger after diagnostic placements; 18 subsequent samples stayed attached. Maximum interpolated handle-position error was about **0.0066 px** against the configured offsets/phase. A game-thread trace confirmed a transient jump after release input; a later re-grab is permitted. This verifies sampled position alignment and release, **not visual smoothness or low-FPS animation**. Setup removed enemies and protected Claw.
+- **Pause while attached:** new `ladder_pause_smoke.py` performed three app-local Escape pause/resume cycles on an isolated ladder. Each cycle confirmed menu/game context transitions, unchanged position, continued ladder attachment, no floor contact and zero vertical velocity. A subsequent Up pulse moved from Y=923.9 to Y=866.1. No target/unattributed crash was recorded. The test pauses while input is already neutral; held-input cancellation, hurt, death and process recreation are separate cases.
+
+The forest/rope batch independently checked restored config/progress hashes and unchanged APK after each child. The pause helper used the shared session's byte-for-byte restoration check. No physical controller was attached by these helpers; no Bluetooth/USB transport claim is made.
+
+Private raw evidence: `todo-forest-rope-0.4.41*` and `todo-ladder-pause-0.4.41`. Reproduce the additional cases on an allocated device with:
+
+```text
+python tools/run_regression_batch.py --report unique-report-name --cases forest rope ladder-pause
+```
+
+This reduces the missing scope above, but MOVE-04/05/06 remain open for the other combinations, interruption rules and visual/slow-frame assessment. Neither an attached rope clock nor a sampled handle match proves a smooth rendered animation.

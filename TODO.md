@@ -48,9 +48,9 @@ Keep the stable IDs in reports and commits. When closing an item, add a dated ev
 - [ ] **MOVE-08 / P1 / VERIFY:** Check elevators, moving carriers and crumbling platforms: passenger entry/exit, jump, crouch, underside contact and overlapping supports. Investigate the old carrier-removal comment only after reproducing a concrete failure.
 - [ ] **MOVE-09 / P0 / VERIFY:** Check checkpoint respawn next to terrain, ladders and platforms. No persistent blocked movement, stale contacts or invalid spawn support may survive death/reload.
 
-## Ordinary enemies, hitboxes and recovery
+Movement follow-up: [debug41 first/leafy ladders, flat edges, attached rope and pause checks](docs/validation/LADDER-EDGES-0.4.41.md) passed their stated assertions. Remaining natural snag, ladder interruption/transfer combinations and rope visual/slow-frame cases above stay open; this is not a blanket movement pass.
 
-Movement follow-up: [debug41 first-ladder and flat-edge regression](docs/validation/LADDER-EDGES-0.4.41.md) passed its stated cap/bottom/jump/edge assertions. Remaining natural snag, leafy-ladder and interruption cases above stay open; this is not a blanket movement pass.
+## Ordinary enemies, hitboxes and recovery
 
 - [ ] **COMBAT-01 / P0 / OPEN:** Reproduce the level 1 sword enemy attacking a lower-standing hero on stairs. Keep offensive AI active. Record attack acceptance, hurt entry/exit, overlap and available escape/counter timing. Separate a reach mismatch from hurt-state input suppression and repeated stagger. Done: original-supported behavior or a clearly documented accommodation, plus a playable human recheck.
 - [ ] **COMBAT-02 / P0 / VERIFY:** Extend active vertical combat coverage to both facing directions and 16/32/48/64 px height offsets, standing/crouching and ascent/descent. Include sword and relevant projectiles. Earlier disabled-AI fixtures do not establish a fair active encounter.

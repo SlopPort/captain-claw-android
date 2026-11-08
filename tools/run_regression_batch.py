@@ -21,6 +21,7 @@ CASES = {
     'floor-seams': ('floor_seam_smoke.py', '--expect-fixed'),
     'wall-jump': ('wall_jump_smoke.py',),
     'forest': ('forest_motion_smoke.py',),
+    'ladder-pause': ('ladder_pause_smoke.py',),
     'rope': ('rope_attached_smoke.py',),
     'melee-recovery': ('melee_recovery_smoke.py',),
     'audio-low': ('attack_audio_smoke.py', '--sound-volume', '10'),
