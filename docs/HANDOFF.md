@@ -14,8 +14,7 @@ The [detailed TODO](../TODO.md) tracks remaining work with stable task IDs and c
 
 Start with [contributing](../CONTRIBUTING.en.md), [building](BUILDING.en.md), [installation](INSTALL-EN.md), [release gates](ROADMAP-1.0.md) and [upstream differences](UPSTREAM-DIFF.en.md).
 
-Public test distribution: [v0.4.32-test](https://github.com/SlopPort/captain-claw-android/releases/tag/v0.4.32-test),
-with [exact artifact/signing/runtime limits](validation/RELEASE-0.4.32.md).
+Public APK distribution is temporarily withdrawn as of 2026-11-08: 0.4.31/0.4.32 releases were changed to private drafts after exact-artifact scanning found a build-account path in SDL diagnostics. Files/metadata are retained privately; source/tags remain public. Do not republish those binaries. Debug41 adds compiler filename-prefix mapping and still needs its own scan/runtime/release evidence. The [0.4.32 artifact/signing/runtime record](validation/RELEASE-0.4.32.md) remains historical.
 The phone's existing debug installation was not migrated or uninstalled.
 
 ## Latest verified behavior

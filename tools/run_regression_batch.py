@@ -39,6 +39,11 @@ CASES = {
     'import-recovery': ('import_recovery_smoke.py',),
     'late-save-activity': ('late_save_activity_smoke.py',),
     'cyclic-platforms': ('gameplay_perf_smoke.py', '--level', '1', '--cyclic-pegs'),
+    # Twenty-minute stability evidence, not a passing 55 FPS claim. A missed
+    # FPS target alone is optional under the human's 2026-11-08 scope decision.
+    'stability-heavy': ('gameplay_perf_smoke.py', '--level', '9', '--seconds', '1200',
+                        '--scene', '11027', '5500', '--protect-player', '--observe',
+                        '--quiet-diagnostics', '--expect-logical-size', '853', '480'),
 }
 
 

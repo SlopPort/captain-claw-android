@@ -1,5 +1,23 @@
 cmake_minimum_required(VERSION 3.22)
 project(PazurAndroid LANGUAGES C CXX)
+# Clang expands assertion/source filenames from NDK headers as well as our code.
+# Stripping debug symbols alone does not remove those strings from .rodata.
+# Keep useful relative diagnostics without embedding the builder's account path.
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  set(PAZUR_BUILD_USER_ROOT "$ENV{USERPROFILE}")
+  if(NOT PAZUR_BUILD_USER_ROOT)
+    set(PAZUR_BUILD_USER_ROOT "$ENV{HOME}")
+  endif()
+  if(PAZUR_BUILD_USER_ROOT)
+    file(TO_CMAKE_PATH "${PAZUR_BUILD_USER_ROOT}" PAZUR_BUILD_USER_ROOT)
+    add_compile_options("-ffile-prefix-map=${PAZUR_BUILD_USER_ROOT}=/build-user")
+  endif()
+  if(CMAKE_ANDROID_NDK)
+    add_compile_options("-ffile-prefix-map=${CMAKE_ANDROID_NDK}=/android-ndk")
+  endif()
+  add_compile_options("-ffile-prefix-map=${CMAKE_SOURCE_DIR}=/pazur-source"
+                      "-ffile-prefix-map=${CMAKE_BINARY_DIR}=/pazur-build")
+endif()
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)

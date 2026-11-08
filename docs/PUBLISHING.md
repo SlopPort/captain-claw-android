@@ -33,8 +33,25 @@ Keep APK releases separate from source publication. Public test APKs now use the
 project release-signing identity; the main local Huawei installation retains its
 debug signature. Do not silently migrate or uninstall it. Each binary release
 must identify source revision, checksums, license notices, exact validation and
-limitations. Public 0.4.32 is a development test, not final 1.0. No commercial
-game-data bundle is a release asset. See [current binary validation](validation/RELEASE-0.4.32.md).
+limitations. No commercial game-data bundle is a release asset. Public 0.4.31/0.4.32
+APKs were withdrawn to private drafts on 2026-11-08 after a build-account path
+was found in SDL diagnostic strings; their files and metadata remain retained.
+The [0.4.32 record](validation/RELEASE-0.4.32.md) is historical, not a current download.
+
+Before uploading any APK, also run:
+
+```text
+python tools/check_apk_privacy.py path/to/candidate.apk --private-pattern-file reports/your-private-patterns.txt
+```
+
+Keep the private pattern file ignored and local. Include your build-account path
+and other identifiers which must not ship. The checker examines APK members and
+the contained support archive, reporting only member names/reasons. A known-bad
+0.4.32 artifact was rejected for both SDL libraries. Source/history checks and
+stripping debug symbols alone cannot find/remove `.rodata` assertion filenames.
+Retain a failed report, fix compiler filename mapping and recheck the exact signed
+artifact; a passing debug build does not certify another signed APK. This is a
+heuristic privacy check, not independent copyright or security clearance.
 
 Historical first-publication audit: the initial local reachable-history scan inspected
 596 blobs (5,679,023 bytes), found none of its excluded paths/credential/private

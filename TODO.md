@@ -13,7 +13,7 @@ This is the detailed, actionable backlog. The [roadmap](docs/ROADMAP-1.0.md) sum
 
 ## Baseline: do not repeat completed work without a reason
 
-- Current installed Huawei build: **0.4.40-dev, ARM64**. Public signed distribution remains **0.4.32-test**. Neither is a finished 1.0 release.
+- Current installed Huawei build: **0.4.40-dev, ARM64**. Public 0.4.31/0.4.32 APK downloads were withdrawn to private drafts on 2026-11-08 for diagnostic filename privacy; debug41 is being prepared. Neither is a finished 1.0 release.
 - [0.4.38 results](docs/validation/UPDATE-0.4.38.md) cover reconstructed Siren, Crab, Fish, Tiger Guard, Gabriel and Red Tail behavior, the Le Rauxe ordinary melee block predicate, and the zero-length line-of-sight guard. These are bounded technical results, not complete original-game parity.
 - [0.4.37](docs/validation/UPDATE-0.4.37.md) corrected effective attack emission frames and deferred frame-zero handling. Do not replace these with arbitrary global attack-speed changes.
 - Prior builds addressed double audio attenuation, Game Over instructions, floor joins, wall-only grounding, leafy-ladder caps, rope interpolation and unsupported menu entries. Their exact-build reports remain evidence; final-build regression checks below remain necessary.

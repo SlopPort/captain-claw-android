@@ -6,9 +6,11 @@ An Android adaptation of [OpenClaw](https://github.com/pjasicek/OpenClaw), using
 
 ## Install and play
 
+**APK downloads temporarily withdrawn, 2026-11-08:** test releases 0.4.31/0.4.32 contained a build-account directory path in SDL diagnostics. They are now private drafts while a corrected APK is prepared and verified. This is a filename/privacy issue, not a discovered password or signing-key leak. Public source remains available. Existing installations need not be removed; do not uninstall and lose saves. New users should wait for a replacement APK, or developers can [build from source](docs/BUILDING.en.md).
+
 You need this port's **APK** (the Android installer) and your own complete **`CLAW.REZ`** (the PC game's data file). A prepared `game-data.zip` also works.
 
-1. Download **`captain-claw-android-0.4.32-test.apk`** from [the test release](https://github.com/SlopPort/captain-claw-android/releases/tag/v0.4.32-test), under **Assets**, or [build one](docs/BUILDING.en.md). GitHub's **Source code (zip)** is source code, not an Android installer or game data. A finished 1.0 APK is not announced here.
+1. Obtain a verified replacement APK when a new test release is announced, or [build one](docs/BUILDING.en.md). No public APK is currently offered. GitHub's **Source code (zip)** is source code, not an Android installer or game data. A finished 1.0 APK is not announced here.
 2. Copy the APK and `CLAW.REZ` to **Downloads** on your phone.
 3. Open the APK in the phone's **Files** app and install it.
 4. Open **Kapitan Pazur**, tap **Choose game data**, and select `CLAW.REZ`. Wait for the import; the game starts automatically.

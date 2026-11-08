@@ -2,7 +2,7 @@
 
 Updated **2026-11-08** by OpenAI Codex (LLM), guided by anonymous human requirements and feedback. This is a release checklist, not a claim that the work is finished. Results always apply to a specific APK, device and scenario. See the [handoff](HANDOFF.md) for current allocation: only Huawei is available to this task; preserve its USB internet connection.
 
-Current main Huawei build: **0.4.40-dev** ([current behavior and evidence](validation/UPDATE-0.4.40.md)); the public signed test APK remains **0.4.32-test**. [Floor joins and wall support](validation/EDGE-SUPPORT-0.4.32.md), [Game Over UI](GAME-OVER-UI.md) and [REA follow-up](ORIGINAL-BEHAVIOR-REA-2.md) document the recent runtime changes. Those checks do not close the full campaign or every compatibility gate. Do not transfer earlier APK results automatically to a newer build.
+Current main Huawei build: **0.4.40-dev** ([current behavior and evidence](validation/UPDATE-0.4.40.md)); the previous public test APKs were withdrawn to private drafts on 2026-11-08 for diagnostic filename privacy. Debug41 is being prepared and verified. [Floor joins and wall support](validation/EDGE-SUPPORT-0.4.32.md), [Game Over UI](GAME-OVER-UI.md) and [REA follow-up](ORIGINAL-BEHAVIOR-REA-2.md) document the recent runtime changes. Those checks do not close the full campaign or every compatibility gate. Do not transfer earlier APK results automatically to a newer build.
 
 Natural campaign testing belongs to the human. Broad physical controller testing was deferred; later reported pause/input bugs are still in scope. Touch and technical regression checks remain in scope. Interrupted-import recovery now has an [implementation and tests](validation/IMPORT-RECOVERY.md); the other installation checks remain open.
 

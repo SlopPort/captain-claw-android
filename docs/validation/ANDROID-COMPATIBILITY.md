@@ -2,15 +2,15 @@
 
 ## Current candidate matrix: 0.4.40-dev, 2026-11-08
 
-Prepared by OpenAI Codex (LLM). Exact debug APK SHA-256: `2383a7d6d789a77c9504b9f459e575e394aca48817e4e704528c3f3b41134f9b`. Supplied Polish game data is used; it is not certified pristine original media. Public signed distribution remains 0.4.32-test.
+Prepared by OpenAI Codex (LLM). Exact debug APK SHA-256: `2383a7d6d789a77c9504b9f459e575e394aca48817e4e704528c3f3b41134f9b`. Supplied Polish game data is used; it is not certified pristine original media. Public 0.4.31/0.4.32 downloads were withdrawn to private drafts on 2026-11-08 for diagnostic filename privacy; debug41 is being prepared.
 
 | Configuration | Evidence for this exact candidate | Missing coverage / limitation |
 | --- | --- | --- |
 | Huawei P9 Lite VNS-L21, LineageOS Android 10, nominal 2 GB RAM, ARM64 | In-place debug update; Tiger continuation/contacts, both Siren variants/directions with real projectile interruption/death, four PL/EN save-error dialogs, touch-layout/difficulty fixture | Not natural campaign completion, every lifecycle/provider path or a proved 55 FPS minimum. GPU model was not separately captured in this batch. |
 | ARMv7 | Native build and packaged ELF32 libraries passed | No physical debug40 ARMv7 runtime yet; older ABI results below are historical. |
 | Minimum Android / API 21 | Separate debug40 x86_64 APK starts the engine; English menu navigation/audio-control fixture passed | The subsequent Polish menu trial failed focus/input after returning from native settings; no target crash was recorded and data restoration passed. Investigation remains open. This emulator artifact does not certify ARM hardware. See the exact report for its different SHA-256. |
-| Newer Android / other vendors | No new exact-candidate runtime claim | Redmi requires a new allocation. Historical Android 16 results below remain tied to their APKs. |
-| 16 KB pages | Static packaged ARM64 ELF checks passed | No debug40 physical ARM 16 KB-page runtime evidence; static alignment alone is insufficient. |
+| Newer Android / other vendors | Separate debug40 x86_64 Android 15/API35 emulator passed PL/EN menus, six jump cases and four save-error dialogs after fixture lifecycle correction | Physical newer-Android ARM candidate remains untested. Redmi requires allocation. [Exact emulator evidence](MENU-INSTRUMENTATION-2026-11-08.md). |
+| 16 KB pages | Static ARM64 checks; separate x86_64 APK ran the above fixtures on API35 with measured page size 16384 | Emulator results do not certify physical ARM 16 KB-page hardware. |
 | Signed production variant | Not the debug artifact above | A separate signed candidate needs its own installation/runtime evidence. A releasecheck identity also does not certify an untouched production package. |
 | Controllers | No broad physical test in this batch | Deferred. Specific prior pause regressions and virtual input are separate from Bluetooth/USB transport coverage. |
 

@@ -23,11 +23,15 @@ public class MenuTouchTest extends Instrumentation {
     private boolean audioSliders;
     private int cycles;
     private volatile Activity game;
+    // A monitor can return an instance which Android subsequently replaces on
+    // rotation. Resolve the currently resumed settings for each UI operation.
+    private volatile Activity activeSettings;
     private int width,height;
     private float logicalWidth;
     private File root;
     private final Application.ActivityLifecycleCallbacks lifecycle=new Application.ActivityLifecycleCallbacks() {
         public void onActivityResumed(Activity activity) {
+            if(activity instanceof ControllerSettingsActivity)activeSettings=activity;
             if(activity instanceof GameActivity) {game=activity;android.util.Log.i("SDL/APP","Pazur menu test resumed: "+System.identityHashCode(activity));}
         }
         public void onActivityPaused(Activity activity) {if(activity instanceof GameActivity)android.util.Log.i("SDL/APP","Pazur menu test paused: "+System.identityHashCode(activity));}
@@ -35,7 +39,7 @@ public class MenuTouchTest extends Instrumentation {
         public void onActivityStarted(Activity activity){}
         public void onActivityStopped(Activity activity){}
         public void onActivitySaveInstanceState(Activity activity,Bundle state){}
-        public void onActivityDestroyed(Activity activity){}
+        public void onActivityDestroyed(Activity activity){if(activeSettings==activity)activeSettings=null;}
     };
     @Override public void onCreate(Bundle args){super.onCreate(args);language=args.getString("language","en");dismissIntro="true".equals(args.getString("dismiss_intro"));audioSliders="true".equals(args.getString("audio_sliders"));cycles=Integer.parseInt(args.getString("cycles","0"));start();}
     private void dismissEmulatorIntro() {
@@ -53,16 +57,48 @@ public class MenuTouchTest extends Instrumentation {
         android.util.Log.i("SDL/APP","Pazur menu test dismissed emulator fullscreen intro using its accessibility node");
         SystemClock.sleep(1200);
     }
+    // Assertions belong to the instrumentation thread. An exception escaping
+    // Android's main Looper would crash the target and hide the actual failure.
+    private void onUi(Runnable action) {
+        final Throwable[] failure={null};
+        runOnMainSync(()->{try{action.run();}catch(Throwable error){failure[0]=error;}});
+        if(failure[0] instanceof Error)throw (Error)failure[0];
+        if(failure[0]!=null)throw new RuntimeException(failure[0]);
+    }
+    private void awaitFocused(Activity activity) {
+        long deadline=SystemClock.uptimeMillis()+5000;
+        while(activity!=null&&!activity.isFinishing()&&!activity.isDestroyed()&&
+                !activity.hasWindowFocus()&&SystemClock.uptimeMillis()<deadline)SystemClock.sleep(50);
+        if(activity==null||activity.isFinishing()||activity.isDestroyed()||!activity.hasWindowFocus())
+            throw new AssertionError("Expected Activity did not acquire focus");
+    }
+    private interface SettingsAction { void run(Activity activity); }
+    private void onSettingsUi(SettingsAction action) {
+        long deadline=SystemClock.uptimeMillis()+5000;
+        final boolean[] completed={false};
+        do {
+            onUi(()->{
+                Activity activity=activeSettings;
+                if(activity!=null&&!activity.isFinishing()&&!activity.isDestroyed()&&activity.hasWindowFocus()) {
+                    action.run(activity);completed[0]=true;
+                }
+            });
+            if(completed[0])return;
+            SystemClock.sleep(50);
+        }while(SystemClock.uptimeMillis()<deadline);
+        throw new AssertionError("Focused Activity action timed out");
+    }
     private void focus() {
         if(game==null||game.isFinishing()||!game.hasWindowFocus())throw new IllegalStateException("Game not focused; input refused (instance="+(game==null?"null":System.identityHashCode(game)+", finishing="+game.isFinishing()+", destroyed="+game.isDestroyed())+")");
     }
     private void tap(float x,float y) {
+        awaitFocused(game);
         focus();long now=SystemClock.uptimeMillis();
         float px=(logicalWidth/2-320+x)*width/logicalWidth,py=y*height/480f;
         for(int action:new int[]{MotionEvent.ACTION_DOWN,MotionEvent.ACTION_UP}) {
             MotionEvent event=MotionEvent.obtain(now,SystemClock.uptimeMillis(),action,px,py,0);
             event.setSource(InputDevice.SOURCE_TOUCHSCREEN);
-            runOnMainSync(()->{
+            onUi(()->{
                 // A menu press can open the native settings Activity on DOWN.
                 // Never send the matching UP into an unfocused game window.
                 if(event.getAction()==MotionEvent.ACTION_UP&&!game.hasWindowFocus())return;
@@ -73,13 +109,15 @@ public class MenuTouchTest extends Instrumentation {
         SystemClock.sleep(900);
     }
     private void escape() {
+        awaitFocused(game);
         focus();for(int action:new int[]{KeyEvent.ACTION_DOWN,KeyEvent.ACTION_UP}) {
             KeyEvent event=new KeyEvent(action,KeyEvent.KEYCODE_ESCAPE);
-            runOnMainSync(()->{focus();game.getWindow().getDecorView().dispatchKeyEvent(event);});
+            onUi(()->{focus();game.getWindow().getDecorView().dispatchKeyEvent(event);});
         }
         SystemClock.sleep(900);
     }
     private void slider(float fromX,float fromY,float toX,float toY,boolean cancel) {
+        awaitFocused(game);
         focus();long down=SystemClock.uptimeMillis();
         int[] actions={MotionEvent.ACTION_DOWN,MotionEvent.ACTION_MOVE,cancel?MotionEvent.ACTION_CANCEL:MotionEvent.ACTION_UP};
         for(int i=0;i<actions.length;i++) {
@@ -87,7 +125,7 @@ public class MenuTouchTest extends Instrumentation {
             MotionEvent event=MotionEvent.obtain(down,SystemClock.uptimeMillis(),actions[i],
                 (logicalWidth/2-320+x)*width/logicalWidth,y*height/480f,0);
             event.setSource(InputDevice.SOURCE_TOUCHSCREEN);
-            runOnMainSync(()->{
+            onUi(()->{
                 // A menu press can open the native settings Activity on DOWN.
                 // Never send the matching UP into an unfocused game window.
                 if(event.getAction()==MotionEvent.ACTION_UP&&!game.hasWindowFocus())return;
@@ -126,12 +164,15 @@ public class MenuTouchTest extends Instrumentation {
         capture("audio-toggle");
     }
     private void capture(String name) throws IOException {
+        awaitFocused(game);
         focus();Bitmap shot=getUiAutomation().takeScreenshot();
         if(shot==null)throw new IOException("No image");
         try(FileOutputStream out=new FileOutputStream(new File(root,"menu-"+language+"-"+name+".png"))){shot.compress(Bitmap.CompressFormat.PNG,100,out);}
         shot.recycle();
     }
-    private void captureSettings(Activity settings,String name) throws Exception {
+    private void captureSettings(String name) throws Exception {
+        onSettingsUi(activity->{});
+        Activity settings=activeSettings;
         if(!settings.hasWindowFocus())throw new AssertionError("Settings screenshot without focus");
         SystemClock.sleep(300);Bitmap shot=getUiAutomation().takeScreenshot();
         try(FileOutputStream out=new FileOutputStream(new File(root,"menu-"+language+"-"+name+".png"))){shot.compress(Bitmap.CompressFormat.PNG,100,out);}
@@ -147,9 +188,8 @@ public class MenuTouchTest extends Instrumentation {
                 Activity settings=waitForMonitorWithTimeout(monitor,5000);removeMonitor(monitor);
                 if(settings==null)throw new AssertionError("Options > Controls did not open settings");
                 final int id=2000+selected;
-                runOnMainSync(()-> {
-                    if(!settings.hasWindowFocus())throw new AssertionError("Settings not focused");
-                    android.widget.RadioButton choice=settings.findViewById(id);
+                onSettingsUi(current-> {
+                    android.widget.RadioButton choice=current.findViewById(id);
                     if(choice==null)throw new AssertionError("Missing control layout");
                     choice.performClick();
                 });
@@ -157,15 +197,15 @@ public class MenuTouchTest extends Instrumentation {
                 if(selected==3) {
                     for(int mode=0;mode<3;mode++) {
                         final int modeId=2200+mode;
-                        runOnMainSync(()->((android.widget.RadioButton)settings.findViewById(modeId)).performClick());
+                        onSettingsUi(current->((android.widget.RadioButton)current.findViewById(modeId)).performClick());
                         if(((GameActivity)game).getControlOptions()[0]!=mode)throw new AssertionError("Movement option not saved");
                     }
-                    runOnMainSync(()->((android.widget.RadioButton)settings.findViewById(2200)).performClick());
+                    onSettingsUi(current->((android.widget.RadioButton)current.findViewById(2200)).performClick());
                     final android.app.AlertDialog[] editor={null};
-                    runOnMainSync(()->editor[0]=GameplaySettingsUi.edit(settings));SystemClock.sleep(500);
+                    onSettingsUi(current->editor[0]=GameplaySettingsUi.edit(current));SystemClock.sleep(500);
                     for(int sliderId=2400;sliderId<=2402;sliderId++) {
                         final int idToDrag=sliderId;
-                        runOnMainSync(()-> {
+                        onUi(()-> {
                             android.widget.SeekBar bar=editor[0].findViewById(idToDrag);
                             long time=SystemClock.uptimeMillis();
                             for(int action:new int[]{MotionEvent.ACTION_DOWN,MotionEvent.ACTION_UP}) {
@@ -181,20 +221,20 @@ public class MenuTouchTest extends Instrumentation {
                     Bitmap editorShot=getUiAutomation().takeScreenshot();
                     try(FileOutputStream out=new FileOutputStream(new File(root,"menu-"+language+"-button-editor.png"))){editorShot.compress(Bitmap.CompressFormat.PNG,100,out);}
                     editorShot.recycle();
-                    runOnMainSync(()->editor[0].dismiss());
+                    onUi(()->editor[0].dismiss());
                     // Keep the rest of this menu fixture on unmodified geometry.
                     controls.edit().remove("button_size_0").remove("button_x_0").remove("button_y_0").commit();
                     SystemClock.sleep(300);
                     Bitmap shot=getUiAutomation().takeScreenshot();
                     try(FileOutputStream out=new FileOutputStream(new File(root,"menu-"+language+"-controls.png"))){shot.compress(Bitmap.CompressFormat.PNG,100,out);}
                     shot.recycle();
-                    runOnMainSync(()-> {
-                        android.view.View target=settings.findViewById(2301);
+                    onSettingsUi(current-> {
+                        android.view.View target=current.findViewById(2301);
                         target.requestRectangleOnScreen(new android.graphics.Rect(0,0,target.getWidth(),target.getHeight()),true);
                     });
-                    captureSettings(settings,"movement");
+                    captureSettings("movement");
                 }
-                runOnMainSync(()->settings.finish());SystemClock.sleep(1600);focus();
+                onSettingsUi(Activity::finish);SystemClock.sleep(1600);focus();
                 if(((GameActivity)game).getTouchLayout()!=selected)throw new AssertionError("Native layout getter mismatch");
             }
             ActivityMonitor difficultyMonitor=addMonitor("pl.pazur.port.ControllerSettingsActivity",null,false);
@@ -203,11 +243,11 @@ public class MenuTouchTest extends Instrumentation {
             if(difficulty==null)throw new AssertionError("Options > Difficulty not available");
             for(int selected=0;selected<3;selected++) {
                 final int id=2100+selected;
-                runOnMainSync(()->((android.widget.RadioButton)difficulty.findViewById(id)).performClick());
+                onSettingsUi(current->((android.widget.RadioButton)current.findViewById(id)).performClick());
                 if(((GameActivity)game).getControlOptions()[2]!=selected)throw new AssertionError("Difficulty not saved");
             }
-            captureSettings(difficulty,"difficulty");
-            runOnMainSync(()->difficulty.finish());SystemClock.sleep(1600);focus();
+            captureSettings("difficulty");
+            onSettingsUi(Activity::finish);SystemClock.sleep(1600);focus();
         } finally {
             SharedPreferences.Editor restore=controls.edit().clear();
             for(java.util.Map.Entry<String,?> entry:originalOptions.entrySet()) {

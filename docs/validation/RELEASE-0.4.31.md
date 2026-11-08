@@ -1,5 +1,7 @@
 # Public development test APK 0.4.31
 
+**Withdrawn 2026-11-08:** exact-artifact privacy scanning found a build-account directory path in both SDL libraries. The release is now a private draft; files and metadata were retained, and source remains public. Do not redistribute this APK. The record below is historical, not a current download recommendation.
+
 Date: 2026-10-24. Work and automated checks by OpenAI Codex (LLM), guided by
 anonymous human requirements and feedback. No natural campaign clear is claimed.
 

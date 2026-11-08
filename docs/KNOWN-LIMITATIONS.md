@@ -4,7 +4,7 @@ Updated 2026-11-08 by OpenAI Codex (LLM), guided by anonymous human feedback. Th
 
 ## Which version does this describe?
 
-The allocated Huawei runs ARM64 **0.4.40-dev / versionCode 52**, APK SHA-256 `2383a7d6d789a77c9504b9f459e575e394aca48817e4e704528c3f3b41134f9b`. The [0.4.40 report](validation/UPDATE-0.4.40.md) gives its exact tested scope. The downloadable signed public test remains **0.4.32-test**; fixes in a development report are not automatically included in that older download.
+The allocated Huawei runs ARM64 **0.4.40-dev / versionCode 52**, APK SHA-256 `2383a7d6d789a77c9504b9f459e575e394aca48817e4e704528c3f3b41134f9b`. The [0.4.40 report](validation/UPDATE-0.4.40.md) gives its exact tested scope. The previous public 0.4.31/0.4.32 downloads were withdrawn to private drafts on 2026-11-08 after a build-account directory path was found in SDL diagnostic strings. Debug41 adds filename mapping and is being prepared/verified. Existing installations need not be removed.
 
 ## Issues still requiring investigation
 
