@@ -54,6 +54,14 @@ The boss sets a boolean fire request at image 401 (`0x445db7`). Cannon update `0
 
 Reset `0x4480b0` clears local and boss requests; encounter reset `0x446bc0` clears count/signals and requests cannon reset. All interruption/reset callers and original firing-state side effects still need joining before claiming full parity. Preserve the existing two-pirate limit.
 
+### Additional cannon boundary, 2026-11-08
+
+Further bounded decoding of the same hashed executable separates **request consumption, firing-state entry and projectile emission**. Selector `0x415440` chooses horizontal or vertical entry from the mode field. Entries `0x415460` / `0x415670` install the respective firing state/animation and clear a one-shot emission latch. Their updates `0x4154b0` / `0x4156c0` create a cannonball only when the animation helper returns its required signal and that latch is clear; they then set the latch. The precise helper signal must still be joined to resource/event semantics before choosing a port frame number.
+
+Both paths create an actual projectile and copy configured launch velocity. Raising `0x448200` installs a vertical launch vector; lowering `0x4482b0` restores a horizontal one. This exposes another existing port approximation: its vertical `Fire()` branch immediately subtracts 25 boss HP, while horizontal firing immediately creates the projectile. A pending boolean alone would not reproduce the original event boundary or vertical collision path. Projectile origin, boss collision/acceptance and reset behavior require integration evidence before replacing this shortcut.
+
+Firing completion calls Home entry `0x4153b0`, while the Gabriel-specific request handler is registered under a separate rotation state. The surrounding dispatch/return relationship remains unjoined; do not infer that the request handler runs during every firing frame, or that an Idle-only retry loop is equivalent. The new private listing is retained separately from the earlier REA evidence. No original Windows execution, new REA Evidence ID or production fix is claimed by this static follow-up.
+
 ## Acceptance boundary
 
 For a production change, verify both directions, entry/leave/death/reset, one effect per intended action, actual contacts and negative cases on the exact APK. Keep speculative geometry/immune-state changes out of narrow proven fixes. Technical fixtures do not replace the human's natural campaign, original-runtime recordings or final compatibility checks. Remaining tasks stay visible in [TODO](../../TODO.md).

@@ -28,7 +28,7 @@ Historical fixes for sound gain, short touches, Game Over, floor joins, ladder c
 
 The [compatibility matrix](validation/ANDROID-COMPATIBILITY.md) separates historical emulator/phone results from current evidence. Minimum API 21, a compiled ABI and static 16 KB alignment each establish different facts; none guarantees every Android phone. Exact final-candidate ARMv7, newer Android and physical 16 KB-page coverage remain incomplete.
 
-The performance goal is 60 FPS; the accepted lower target is 55 FPS in the specified heavy Huawei scene. This is not an all-level or per-frame guarantee. Report long stalls, warm-device behavior and memory separately from average FPS.
+The performance goal is 60 FPS, with 55 FPS a desired lower target in the specified heavy Huawei scene. On 2026-11-08 the human allowed accepting lower FPS if sensible measurement-led optimization does not improve it; the target is no longer a mandatory release floor. The exact debug40 heavy-scene trial ranged from 48.0 to 59.6 FPS across 300-loop batches. This is not an all-level or per-frame guarantee. Report long stalls, warm-device behavior and memory separately from average FPS.
 
 Controller transport/mode, Android pairing and SDL button mapping are separate issues. GameSir red Pro Controller mode worked historically on Huawei; this does not prove every Bluetooth/USB mode works. Broad physical controller testing is deferred. Specific reported pause/input regressions remain actionable within authorized device scope.
 
