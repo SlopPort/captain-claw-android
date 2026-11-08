@@ -207,6 +207,8 @@ public class MenuTouchTest extends Instrumentation {
                         final int idToDrag=sliderId;
                         onUi(()-> {
                             android.widget.SeekBar bar=editor[0].findViewById(idToDrag);
+                            if(bar==null||!bar.isLaidOut()||bar.getWidth()<=bar.getPaddingLeft()+bar.getPaddingRight())
+                                throw new AssertionError("Editor slider not laid out: "+idToDrag);
                             long time=SystemClock.uptimeMillis();
                             for(int action:new int[]{MotionEvent.ACTION_DOWN,MotionEvent.ACTION_UP}) {
                                 MotionEvent event=MotionEvent.obtain(time,time+20,action,bar.getWidth()-bar.getPaddingRight()-1,bar.getHeight()/2f,0);
@@ -215,7 +217,7 @@ public class MenuTouchTest extends Instrumentation {
                         });
                     }
                     int[] custom=((GameActivity)game).getControlOptions();
-                    if(custom[3]<125||custom[4]<95||custom[5]<95)throw new AssertionError("Editor slider persistence");
+                    if(custom[3]<125||custom[4]<95||custom[5]<95)throw new AssertionError("Editor slider persistence: size="+custom[3]+", x="+custom[4]+", y="+custom[5]);
                     // Dialog owns focus while the editor is open.
                     SystemClock.sleep(300);
                     Bitmap editorShot=getUiAutomation().takeScreenshot();
@@ -234,7 +236,7 @@ public class MenuTouchTest extends Instrumentation {
                     });
                     captureSettings("movement");
                 }
-                onSettingsUi(Activity::finish);SystemClock.sleep(1600);focus();
+                onSettingsUi(Activity::finish);SystemClock.sleep(1600);awaitFocused(game);focus();
                 if(((GameActivity)game).getTouchLayout()!=selected)throw new AssertionError("Native layout getter mismatch");
             }
             ActivityMonitor difficultyMonitor=addMonitor("pl.pazur.port.ControllerSettingsActivity",null,false);
@@ -247,7 +249,7 @@ public class MenuTouchTest extends Instrumentation {
                 if(((GameActivity)game).getControlOptions()[2]!=selected)throw new AssertionError("Difficulty not saved");
             }
             captureSettings("difficulty");
-            onSettingsUi(Activity::finish);SystemClock.sleep(1600);focus();
+            onSettingsUi(Activity::finish);SystemClock.sleep(1600);awaitFocused(game);focus();
         } finally {
             SharedPreferences.Editor restore=controls.edit().clear();
             for(java.util.Map.Entry<String,?> entry:originalOptions.entrySet()) {

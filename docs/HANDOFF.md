@@ -6,7 +6,7 @@ The [detailed TODO](../TODO.md) tracks remaining work with stable task IDs and c
 
 ## Current state and boundaries
 
-- Main Huawei installation: **ARM64 debug 0.4.40-dev**. Only Huawei is allocated to this task now. **Do not query, install on or otherwise operate Redmi without a new allocation.** Earlier Redmi results below are historical, not permission to use it now.
+- Main Huawei installation: **ARM64 debug 0.4.41-dev**. [Current evidence and unresolved checks](validation/UPDATE-0.4.41.md). Only Huawei is allocated to this task now. **Do not query, install on or otherwise operate Redmi without a new allocation.** Earlier Redmi results below are historical, not permission to use it now.
 - Huawei supplies internet over USB. Do not reboot it, change USB/tethering/network settings, disconnect it or restart the shared ADB server to repair a test. Select the authorized device with a process-local `ANDROID_SERIAL`; never publish device serials.
 - The human owns natural campaign playtesting. Do not resume autonomous traversal. Technical reproductions of reported bugs are allowed, but teleports, invulnerability and resource edits must be labelled as fixtures, never natural campaign evidence.
 - This is not release 1.0. Full campaign completion, original-game parity and a universal FPS minimum are not established. Broad physical controller testing was deferred; later specific pause/input bug reports remain in scope.
@@ -33,7 +33,7 @@ The debug40 follow-up also passed clean-source ARM64/ARMv7 building from `f11b80
 
 [Enemy attack-speed audit](validation/ENEMY-ATTACK-AUDIT-2026-10-30.md): 55 packaged enemy/encounter prototypes and 76 attacks inventoried, 15 ordinary Huawei cadence cases plus one ranged case measured. Original ANI event mapping is traced: 26 configured actions differ from event-1 markers, 40 match and ten need custom handlers. Red Tail has an ignored nested delay; frame-zero first-hit behavior and unused Gabriel action metadata need follow-up. Exact original timing for every family remains unresolved. This source/documentation batch changes no APK or balance.
 
-Current build/test summary: [debug 0.4.40](validation/UPDATE-0.4.40.md). This is the latest tested local debug build, not a signed public release. [Debug36](validation/UPDATE-0.4.36.md) remains historical evidence.
+Current build/test summary: [debug and signed isolated 0.4.41 checks](validation/UPDATE-0.4.41.md). The signed production APK remains unpublished. API 35 menu instrumentation passed one English repeat after two failures; its intermittent failure remains unexplained. [Debug40](validation/UPDATE-0.4.40.md) and [debug36](validation/UPDATE-0.4.36.md) remain historical evidence.
 
 
 After reviewing commit 425cdb1 (touch customization and working three-preset difficulty), debug36 removes six unsupported menu actions and compacts the main/single-player/options lists. Controls and Difficulty remain functional port features. [Menu audit](validation/MENU-AUDIT-2026-10-30.md) records physical PL/EN navigation and translation coverage.

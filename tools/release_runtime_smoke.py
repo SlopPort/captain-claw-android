@@ -26,6 +26,7 @@ def main():
     parser.add_argument('--aapt',type=Path,required=True)
     parser.add_argument('--abi',choices=('arm64-v8a','armeabi-v7a'),default='arm64-v8a')
     parser.add_argument('--controls',action='store_true',help='Explicit diagnostic jump/exit/score/save fixture in isolated package; not a natural clear')
+    parser.add_argument('--upgrade-from',type=Path,help='Optional older signed releasecheck APK; never the main package')
     args=parser.parse_args()
     if not os.environ.get('ANDROID_SERIAL'):raise RuntimeError('Select one allocated phone')
     package='pl.pazur.port.releasecheck';root='/sdcard/Android/data/'+package+'/files/'
@@ -36,6 +37,17 @@ def main():
     original_rez=adb('shell','sha256sum',REMOTE+'CLAW.REZ').split()[0]
     badging=subprocess.check_output([str(args.aapt),'dump','badging',str(args.apk)],text=True)
     assert "package: name='"+package+"'" in badging,'Wrong APK identity; refusing installation'
+    initial_apk=args.upgrade_from or args.apk
+    initial_hash=hashlib.sha256(initial_apk.read_bytes()).hexdigest()
+    upgrade=None
+    if args.upgrade_from:
+        old_badging=subprocess.check_output([str(args.aapt),'dump','badging',str(initial_apk)],text=True)
+        assert "package: name='"+package+"'" in old_badging,'Wrong older APK identity; refusing installation'
+        old_code=int(re.search(r"versionCode='(\d+)'",old_badging)[1])
+        new_code=int(re.search(r"versionCode='(\d+)'",badging)[1])
+        assert old_code<new_code,'Upgrade fixture requires increasing versionCode'
+        upgrade=dict(from_apk_sha256=initial_hash,from_version_code=old_code,to_version_code=new_code,
+                     external_files_unchanged=False,private_preferences_tested=False)
     before={n:adb('shell','sha256sum',REMOTE+n).split()[0] for n in ('CLAW.REZ','config.xml','SAVES.XML')}
     local_hash=hashlib.sha256(args.apk.read_bytes()).hexdigest()
     installed=False;rows=[];installed_hash=None;ticket=0
@@ -53,8 +65,8 @@ def main():
     def logs(pid):return adb('logcat','-d','--pid='+pid,'-s','SDL/APP','libc','AndroidRuntime')
 
     try:
-        adb('install','--abi',args.abi,str(args.apk));installed=True
-        installed_hash=installed_apk_sha256(package);assert installed_hash==local_hash,'Installed release differs from requested APK'
+        adb('install','--abi',args.abi,str(initial_apk));installed=True
+        installed_hash=installed_apk_sha256(package);assert installed_hash==initial_hash,'Installed release differs from requested APK'
         package_info=adb('shell','dumpsys','package',package)
         (report/'package.txt').write_text(package_info,encoding='utf-8')
         assert 'primaryCpuAbi='+args.abi in package_info,'Unexpected installed ABI'
@@ -67,6 +79,23 @@ def main():
         adb('shell','am','force-stop',package)
         for name in ('CLAW.REZ','ASSETS.ZIP','console02.tga','clacon.ttf','SAVES.XML'):
             adb('shell','cp',REMOTE+name,root+name)
+        if args.upgrade_from:
+            # These are copies in our disposable package, never the main data.
+            # Seed real config/progress before the installer runs; compare them
+            # before any new-version startup can legitimately rewrite settings.
+            path=report/'upgrade-config.xml';path.write_text(config,encoding='utf-8')
+            adb('push',str(path),root+'config.xml')
+            names=('CLAW.REZ','ASSETS.ZIP','config.xml','console02.tga','clacon.ttf','SAVES.XML')
+            old_hashes={n:adb('shell','sha256sum',root+n).split()[0] for n in names}
+            adb('install','-r','--abi',args.abi,str(args.apk))
+            installed_hash=installed_apk_sha256(package)
+            assert installed_hash==local_hash,'Updated release differs from requested APK'
+            new_hashes={n:adb('shell','sha256sum',root+n).split()[0] for n in names}
+            assert old_hashes==new_hashes,'Signed upgrade changed isolated game data'
+            package_info=adb('shell','dumpsys','package',package)
+            assert 'primaryCpuAbi='+args.abi in package_info,'Updated ABI mismatch'
+            (report/'package-after-upgrade.txt').write_text(package_info,encoding='utf-8')
+            upgrade['external_files_unchanged']=True
         for level in (None,1,14):
             adb('shell','am','force-stop',package)
             tree=ET.fromstring(config)
@@ -144,7 +173,7 @@ def main():
         assert adb('shell','sha256sum',REMOTE+'CLAW.REZ').split()[0]==original_rez,'Original REZ changed'
         for name,digest in before.items():assert adb('shell','sha256sum',REMOTE+name).split()[0]==digest,'Original bytes changed: '+name
     result=dict(passed=True,apk_sha256=installed_hash,cases=rows,
-        separate_package=True,requested_abi=args.abi,package_primary_abi_verified=True,process_maps_checked=False,production_identity_tested=False,natural_playthrough=False,original_files_unchanged=True,controls_fixture_requested=args.controls)
+        separate_package=True,requested_abi=args.abi,package_primary_abi_verified=True,process_maps_checked=False,production_identity_tested=False,natural_playthrough=False,original_files_unchanged=True,controls_fixture_requested=args.controls,signed_upgrade=upgrade)
     (report/'results.json').write_text(json.dumps(result,indent=2),encoding='utf-8')
     print(json.dumps(result),flush=True)
 
