@@ -64,6 +64,16 @@ The platform helper's optional timed FPS window initially included its preceding
 
 Archived commit `f11b80f38821649d5c1f7386b796dd323c677892` built both ARM64 and ARMv7 successfully in `todo-clean-source-0.4.40`. Dependencies were checked out at their locked commits and the committed OpenClaw/SDL patches applied to fresh source trees. No upstream working-tree modifications or commercial resources were copied. The resulting APK SHA-256 is `21117a053ff78a9f7fdcc1ca4ae7fe507cddd95c5d0b976ea926eb943a1c34b0`; it is a separate build artifact, not the installed runtime-tested APK above. Existing installed SDK/JDK and cached Gradle dependencies were used. This verifies required committed source inputs, not a clean-machine bootstrap, binary reproducibility or runtime of this second artifact.
 
+## Android 5 emulator follow-up
+
+A separate **x86_64** build from the same clean-source commit succeeded, SHA-256 `a5ccd78d0e97de265364a0b50360de0f8efaf6983cf6151b14010e8071a47bee`, 32,293,346 bytes. The earlier ARM artifact was preserved separately before the emulator build replaced that build directory's output. This APK is not the Huawei ARM artifact and is not a signed distribution release.
+
+The project-owned Android 5/API21 emulator initially had no writable external card. Installation succeeded, but data preparation failed with a read-only filesystem. A new private 512 MB card image was supplied only to this emulator; no phone storage/network setting or shared ADB server was changed. Player-supplied Polish data was copied privately as a fixture, not installed through a novice's system-picker flow.
+
+The engine and English menu navigation/audio-control fixture ran successfully. The following Polish run failed: after returning from native controls/difficulty settings, the attempted audio-page tap left the options screen visible; a subsequent tap reopened controls settings, so the fixture correctly refused further input into an unfocused game window. There was no recorded target/unattributed crash, and APK/config/progress restoration checks passed. Evidence `todo-regression-api21-0.4.40-a*` is retained as **failed**, not silently retried into a pass. A stale touch transform, resize/resume timing and fixture readiness remain investigation candidates, not established causes. This does not establish complete API21 or physical ARM compatibility.
+
+The independent `todo-regression-api21-0.4.40-b` batch subsequently passed six focused-window jump cases and all four PL/EN save-error dialogs/dismissals. Config/progress were restored byte-for-byte and installed APK identity was unchanged after both children. These successes do not close the preceding menu failure or certify touch latency on a physical API21 phone.
+
 ## Failed trials retained
 
 The first Tiger assessment included the warm-up actor's final recursive knife before the replacement actor was staged. It therefore rejected a continuation without its originating decision. The helper now scopes observation after the final stage marker; a fresh full run passed, rather than weakening continuation assertions.

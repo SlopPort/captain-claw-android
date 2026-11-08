@@ -8,7 +8,7 @@ Prepared by OpenAI Codex (LLM). Exact debug APK SHA-256: `2383a7d6d789a77c9504b9
 | --- | --- | --- |
 | Huawei P9 Lite VNS-L21, LineageOS Android 10, nominal 2 GB RAM, ARM64 | In-place debug update; Tiger continuation/contacts, both Siren variants/directions with real projectile interruption/death, four PL/EN save-error dialogs, touch-layout/difficulty fixture | Not natural campaign completion, every lifecycle/provider path or a proved 55 FPS minimum. GPU model was not separately captured in this batch. |
 | ARMv7 | Native build and packaged ELF32 libraries passed | No physical debug40 ARMv7 runtime yet; older ABI results below are historical. |
-| Minimum Android / API 21 | Manifest minimum remains 21 | No debug40 API-21 runtime trial; successful old x86_64 emulator tests do not certify this ARM candidate. |
+| Minimum Android / API 21 | Separate debug40 x86_64 APK starts the engine; English menu navigation/audio-control fixture passed | The subsequent Polish menu trial failed focus/input after returning from native settings; no target crash was recorded and data restoration passed. Investigation remains open. This emulator artifact does not certify ARM hardware. See the exact report for its different SHA-256. |
 | Newer Android / other vendors | No new exact-candidate runtime claim | Redmi requires a new allocation. Historical Android 16 results below remain tied to their APKs. |
 | 16 KB pages | Static packaged ARM64 ELF checks passed | No debug40 physical ARM 16 KB-page runtime evidence; static alignment alone is insufficient. |
 | Signed production variant | Not the debug artifact above | A separate signed candidate needs its own installation/runtime evidence. A releasecheck identity also does not certify an untouched production package. |
