@@ -74,6 +74,8 @@ The engine and English menu navigation/audio-control fixture ran successfully. T
 
 The independent `todo-regression-api21-0.4.40-b` batch subsequently passed six focused-window jump cases and all four PL/EN save-error dialogs/dismissals. Config/progress were restored byte-for-byte and installed APK identity was unchanged after both children. These successes do not close the preceding menu failure or certify touch latency on a physical API21 phone.
 
+One bounded Polish-only repeat, `todo-api21-menu-pl-0.4.40-r2`, passed the full expected page sequence, audio sliders, 318 localized image states and disabled shared-sound switches on the unchanged APK. The initial failure is therefore intermittent under this fixture; its cause is not fixed or established by the passing repeat. Visual screenshots still require human review. The owned API21 emulator was closed after file restoration; the physical Huawei was returned to its normal launcher/game flow with its original config/progress hashes confirmed.
+
 ## Failed trials retained
 
 The first Tiger assessment included the warm-up actor's final recursive knife before the replacement actor was staged. It therefore rejected a continuation without its originating decision. The helper now scopes observation after the final stage marker; a fresh full run passed, rather than weakening continuation assertions.
