@@ -71,6 +71,8 @@ Debug41 follow-up: [eight active Soldier reactions on a 32 px step](docs/validat
 
 The same report now includes corrected-facing 48 px trials and a **64 px reach asymmetry**: sampled standing attacks missed the higher enemy while its attack still contacted Claw; jump-away escape remained possible. Cached original attack-construction evidence confirms different per-attack bounds, but the origin/collision mapping is not joined. Do not close this as a passing balance test or enlarge every hitbox indiscriminately.
 
+Later coverage adds 16 px enemy-above reactions and 24 hero-above observations across 16/32/48/64 px. Some requested postures were not sampled, so completion of the fixture is not completion of every requested action. Existing per-update jump measurement additionally recorded one 264 ms held-jump trial with **0 px rise** and a standing buffered attack. Investigate recovery/input ordering; do not dismiss all absent jumps as sampling artifacts or claim touchscreen latency from diagnostic keys.
+
 ## Bosses and finale
 
 - [ ] **BOSS-01 / P0 / VERIFY:** For each boss, check normal entry, phase transitions, accepted/rejected hits, death, restart and re-entry. Check resources available through the human's actual route; controlled victories do not establish normal ammo availability or balance.

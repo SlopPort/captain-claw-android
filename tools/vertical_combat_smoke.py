@@ -39,6 +39,7 @@ def main():
     parser.add_argument('--actions',nargs='+',choices=('standing','jump','duck','escape'),default=['standing','jump'])
     parser.add_argument('--passive',action='store_true',help='Disable enemy offensive AI to separate geometric misses from interrupted hero input; parry remains')
     parser.add_argument('--react-after-hit',action='store_true',help='Wait for an actual enemy hit before sending the requested reaction; never restores health')
+    parser.add_argument('--measure-jump',action='store_true',help='For jump/escape, additionally capture existing per-update displacement measurement; not physical touch latency')
     parser.add_argument('--above',choices=('enemy','hero'),help='Run only one vertical relation')
     parser.add_argument('--side',type=int,choices=(-1,1),help='Run only one enemy side')
     args=parser.parse_args()
@@ -97,6 +98,8 @@ def main():
                         if reaction_state is None:raise AssertionError('No live after-hit state observed')
                     start=len(session.logs())
                     direction='right' if side>0 else 'left'
+                    if args.measure_jump and action in ('jump','escape'):
+                        session.command('combatjumpmeasure vertical-'+action)
                     session.command('laddertrace vertical-'+action+' 2600')
                     if action in ('jump','escape'):
                         if action=='escape':direction='left' if side>0 else 'right'
@@ -110,6 +113,15 @@ def main():
                     session.command('combatkey release 0');time.sleep(1.2)
                     final=state(session);session.capture('after')
                     evidence=session.logs()[start:]
+                    jump_measurement=None
+                    if args.measure_jump and action in ('jump','escape'):
+                        session.wait('Pazur jump trace: label=vertical-'+action+' ',after=start,seconds=5)
+                        evidence=session.logs()[start:]
+                        measurements=re.findall(r'Pazur jump trace: label=vertical-'+action+r' queue_ms=(\d+) takeoff_ms=(-?\d+) rise=([\d.]+) hold_ms=(\d+) jumps=(\d+)',evidence)
+                        assert len(measurements)==1,'Missing/duplicate per-update jump measurement'
+                        q,t,h,d,j=measurements[0]
+                        jump_measurement=dict(queue_ms=int(q),takeoff_ms=int(t),rise=float(h),hold_ms=int(d),jumps=int(j),
+                                              scope='Upward displacement from baseline; not alone proof of jump-state acceptance or physical input latency')
                     contacts=[dict(source=int(source),target=target,damage=int(damage),
                                    area=list(map(int,area.split(','))),body=list(map(int,body.split(','))),
                                    integer_overlap=overlap=='1')
@@ -134,6 +146,7 @@ def main():
                     defeated=bool(re.search(r'Pazur enemy defeated: '+re.escape(initial['enemy'])+r'\s*$',evidence,re.M))
                     row=dict(apk_sha256=apk_sha256,prototype=args.prototype,source_level=level,above=above,side=side,step_height=args.height,action=action,
                              facing_input_before_spawn=facing,
+                             jump_motion_measurement=jump_measurement,
                              requested_posture_observed=(bool(re.search(r'jumping=1',evidence)) if action in ('jump','escape') else
                                  bool(re.search(r'animation=duckswipe\b',evidence)) if action=='duck' else
                                  bool(re.search(r'animation=(swipe|kick|uppercut)\b',evidence))),

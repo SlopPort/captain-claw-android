@@ -1,4 +1,4 @@
-# Active Soldier recovery on a 32 px step
+# Active Soldier vertical combat and hurt recovery
 
 2026-11-08. Investigation and automated fixture by OpenAI Codex (LLM), guided by an anonymous human.
 
@@ -7,7 +7,7 @@ Huawei P9 Lite / Android 10, main ARM64 debug41 APK SHA-256:
 
 This addresses the report of repeated stagger when Claw stands below a level-1 sword enemy. It is an isolated solid-step fixture, **not the reported natural stair location or an original-game comparison**. Enemy offensive AI and ordinary incoming damage remained active. Setup initialized hero HP to 100 and unused pistol ammunition to 99; no healing/protection occurred during observation. Each action used a fresh process, waited for a confirmed additional live enemy hit and restored its fresh config/progress backup afterward.
 
-## Observed outcomes
+## 32 px observed outcomes
 
 Each reaction began at 90 HP. HP below is the final observation, after the action and release interval; it is not an attack cadence measurement. Enemy left/right describes its position relative to Claw.
 
@@ -102,3 +102,39 @@ The constructor stores different bounds for named animation branches. Its right-
 The current port instead shares a 50x25 ordinary damage area for swipe/kick/uppercut/duck swipe, centered at offset `(±60,+20)`. Jump swipe shifts that center to `(±65,+10)`. The existing base scale is 10 standing / 5 crouching. This is an established implementation difference; **the original actor-origin mapping, collision consumers and full animation windows still need joining before using those tuples as Android geometry**. Copying constants or globally enlarging the hero box would not establish parity.
 
 The existing original hurt-dispatch finding supports waiting for recovery before attacking; it does not prove that a lower-standing hero must always counter a higher enemy without jumping. The port's pending attack tap is explicitly an accommodation. This reach asymmetry and short-input ordering remain COMBAT-01 research/reproduction work. 16 px, hero-above combinations, projectiles and the natural staircase are still missing from the wider COMBAT-02 acceptance scope.
+
+## Additional 16 px and hero-above coverage
+
+The same exact debug41 completed eight enemy-above 16 px reactions after a confirmed hit, with facing requested before enemy spawn. Both standing counters defeated Soldier; both crouching attacks missed. The left short-jump attack jumped and defeated the target, while the right short-jump request produced a standing swipe without a sampled jump and defeated it. Both long jump-away requests moved away. Final HP was 85 except crouching cases (70); no healing/protection occurred during observation. Private evidence: `todo-active-soldier-recovery-0.4.41-h16-*`.
+
+Twenty-four separate **hero-above** observations then completed: nominal steps 16/32/48/64 px, enemy left/right, requested standing/crouching/jump attack. Each checked the actual initial foot-height relation before acting and restored fresh config/progress. No target/unattributed fatal line was found in the 24 logs. These runs kept offensive AI active but **did not use the after-confirmed-hit prerequisite**, so they are not matched timing controls for the enemy-above recovery runs.
+
+| Nominal step | Standing attack sampled | Duck swipe sampled | Jump state sampled |
+| --- | --- | --- | --- |
+| 16 px | 1 of 2 | 1 of 2 | 0 of 2 |
+| 32 px | 2 of 2 | 1 of 2 | 2 of 2 |
+| 48 px | 2 of 2 | 2 of 2 | 1 of 2 |
+| 64 px | 2 of 2 | 2 of 2 | 1 of 2 |
+
+Counts describe the requested posture in the sampled trace, **not wins, attack acceptance on every update, or correctness of every requested combination**. For example, the 16 px left crouch/jump requests instead sampled standing kicks, and the 32 px right crouch request sampled uppercut. A defeated enemy does not turn those into verified crouching/jumping tests. Conversely, absent sampled animation is not proof that a brief animation never occurred. Both 64 px standing trials defeated the lower target, unlike the enemy-above 64 px standing trials; this is an observed directional difference, not original balance certification.
+
+Private evidence: `todo-soldier-heroabove-matrix-0.4.41`, four successful driver exits and six individual records per height. This adds setup/action observations for all four requested heights in both relations, but does not close ascent/descent, projectiles, all ordinary families or the unresolved posture/input behavior.
+
+## Per-update short-jump displacement measurement
+
+The helper now offers `--measure-jump`, using the **existing** native `combatjumpmeasure` command. It captures displacement during each playing update over the measurement window instead of relying solely on approximately 100 ms animation samples. It requires the corresponding result marker and retains missing/duplicate-measurement failures. The native metric labels upward displacement as takeoff/jumps; movement on a carrier or knockback could also move a baseline, so that metric alone is not universal proof of jump-state acceptance. Diagnostic queue time zero is not a touchscreen latency result.
+
+Two extra enemy-above 32 px, after-hit combined jump/sword trials measured:
+
+| Enemy side | Measured rise | First upward motion | Recorded hold | Sampled attack | Enemy defeated |
+| --- | --- | --- | --- | --- | --- |
+| Left | 83.3 px | 33 ms | 251 ms | Jump swipe | No |
+| Right | 0.0 px | Not observed (`-1`) | 264 ms | Standing swipe | Yes |
+
+The right trial's zero upward displacement throughout the window confirms that its absent sampled jump was not merely an animation missed between samples. It does not isolate one cause: another enemy hit can occur between the pre-reaction sample and actual input, and buffered attack/recovery ordering still requires a synchronized comparison. Adding the measurement command changes remote setup timing; these are new trials, not retroactive measurements of the earlier rows. Both restored fresh user files. No production code or APK changed. Private evidence: `todo-measured-hurt-jump-0.4.41-h32-*`.
+
+```text
+python tools/vertical_combat_smoke.py --report unique-report-name --prototype ActorPrototype_Level1_Soldier --height 32 --above enemy --react-after-hit --actions jump --measure-jump
+```
+
+COMBAT-01/02 remain open. Future work should distinguish held jump intent at recovery from the pending sword tap, preserve ordinary recovery/invulnerability rules, and validate any control accommodation without claiming it reproduces an original buffer. The original actor-origin/collision join, relevant projectiles and human-reported natural stairs are still separate requirements.
