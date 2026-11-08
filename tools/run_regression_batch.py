@@ -36,6 +36,9 @@ CASES = {
     'save-errors': ('save_error_messages_smoke.py',),
     'siren-interruption': ('siren_interruption_smoke.py',),
     'flight-recorder': ('check_flight_recorder.py',),
+    'import-recovery': ('import_recovery_smoke.py',),
+    'late-save-activity': ('late_save_activity_smoke.py',),
+    'cyclic-platforms': ('gameplay_perf_smoke.py', '--level', '1', '--cyclic-pegs'),
 }
 
 

@@ -20,6 +20,8 @@ The phone's existing debug installation was not migrated or uninstalled.
 
 ## Latest verified behavior
 
+The debug40 follow-up also passed clean-source ARM64/ARMv7 building from `f11b80f`, PL/EN menu/shared-sound regressions, short touch jumps, ambient mixing, focused Game Over/score paths, 10%/100% selected attack audio and virtual Start/Catnip-music transitions. Exact scope is in the report below. Its valid 120-second heavy level-9 observation ranged from **48.0 to 59.6 FPS** across 300-loop batches and **failed the 55 FPS floor**. Do not describe the performance target as achieved. Broader TODO items remain open where these fixtures cover only part of acceptance.
+
 [Debug 0.4.40](validation/UPDATE-0.4.40.md) verifies Tiger front-flip continuation, actual Siren interruption/death, localized save-failure messages and working gameplay options. Recorder identity follows the APK version. The debug39 sustained result was invalidated after backgrounding/missing coverage; do not quote it as a performance pass. Remaining original-policy details are in the [follow-up](validation/ORIGINAL-FOLLOWUP-2026-11-08.md).
 
 

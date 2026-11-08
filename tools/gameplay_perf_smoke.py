@@ -31,7 +31,11 @@ def main():
     args=parser.parse_args()
     if args.minimum_batch_fps is not None and not 0 < args.minimum_batch_fps < 1000:parser.error('Invalid minimum batch FPS')
     if args.quiet_diagnostics and (not args.observe or args.cyclic_pegs):parser.error('Quiet diagnostics requires observation only')
-    report=PORT/'reports'/args.report;report.mkdir(parents=True,exist_ok=True)
+    report=(PORT/'reports'/args.report).resolve()
+    if not report.is_relative_to((PORT/'reports').resolve()):
+        parser.error('Report must stay under reports')
+    # Never overwrite a failed or previously successful observation's evidence.
+    report.mkdir(parents=True,exist_ok=False)
     pair_marker='physics-pairs-unfiltered'
     if args.pair_filter and subprocess.run(['adb','shell','test','-e',REMOTE+pair_marker],capture_output=True).returncode==0:
         raise RuntimeError('Existing pair-filter fallback marker; leave it untouched')

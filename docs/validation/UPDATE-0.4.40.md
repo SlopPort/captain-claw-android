@@ -36,6 +36,23 @@ Private evidence prefixes: `todo-custom-melee-0.4.40-r2`, `todo-regression-0.4.4
 
 The completed `todo-regression-0.4.40-c` batch adds the four rows above. All four children retained the exact installed APK hash and restored config/progress byte-for-byte; the runner stopped none of them as failed.
 
+The subsequent `todo-regression-0.4.40-d` batch passed all five children, again retaining the APK hash and restoring config/progress byte-for-byte:
+
+- **Game Over and score:** focused game-window touch regression passed without a target crash. This verifies the existing scripted paths, not every background tap, both language presentations or every possible choice.
+- **Attack audio at 10% and 100%:** sword, pistol, level-1 Officer and level-13/14 Chameleon requests were accepted and produced nonzero post-mix output; the isolated idle sample was silent. No recording/microphone was used. Speaker listening, hero/enemy hurt/death and all simultaneous/distance cases remain open under AUDIO-01.
+- **Pause and Catnip music:** three app-local raw Start pause/resume cycles passed. Acquisition/expiry/reacquisition music switches each took 1 ms, with no gameplay music preparation or recorded crash. The bonus was applied by diagnostic command, so cold real-pickup loading and physical-controller transport are not certified.
+
+Host-side production import-journal checks also passed all 64 interruption/commit/journal cases with save sentinels preserved. They are isolated JVM tests, not real Android storage exhaustion, power loss or system-picker UX.
+
+The completed `todo-regression-0.4.40-e` batch passed six more children with unchanged APK identity and byte-identical config/progress restoration after each:
+
+- **Import recovery:** actual app-process death during publication and recovery in empty/partial/full isolated fixtures, followed by rollback, save-sentinel and staging-cleanup checks. Real game data was not replaced. Storage exhaustion and power loss remain different untested failure modes.
+- **Late save Activity:** gated provider export completed after its Activity closed without a late-dialog crash. This is not a full system-picker backup/restore usability trial.
+- **Floor joins:** crossed 1 px and 2 px raised joins in both directions without jumping. Isolated geometry does not reproduce the reported level-2 platform snag.
+- **Held jump at a segmented wall:** ordinary/Catnip rise was exactly the configured 155/205 px, one takeoff each; accepted support remained at the floor. This does not certify every original map edge.
+- **Leafy ladders:** two real level-3 caps retained support on neutral mount/early release, allowed descent and paused in the ladder. Setup teleported the hero and removed enemies. Other ladder hurt/death/side-transfer cases remain open.
+- **Rope attachment:** real trigger attachment, sampled hero/handle alignment and a transient actual jump after release passed. Immediate reattachment can follow; final status alone does not prove takeoff. Human visual smoothness, low-FPS reversal/release and all vines remain unverified.
+
 ## Clean-source build
 
 Archived commit `f11b80f38821649d5c1f7386b796dd323c677892` built both ARM64 and ARMv7 successfully in `todo-clean-source-0.4.40`. Dependencies were checked out at their locked commits and the committed OpenClaw/SDL patches applied to fresh source trees. No upstream working-tree modifications or commercial resources were copied. The resulting APK SHA-256 is `21117a053ff78a9f7fdcc1ca4ae7fe507cddd95c5d0b976ea926eb943a1c34b0`; it is a separate build artifact, not the installed runtime-tested APK above. Existing installed SDK/JDK and cached Gradle dependencies were used. This verifies required committed source inputs, not a clean-machine bootstrap, binary reproducibility or runtime of this second artifact.
