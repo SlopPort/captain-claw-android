@@ -37,3 +37,18 @@ python tools/vertical_combat_smoke.py --report unique-report-name --prototype Ac
 Raw evidence is private under `reports/todo-active-soldier-recovery-0.4.41-h32-*`; all eight observations completed. Configuration/progress restoration messages were retained. The tool records observations, not a blanket fairness pass.
 
 COMBAT-01 remains open pending the reported natural geometry, versioned original hurt/re-hit evidence and human recheck. COMBAT-02 also remains open: 16/48/64 px, hero-above cases, ascent/descent and relevant projectiles are not covered by this eight-row sample. Do not globally change attack speed, reach or invulnerability from these results alone.
+
+## Jump-only control and input ordering
+
+The helper now accepts `--attack-delay-ms 0` for jump-only input, using the diagnostic command's existing zero-delay meaning. Two additional active-enemy trials used that option, otherwise retaining the 32 px enemy-above setup, both directions and 250 ms jump/move holds. Both produced a jump and no sword animation. Both continued taking damage (final HP 65 left / 60 right); this is not proof of a safe escape. Configuration/progress were restored. Private raw evidence: `todo-active-soldier-jump-only-0.4.41-h32-*`.
+
+The failed rightward combined-input row contains a further enemy hit between the sampled pre-reaction state and the actual command. Relative to that last hit, the jump/attack command arrived about 146 ms later, buffered sword input was logged at 261 ms and buffer consumption at 345 ms. No takeoff was recorded. The configured jump hold was 250 ms from the command. Therefore the sampled 90 HP is **not** a claim that input arrived at exactly that HP or a fixed delay after damage.
+
+Relevant source boundaries:
+
+- `ClawControllableComponent::CanMove()` rejects movement while taking damage and during standing/duck attacks.
+- `PhysicsComponent::VUpdate()` clears requested movement and returns before its jumping section while `CanMove()` is false.
+- At the end of `damage1`/`damage2`, `ClawControllableComponent` restores the physical state and immediately invokes a still-valid buffered `OnAttack()`.
+- The controller submits held jump movement each update; the diagnostic command schedules sword separately after 80 ms in the combined-input case.
+
+This ordering is consistent with hurt followed by buffered sword suppressing a short held jump. The jump-only control arrived at a different offset after a later hit (about 222 ms in the rightward case), so the two runs do not isolate sword buffering as the sole cause. A synchronized native-time input trial is needed before changing priority or buffering policy. Original Claw hurt/jump rules remain unverified; no production behavior was changed by this investigation.

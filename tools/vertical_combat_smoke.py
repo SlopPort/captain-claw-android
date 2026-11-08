@@ -33,7 +33,8 @@ def main():
     parser.add_argument('--height',type=int,choices=(16,32,48,64),default=48)
     parser.add_argument('--prototype',default='ActorPrototype_Level1_Officer',help='Exact prototype from native/CombatPrototypes.h; loads its own source level')
     parser.add_argument('--jump-direction-ms',type=int,choices=range(20,2001),metavar='20..2000',default=250)
-    parser.add_argument('--attack-delay-ms',type=int,choices=range(20,1001),metavar='20..1000',default=80)
+    parser.add_argument('--attack-delay-ms',type=int,choices=(0,*range(20,1001)),metavar='0|20..1000',default=80,
+                        help='For jump: 0 sends only jump/movement, without the scheduled sword input')
     parser.add_argument('--jump-hold-ms',type=int,choices=range(20,1001),metavar='20..1000',default=250)
     parser.add_argument('--actions',nargs='+',choices=('standing','jump','duck','escape'),default=['standing','jump'])
     parser.add_argument('--passive',action='store_true',help='Disable enemy offensive AI to separate geometric misses from interrupted hero input; parry remains')
