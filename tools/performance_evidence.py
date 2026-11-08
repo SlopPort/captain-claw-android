@@ -30,12 +30,16 @@ def assess_observation(rows, requested_seconds, measured_seconds, log, minimum_b
     unaccounted = max(0, measured_seconds - upper - gap_seconds)
     if unaccounted > allowance:
         reasons.append('frame_evidence_does_not_cover_observation_duration')
+    excess = max(0, lower + gap_seconds - measured_seconds)
+    if excess > allowance:
+        reasons.append('frame_evidence_exceeds_observation_duration')
     floor_met = None if minimum_batch_fps is None else valid and min(values) >= minimum_batch_fps
     if floor_met is False:
         reasons.append('requested_batch_fps_floor_not_met')
     return dict(passed=not reasons, reasons=reasons, active_foreground_continuous=not background,
                 frame_batch_count=len(values), batch_duration_lower_seconds=lower,
                 batch_duration_upper_seconds=upper, explicit_skipped_gap_seconds=gap_seconds,
-                unaccounted_seconds=unaccounted, boundary_allowance_seconds=allowance,
+                unaccounted_seconds=unaccounted, excess_evidence_seconds=excess,
+                boundary_allowance_seconds=allowance,
                 minimum_batch_fps=minimum_batch_fps, batch_fps_floor_met=floor_met,
                 scope='300-loop batches with rounded FPS; not per-frame display telemetry')

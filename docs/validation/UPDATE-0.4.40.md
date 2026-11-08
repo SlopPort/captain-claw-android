@@ -53,6 +53,13 @@ The completed `todo-regression-0.4.40-e` batch passed six more children with unc
 - **Leafy ladders:** two real level-3 caps retained support on neutral mount/early release, allowed descent and paused in the ladder. Setup teleported the hero and removed enemies. Other ladder hurt/death/side-transfer cases remain open.
 - **Rope attachment:** real trigger attachment, sampled hero/handle alignment and a transient actual jump after release passed. Immediate reattachment can follow; final status alone does not prove takeoff. Human visual smoothness, low-FPS reversal/release and all vines remain unverified.
 
+`todo-regression-0.4.40-f` also passed both children with unchanged APK/config/progress:
+
+- Two actual level-1 cyclic-platform boarding trials landed using ordinary timed input, without Catnip or protection, with 155 px jump rise. Teleported starting placement does not establish the full route, disappearance underfoot or return behavior required by MOVE-07.
+- A live Soldier on an isolated 32 px raised step hit the hero on both facing sides. A short sword tap entered the hurt buffer, was consumed on recovery, produced a real contact and reduced enemy health. Offensive AI remained active, with no protection/healing during the action. This verifies the recovery contract, not all height offsets, genuine stair terrain, original balance or the human's reported encounter.
+
+The platform helper's optional timed FPS window initially included its preceding boarding trials. Its platform-contact results remain valid; its incidental FPS rows are not used as a comparable timed performance result here. The host helper now starts timing/log scope after preparation and rejects excessive batch-duration evidence as well as missing evidence. A regression test rejects duplicated/out-of-window batches. The earlier debug40 heavy-scene floor failure is unaffected: that run had no platform preparation.
+
 ## Clean-source build
 
 Archived commit `f11b80f38821649d5c1f7386b796dd323c677892` built both ARM64 and ARMv7 successfully in `todo-clean-source-0.4.40`. Dependencies were checked out at their locked commits and the committed OpenClaw/SDL patches applied to fresh source trees. No upstream working-tree modifications or commercial resources were copied. The resulting APK SHA-256 is `21117a053ff78a9f7fdcc1ca4ae7fe507cddd95c5d0b976ea926eb943a1c34b0`; it is a separate build artifact, not the installed runtime-tested APK above. Existing installed SDK/JDK and cached Gradle dependencies were used. This verifies required committed source inputs, not a clean-machine bootstrap, binary reproducibility or runtime of this second artifact.

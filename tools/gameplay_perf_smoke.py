@@ -105,7 +105,6 @@ def main():
             command('benchmarkquiet')
             assert 'Pazur benchmark quiet:' in logs(),'Quiet mode not entered'
             time.sleep(10) # Let mixed initial batches and pending diagnostic events settle.
-        start=len(logs())
         if args.cyclic_pegs:
             assert args.level==1 and not args.protect_player and not args.scene
             for source,target in [((4651,4034),(4545,3971)),((4545,3971),(4453,3902))]:
@@ -119,6 +118,9 @@ def main():
                 adb('pull',REMOTE+'level-test.png',str(report/('peg-'+str(source[0])+'.png')))
         battery_before=adb('shell','dumpsys','battery')
         (report/'battery-before.txt').write_text(battery_before,encoding='utf-8')
+        # Platform setup/trials have their own evidence; their earlier batches
+        # must not count toward the timed observation below.
+        start=len(logs())
         measurement_started=time.monotonic()
         deadline=measurement_started+args.seconds
         # Short back-and-forth keeps the player near the spawn platform while
