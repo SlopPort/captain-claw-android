@@ -63,6 +63,8 @@ Keep the stable IDs in reports and commits. When closing an item, add a dated ev
 
 Family evidence: [attack inventory](docs/validation/ENEMY-ATTACK-INVENTORY-0.4.38.md), [custom melee](docs/validation/CUSTOM-MELEE-0.4.38.md), [Siren](docs/validation/SIREN-BEHAVIOR-0.4.38.md).
 
+Debug41 follow-up: [eight active Soldier reactions on a 32 px step](docs/validation/ACTIVE-SOLDIER-0.4.41.md). Standing counters and jump-away escapes occurred on both sides, but one requested short jump never took off. This does not close COMBAT-01/02 or establish original balance.
+
 ## Bosses and finale
 
 - [ ] **BOSS-01 / P0 / VERIFY:** For each boss, check normal entry, phase transitions, accepted/rejected hits, death, restart and re-entry. Check resources available through the human's actual route; controlled victories do not establish normal ammo availability or balance.
