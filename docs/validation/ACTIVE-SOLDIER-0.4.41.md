@@ -138,3 +138,20 @@ python tools/vertical_combat_smoke.py --report unique-report-name --prototype Ac
 ```
 
 COMBAT-01/02 remain open. Future work should distinguish held jump intent at recovery from the pending sword tap, preserve ordinary recovery/invulnerability rules, and validate any control accommodation without claiming it reproduces an original buffer. The original actor-origin/collision join, relevant projectiles and human-reported natural stairs are still separate requirements.
+
+## Timing clarification: zero rise is not alone a buffer defect
+
+Reading the exact zero-rise trial's event timestamps changed the interpretation: jump input was logged at 16:53:10.400, a **new Soldier hit** at 10.413, and the pending sword consumed after hurt at 10.747. The recorded jump hold ended after 264 ms, before that recovery. Thus this specific lack of takeoff is consistent with damage interrupting input; it does not prove that a still-held jump was stolen by the buffer.
+
+Two additional right-side 32 px controls held input for about 700 ms:
+
+| Requested sword delay | Recorded hold | First upward motion | Rise |
+| --- | --- | --- | --- |
+| 80 ms | 713 ms | 460 ms | 155.0 px |
+| No sword | 710 ms | 221 ms | 99.1 px |
+
+Both moved upward and restored fresh user files. In the sword case, hurt ended/buffer consumption was logged about 195 ms after input, while upward motion began later. The trials still began at different offsets after enemy damage, so subtracting 221 from 460 does **not** isolate the cost of sword buffering. Private evidence: `todo-held-through-hurt-0.4.41-h32-*` and `todo-held-through-hurt-no-sword-0.4.41-h32-*`.
+
+The next diagnostic step is owner-scoped, game-thread input triggered after observed health loss, using the existing key scheduler and movement measurement. It must not bypass hurt, synthesize damage/recovery or change the pending-melee accommodation before the ordering is established.
+
+Follow-up: [debug42 implements that bounded experiment and records four observations](UPDATE-0.4.42.md). Its initial measurement failure is retained and explicitly invalidated. Those newer results do not retroactively change this APK's evidence.

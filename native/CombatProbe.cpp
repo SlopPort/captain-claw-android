@@ -42,6 +42,14 @@ std::map<SDL_Keycode, Uint32> heldKeys;
 Uint32 scheduledSwordAt=0;
 Uint32 meleeAfterHitUntil=0;
 int meleeAfterHitHealth=0;
+// Opt-in, owner-scoped input experiment. Observe actual health loss before
+// starting the existing key scheduler; never manufacture damage or recovery.
+struct JumpAfterHit {
+    WeakActorPtr owner;
+    Uint32 until=0;
+    int health=0, holdMs=0, attackDelayMs=0;
+    std::string direction;
+} jumpAfterHit;
 struct JumpTrace {
     bool armed=false, airborne=false, received=false;
     std::string label;
@@ -108,6 +116,7 @@ void status() {
 }
 
 bool PazurCombatProbe::Handle(const std::vector<std::string>& args, const ActorMap& actors) {
+    if (args.empty()) return false;
     if(args[0]=="combatmeleeafterhit") {
         // One ordinary SDL tap after real enemy damage; no health editing or
         // direct attack invocation. Avoid USB latency during the hurt window.
@@ -116,7 +125,6 @@ bool PazurCombatProbe::Handle(const std::vector<std::string>& args, const ActorM
         meleeAfterHitHealth=hp->GetHealth();meleeAfterHitUntil=SDL_GetTicks()+3000;
         SDL_Log("Pazur melee after hit: armed hp=%d",meleeAfterHitHealth);return true;
     }
-    if (args.empty()) return false;
     auto logic = g_pApp->GetGameLogic();
     // Virtual input must remain releasable in menus where no hero exists.
     if (PazurGamepad::DebugCommand(args)) return true;
@@ -154,6 +162,24 @@ bool PazurCombatProbe::Handle(const std::vector<std::string>& args, const ActorM
     auto claw = logic->GetClawActor();
     if (!claw) return false;
     auto physics = logic->VGetGamePhysics();
+    if(args[0]=="combatjumpafterhit" && args.size()==4) {
+        int hold,delay;
+        try {
+            size_t end=0;
+            hold=std::stoi(args[1],&end);if(end!=args[1].size())return false;
+            delay=std::stoi(args[2],&end);if(end!=args[2].size())return false;
+        } catch(const std::exception&) {return false;}
+        if(hold<20 || hold>1000 || delay<0 || delay>1000 ||
+            (args[3]!="left" && args[3]!="right"))return false;
+        auto hp=claw->GetRawComponent<HealthComponent>(true);
+        if(hp->GetHealth()<=0)return false;
+        ResetKeys();
+        jumpAfterHit.owner=claw;jumpAfterHit.health=hp->GetHealth();
+        jumpAfterHit.holdMs=hold;jumpAfterHit.attackDelayMs=delay;jumpAfterHit.direction=args[3];
+        jumpAfterHit.until=SDL_GetTicks()+5000;
+        SDL_Log("Pazur jump after hit: armed hp=%d hold_ms=%d attack_delay_ms=%d",jumpAfterHit.health,hold,delay);
+        return true;
+    }
     if(args[0]=="ambientfixture" && args.size()==1) {
         // Opt-in technical fixture: a real sensor/production ambient component,
         // with a user-supplied stock sound loop. Never write it to map/save data.
@@ -598,6 +624,7 @@ bool PazurCombatProbe::Handle(const std::vector<std::string>& args, const ActorM
 }
 
 void PazurCombatProbe::ResetKeys() {
+    jumpAfterHit.until=0;
     scheduledSwordAt=0;
     for (const auto& key : heldKeys) keyEvent(key.first,false);
     heldKeys.clear();
@@ -625,6 +652,24 @@ void PazurCombatProbe::Poll() {
         !g_pApp->GetGameLogic()) return;
     const bool playing=g_pApp->GetGameLogic()->IsRunning() &&
         g_pApp->GetGameLogic()->GetGameState()==GameState_IngameRunning;
+    if(jumpAfterHit.until) {
+        auto claw=g_pApp->GetGameLogic()->GetClawActor();
+        if(!playing || !claw || jumpAfterHit.owner.lock()!=claw ||
+            (Sint32)(now-jumpAfterHit.until)>=0)jumpAfterHit.until=0;
+        else {
+            auto hp=claw->GetRawComponent<HealthComponent>(true);
+            if(hp->GetHealth()<=0)jumpAfterHit.until=0;
+            else if(hp->GetHealth()<jumpAfterHit.health) {
+                const auto command="combatjumpattack "+std::to_string(jumpAfterHit.holdMs)+" "+
+                    std::to_string(jumpAfterHit.attackDelayMs)+" "+jumpAfterHit.direction+" "+std::to_string(jumpAfterHit.holdMs);
+                jumpAfterHit.until=0;
+                jumpTrace=JumpTrace{};jumpTrace.armed=true;jumpTrace.label="afterhit";
+                jumpTrace.baseY=claw->GetPositionComponent()->GetY();
+                CommandHandler::HandleCommand(command.c_str(),g_pApp->GetHumanView()->GetConsole().get());
+                SDL_Log("Pazur jump after hit: sent hp=%d tick=%u",hp->GetHealth(),jumpTrace.inputTime);
+            }
+        }
+    }
     if(meleeAfterHitUntil) {
         if(!playing || (Sint32)(now-meleeAfterHitUntil)>=0)meleeAfterHitUntil=0;
         else {
@@ -739,15 +784,18 @@ void PazurCombatProbe::Poll() {
         }
     }
     if (playing && jumpTrace.armed && jumpTrace.received) {
+        // Inputs may have been emitted earlier in this Poll. A timestamp
+        // captured before emission can underflow unsigned elapsed time.
+        const auto sampleNow=SDL_GetTicks();
         auto claw=g_pApp->GetGameLogic()->GetClawActor();
         const double rise=jumpTrace.baseY-claw->GetPositionComponent()->GetY();
         jumpTrace.rise=(std::max)(jumpTrace.rise,rise);
         if (rise>2 && !jumpTrace.airborne) {
             jumpTrace.airborne=true;
             ++jumpTrace.jumps;
-            if (jumpTrace.takeoffMs<0) jumpTrace.takeoffMs=now-jumpTrace.inputTime;
+            if (jumpTrace.takeoffMs<0) jumpTrace.takeoffMs=sampleNow-jumpTrace.inputTime;
         } else if (rise<1) jumpTrace.airborne=false;
-        if (now-jumpTrace.inputTime>=2200) {
+        if (sampleNow-jumpTrace.inputTime>=2200) {
             SDL_Log("Pazur jump trace: label=%s queue_ms=%u takeoff_ms=%d rise=%.1f hold_ms=%u jumps=%d",
                 jumpTrace.label.c_str(),jumpTrace.queueMs,jumpTrace.takeoffMs,jumpTrace.rise,
                 jumpTrace.releaseMs,jumpTrace.jumps);

@@ -2,6 +2,8 @@
 
 ## Current development evidence: 0.4.41-dev, 2026-11-08
 
+**Installed development update:** Huawei now runs ARM64 debug42. Its [exact artifact and bounded tests](UPDATE-0.4.42.md) are separate from the debug41 compatibility matrix below. No new emulator, physical ARMv7 or 16 KB ARM runtime coverage is implied.
+
 Prepared by OpenAI Codex (LLM). [Exact APK hashes, build provenance and test scope](UPDATE-0.4.41.md); [public signed artifact](RELEASE-0.4.41.md). Supplied Polish data is not certified pristine original media. Debug and production signatures/package identities are distinguished below.
 
 | Configuration | Exact-build evidence | Missing coverage / limitation |

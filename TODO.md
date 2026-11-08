@@ -29,6 +29,8 @@ Keep the stable IDs in reports and commits. When closing an item, add a dated ev
 
 ## Recommended next engineering work
 
+Debug42 adds [input triggered after actual enemy damage](docs/validation/UPDATE-0.4.42.md). Four synchronized active-Soldier observations distinguish short input ending during hurt from held input surviving recovery; both sword trials defeated the target. This narrows COMBAT-01/02 without closing natural stairs, original policy or broader geometry. No gameplay priority or balance was changed.
+
 1. Capture the next live level 2 blockage before jumping, restarting or moving away (MOVE-01).
 2. Reproduce lower-hero diagonal combat with active enemy AI and trace damage/recovery windows (COMBAT-01).
 3. Recheck touch, Game Over, audio and reported pause regressions on the exact candidate (INPUT, UI, AUDIO).
