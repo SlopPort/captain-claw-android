@@ -202,7 +202,8 @@ def main():
         adb('shell','screencap','-p',REMOTE+'level-test.png')
         adb('pull',REMOTE+'level-test.png',str(report/'after.png'))
         print(json.dumps(result),flush=True)
-        assert result['passed'],'Incomplete trial or crashed process; see report'
+        assert result['passed'],('Performance acceptance failed; see results.json for '
+                                 'continuity, FPS-floor and crash evidence')
     finally:
         if reader is not None:
             reader.terminate();reader.wait(timeout=5);log_output.close()

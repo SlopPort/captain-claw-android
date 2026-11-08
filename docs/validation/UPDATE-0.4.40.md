@@ -27,8 +27,18 @@
 | Gameplay options | Four layouts x three movement modes, drag/release/custom bounds and three working damage/healing difficulty presets passed the existing controlled fixture. This is not a physical pad matrix. |
 | Background recorder | Disabled mode made no writes; enabled mode produced fresh rolling slots and a fresh blocked candidate from one session, each labelled 0.4.40-dev. Pre-existing files were copied privately before the fixture. |
 | Packaged attacks | 55 concrete prototypes, 75 actions, zero missing ANI files; every configured frame index is inside its ANI frame count. Custom-policy boundaries remain documented separately. |
+| PL/EN menus | Expected navigation sequence, localized label bounds, removed multiplayer, audio slider commits and disabled shared Voice/Ambient controls passed, including mute/unmute. Automated screenshots still need human visual review. |
+| Touch jump | Six focused-window trials passed, including short taps, longer holds and finger drift. Observed takeoff latency 20-35 ms; short-tap rise about 77 px, longer holds about 155 px. Each trial produced one jump. This does not cover Catnip, every frame stall or physical touchscreen latency. |
+| Ambient mixer | Low/high peak ratio 0.0937034, zero nonzero samples while muted (existing and newly entered sources), audible output after unmute. This measures production mixer output, not phone speaker quality. |
+| Lifecycle | Held virtual-controller axis produced zero drift after resume; a fresh press moved the hero about 185 px. App-local virtual input, not a Bluetooth transport test. |
 
 Private evidence prefixes: `todo-custom-melee-0.4.40-r2`, `todo-regression-0.4.40-b*`, `todo-enemy-inventory-0.4.40`. Later in-progress checks are not counted as passed here until their owner verifies cleanup.
+
+The completed `todo-regression-0.4.40-c` batch adds the four rows above. All four children retained the exact installed APK hash and restored config/progress byte-for-byte; the runner stopped none of them as failed.
+
+## Clean-source build
+
+Archived commit `f11b80f38821649d5c1f7386b796dd323c677892` built both ARM64 and ARMv7 successfully in `todo-clean-source-0.4.40`. Dependencies were checked out at their locked commits and the committed OpenClaw/SDL patches applied to fresh source trees. No upstream working-tree modifications or commercial resources were copied. The resulting APK SHA-256 is `21117a053ff78a9f7fdcc1ca4ae7fe507cddd95c5d0b976ea926eb943a1c34b0`; it is a separate build artifact, not the installed runtime-tested APK above. Existing installed SDK/JDK and cached Gradle dependencies were used. This verifies required committed source inputs, not a clean-machine bootstrap, binary reproducibility or runtime of this second artifact.
 
 ## Failed trials retained
 
@@ -45,3 +55,5 @@ The [debug39 sustained-run correction](UPDATE-0.4.39.md#2026-11-08-correction-su
 A debug39 instrumented same-scene profile ranked AnimationComponent, PhysicsComponent and TreasurePickupComponent highest by observed aggregate component time. Profiling adds overhead; this is not a new FPS result, causal proof of regression or an optimization gain. No resolution, image quality, physics step or AI rate was reduced.
 
 The accepted 55 FPS heavy-scene floor is **not closed** by this update. Natural campaign, level-2 blockage, original full AI/collision parity, broad controller testing and final cross-device compatibility remain as stated in [TODO](../../TODO.md).
+
+The fresh `todo-heavy-scene-0.4.40-r1` observation lasted 120.74 seconds on level 9, staged at (11027, 5500), with player protection, active ordinary simulation and settled logical viewport 853 x 480. Its 21 batches of 300 loops ranged from **48.0 to 59.6 FPS**. Batch p99 values ranged from 20 to 29 ms; the largest reported loop was 33 ms. No >1000 ms excluded gaps or foreground loss were observed, and duration coverage passed. Battery temperature changed from 29 to 30 C. The explicit 55 FPS batch floor **failed**, as intended by the corrected validator. This is a stationary technical scene, not natural combat or a sustained all-level test. Original config/progress were restored; no visual-quality, AI-rate or physics reduction was made.
