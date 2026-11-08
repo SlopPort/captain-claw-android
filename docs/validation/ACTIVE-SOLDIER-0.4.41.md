@@ -52,3 +52,26 @@ Relevant source boundaries:
 - The controller submits held jump movement each update; the diagnostic command schedules sword separately after 80 ms in the combined-input case.
 
 This ordering is consistent with hurt followed by buffered sword suppressing a short held jump. The jump-only control arrived at a different offset after a later hit (about 222 ms in the rightward case), so the two runs do not isolate sword buffering as the sole cause. A synchronized native-time input trial is needed before changing priority or buffering policy. Original Claw hurt/jump rules remain unverified; no production behavior was changed by this investigation.
+
+## 48 px follow-up and facing correction
+
+The same exact debug41 ran eight enemy-above cases at 48 px, then a complete eight-case repeat after correcting fixture preparation. The first left-standing row requested its hero attack at X=200060 while the enemy was left of X=200000: the attack faced **away**. A short directional input during hurt had not reliably turned Claw. That row cannot establish a vertical reach miss. Original raw observations are retained as `todo-active-soldier-recovery-0.4.41-h48-*`.
+
+The helper now requests facing before spawning the enemy, as the narrower melee-recovery fixture already did. It records that setup input and whether the requested posture was actually observed; these are not blanket fairness assertions. In the repeat's left-standing row the area was instead at X=199940, contacted Soldier and produced its `10 -> 0` health event. No production game code changed.
+
+Passing preparation/reproduction does not require every action to win. The corrected repeat, `todo-active-soldier-recovery-0.4.41-h48-r2-*`, measured:
+
+| Enemy side | Requested reaction | Final HP | Enemy defeated | Observed action |
+| --- | --- | --- | --- | --- |
+| Left | Standing sword | 85 | Yes | Kick; correct-side contact/health event |
+| Right | Standing sword | 85 | Yes | Swipe |
+| Left | Crouching sword | 75 | No | Duck swipe |
+| Right | Crouching sword | 70 | No | Duck swipe |
+| Left | Short jump attack toward enemy | 65 | No | Kick; no jump observed |
+| Right | Short jump attack toward enemy | 65 | No | Jump observed, but sword animation was a standing swipe |
+| Left | Long jump away | 80 | No | Jump swipe; moved 332.1 px away |
+| Right | Long jump away | 90 | No | Jump swipe; moved 327.7 px away |
+
+Pre-reaction samples were 90 HP; further hits can occur before the command arrives. AI stayed active and there was no protection/healing during the observed action. The shared session restored fresh configuration/progress after each case. Differences between attempts also involve input timing and attack selection: the current port randomly selects standing kick/uppercut/swipe without a sword powerup. Do not interpret a kick as a guaranteed sword animation or pin RNG to manufacture a balanced result.
+
+The [original-behavior investigation](../ORIGINAL-BEHAVIOR-REA.md#important-differences-still-requiring-care) already records separate original attack rectangles/damage and warns that target eligibility does not prove contact. It does not establish original-runtime hurt recovery or fairness on the reported staircase. 16/64 px, hero-above cases, relevant projectiles and the natural report remain open; this 48 px observation does not close COMBAT-01/02.

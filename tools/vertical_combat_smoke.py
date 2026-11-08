@@ -61,6 +61,11 @@ def main():
             for action in args.actions:
                 label=f'{args.report}-{above}-{side}-{action}'
                 with CampaignSession(label,level=level) as session:
+                    # Establish facing before the enemy can stagger Claw. A
+                    # short direction tap after damage can be rejected and
+                    # produce an away-facing attack, not a vertical reach miss.
+                    facing='right' if side>0 else 'left'
+                    session.command(f'combatkey {facing} 100');time.sleep(.25)
                     command='combatstairs' if above=='enemy' else 'combatheroabove'
                     setup_start=len(session.logs())
                     session.command(f'{command} {enemy} {side*80} {args.height}'+(' passive' if args.passive else ''))
@@ -128,6 +133,10 @@ def main():
                         if name==initial['enemy']]
                     defeated=bool(re.search(r'Pazur enemy defeated: '+re.escape(initial['enemy'])+r'\s*$',evidence,re.M))
                     row=dict(apk_sha256=apk_sha256,prototype=args.prototype,source_level=level,above=above,side=side,step_height=args.height,action=action,
+                             facing_input_before_spawn=facing,
+                             requested_posture_observed=(bool(re.search(r'jumping=1',evidence)) if action in ('jump','escape') else
+                                 bool(re.search(r'animation=duckswipe\b',evidence)) if action=='duck' else
+                                 bool(re.search(r'animation=(swipe|kick|uppercut)\b',evidence))),
                              initial=initial,after=after,final=final,enemy_defeated=defeated,
                              player_damage=initial['player_hp']-final['player_hp'],
                              enemy_damage_observed=defeated or 0<=final['enemy_hp']<initial['enemy_hp'],
