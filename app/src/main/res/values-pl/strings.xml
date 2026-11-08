@@ -64,4 +64,7 @@
     <string-array name="difficulty_names"><item>Łatwy — obrażenia 50%, leczenie 150%</item><item>Normalny — obrażenia 100%, leczenie 100%</item><item>Trudny — obrażenia 150%, leczenie 50%</item></string-array>
     <string-array name="movement_names"><item>Stały joystick</item><item>Ruchomy joystick</item><item>Przyciski kierunkowe</item></string-array>
     <string-array name="touch_button_names"><item>Skok</item><item>Atak</item><item>Strzał</item><item>Broń</item><item>Pauza</item></string-array>
+    <string name="vibration_save_error">Nie udało się zapisać ustawienia wibracji. Sprawdź wolne miejsce i spróbuj ponownie.</string>
+    <string name="backup_export_failed">Nie udało się wyeksportować kopii zapisu. Wybierz inne miejsce i sprawdź wolną pamięć. Postęp w grze nie został zmieniony.</string>
+    <string name="progress_import_failed">Nie udało się zaimportować kopii zapisu. Wybierz kompletny plik XML wyeksportowany przez ten port na Androida i sprawdź wolne miejsce. Bieżący postęp w grze nie został zmieniony.</string>
 </resources>

@@ -12,6 +12,7 @@ import subprocess
 import time
 import xml.etree.ElementTree as ET
 from gamepad_quit_smoke import adb, REMOTE, PORT
+from performance_evidence import assess_observation
 
 
 def main():
@@ -26,7 +27,9 @@ def main():
     parser.add_argument('--cyclic-pegs',action='store_true',help='Controlled ordinary-jump trials on actual level-one cyclic platforms')
     parser.add_argument('--pair-filter',choices=('on','off'),help='Compare early Box2D pair rejection in the same APK; restores fallback marker')
     parser.add_argument('--expect-logical-size',type=int,nargs=2,metavar=('W','H'),help='Reject comparisons made with another settled viewport')
+    parser.add_argument('--minimum-batch-fps',type=float,help='Explicit acceptance floor for every recorded 300-loop batch')
     args=parser.parse_args()
+    if args.minimum_batch_fps is not None and not 0 < args.minimum_batch_fps < 1000:parser.error('Invalid minimum batch FPS')
     if args.quiet_diagnostics and (not args.observe or args.cyclic_pegs):parser.error('Quiet diagnostics requires observation only')
     report=PORT/'reports'/args.report;report.mkdir(parents=True,exist_ok=True)
     pair_marker='physics-pairs-unfiltered'
@@ -140,9 +143,12 @@ def main():
             r'Pazur probe status: claw=(\d+) duck=\d x=([\d.-]+) y=([\d.-]+)',log)]
         moved=bool(snapshots) and any(abs(v['x']-snapshots[0]['x'])>10 or abs(v['y']-snapshots[0]['y'])>10 for v in snapshots)
         alive=pid in adb('shell','pidof','pl.pazur.port',check=False).split()
-        passed=alive and (moved or args.observe) and len(rows)>=3 and 'Fatal signal' not in log and 'FATAL EXCEPTION' not in log
+        measured_seconds=time.monotonic()-measurement_started
+        continuity=assess_observation(rows,args.seconds,measured_seconds,log[start:],args.minimum_batch_fps)
+        passed=alive and (moved or args.observe) and len(rows)>=3 and 'Fatal signal' not in log and 'FATAL EXCEPTION' not in log and continuity['passed']
         result={'level':args.level,'actions':actions,'frame_samples':rows,'passed':passed,
-            'requested_observation_seconds':args.seconds,'measured_observation_seconds':time.monotonic()-measurement_started,
+            'continuity_verdict':continuity,
+            'requested_observation_seconds':args.seconds,'measured_observation_seconds':measured_seconds,
             'observed_positions':snapshots,'movement_observed':moved,
             'fixture':'controlled real-map scene' if args.scene else 'real map start',
             'observation_only':args.observe,'scene':args.scene,

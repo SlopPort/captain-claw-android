@@ -31,7 +31,7 @@ private:
     std::set<int> committedTargets;
     Point windowSize, windowOffset;
     unsigned windowDamage = 0;
-    void BeginCustomMove();
+    void BeginCustomMove(const char* reason);
     void FinishCustomMove();
     void SetWindow(bool enabled, const Point& offset, const Point& size, unsigned damage);
     void TestDamageWindow();

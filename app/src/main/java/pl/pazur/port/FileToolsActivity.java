@@ -29,7 +29,7 @@ public class FileToolsActivity extends LocalizedActivity {
         load.setOnClickListener(v->new AlertDialog.Builder(this).setMessage(getString(R.string.import_progress_hint))
             .setNegativeButton(getString(R.string.import_cancel),null).setPositiveButton(getString(R.string.choose_file),(d,w)->startActivityForResult(new Intent(Intent.ACTION_OPEN_DOCUMENT).setType("*/*").addCategory(Intent.CATEGORY_OPENABLE),2)).show());layout.addView(load);
         CheckBox haptics=new CheckBox(this);haptics.setText(getString(R.string.vibration_optional));haptics.setChecked(new File(root(),"haptics-enabled").isFile());
-        haptics.setOnCheckedChangeListener((button,on)->{try {File file=new File(root(),"haptics-enabled");if(on){try(FileOutputStream out=new FileOutputStream(file)){out.write(1);}}else if(file.exists()&&!file.delete())throw new IOException("Cannot change setting");}catch(IOException e){message(e.getMessage());}});layout.addView(haptics);
+        haptics.setOnCheckedChangeListener((button,on)->{try {File file=new File(root(),"haptics-enabled");if(on){try(FileOutputStream out=new FileOutputStream(file)){out.write(1);}}else if(file.exists()&&!file.delete())throw new IOException("Cannot change setting");}catch(IOException e){android.util.Log.e("Pazur", "Vibration setting was not saved", e);message(getString(R.string.vibration_save_error));}});layout.addView(haptics);
         Button done=new Button(this);done.setText(getString(R.string.back));done.setOnClickListener(v->finish());layout.addView(done);
         // Large system fonts can put the footer below a small display. Keep
         // save actions and Back reachable without changing the system font.
@@ -48,7 +48,11 @@ public class FileToolsActivity extends LocalizedActivity {
                     SaveFiles.writeAtomic(root(),"SAVES.pending.xml",bytes);
                 } else return;
                 runOnUiThread(()->message(request==1?getString(R.string.backup_exported):getString(R.string.progress_import_prepared)));
-            }catch(Exception e){runOnUiThread(()->message(getString(R.string.progress_error)+e.getMessage()));}
+            }catch(Exception e){
+                // Keep diagnostic exception text in local logs, not as an untranslated player instruction.
+                android.util.Log.e("Pazur", "Progress file operation failed", e);
+                runOnUiThread(()->message(getString(request==1?R.string.backup_export_failed:R.string.progress_import_failed)));
+            }
         },"save-files").start();
     }
 }

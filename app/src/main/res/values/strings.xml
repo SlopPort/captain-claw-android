@@ -64,4 +64,7 @@
     <string-array name="difficulty_names"><item>Easy — damage 50%, healing 150%</item><item>Normal — damage 100%, healing 100%</item><item>Hard — damage 150%, healing 50%</item></string-array>
     <string-array name="movement_names"><item>Fixed stick</item><item>Floating stick</item><item>Directional buttons</item></string-array>
     <string-array name="touch_button_names"><item>Jump</item><item>Attack</item><item>Shoot</item><item>Weapon</item><item>Pause</item></string-array>
+    <string name="vibration_save_error">Could not save the vibration setting. Check free storage and try again.</string>
+    <string name="backup_export_failed">Could not export the backup. Choose another location and check free storage. Your game progress has not been changed.</string>
+    <string name="progress_import_failed">Could not import this backup. Choose a complete save XML exported by this Android port and check free storage. Your current game progress has not been changed.</string>
 </resources>

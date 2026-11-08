@@ -1,16 +1,19 @@
 # Project TODO and release backlog
 
-Updated **2026-11-07** by OpenAI Codex (LLM), guided by anonymous human requirements and feedback. Adaptation authorship is separate from OpenClaw and dependency authorship.
+Updated **2026-11-08** by OpenAI Codex (LLM), guided by anonymous human requirements and feedback. Adaptation authorship is separate from OpenClaw and dependency authorship.
 
 This is the detailed, actionable backlog. The [roadmap](docs/ROADMAP-1.0.md) summarizes release gates; the [handoff](docs/HANDOFF.md) records current state and operating constraints. An unchecked item means work or evidence is still required, not necessarily that a defect has been proved.
 
 ## Completed in the current follow-up
 
+[0.4.40 evidence](docs/validation/UPDATE-0.4.40.md) adds verified Tiger continuation, Siren interruption/death, localized save-error and gameplay-options checks. The old sustained FPS pass was invalidated; performance remains open. The full custom-AI research tasks are not closed by a narrow fix.
+
+
 [0.4.39 evidence](docs/validation/UPDATE-0.4.39.md) records actual results, including failed fixture attempts. Original comparison ledger, explicit known limitations, targeted source-comment review and a sequential restoration-verifying test runner are now present. Other items retain their individual open conditions.
 
 ## Baseline: do not repeat completed work without a reason
 
-- Current installed Huawei build: **0.4.39-dev, ARM64**. Public signed distribution remains **0.4.32-test**. Neither is a finished 1.0 release.
+- Current installed Huawei build: **0.4.40-dev, ARM64**. Public signed distribution remains **0.4.32-test**. Neither is a finished 1.0 release.
 - [0.4.38 results](docs/validation/UPDATE-0.4.38.md) cover reconstructed Siren, Crab, Fish, Tiger Guard, Gabriel and Red Tail behavior, the Le Rauxe ordinary melee block predicate, and the zero-length line-of-sight guard. These are bounded technical results, not complete original-game parity.
 - [0.4.37](docs/validation/UPDATE-0.4.37.md) corrected effective attack emission frames and deferred frame-zero handling. Do not replace these with arbitrary global attack-speed changes.
 - Prior builds addressed double audio attenuation, Game Over instructions, floor joins, wall-only grounding, leafy-ladder caps, rope interpolation and unsupported menu entries. Their exact-build reports remain evidence; final-build regression checks below remain necessary.
@@ -50,7 +53,7 @@ Keep the stable IDs in reports and commits. When closing an item, add a dated ev
 - [ ] **COMBAT-01 / P0 / OPEN:** Reproduce the level 1 sword enemy attacking a lower-standing hero on stairs. Keep offensive AI active. Record attack acceptance, hurt entry/exit, overlap and available escape/counter timing. Separate a reach mismatch from hurt-state input suppression and repeated stagger. Done: original-supported behavior or a clearly documented accommodation, plus a playable human recheck.
 - [ ] **COMBAT-02 / P0 / VERIFY:** Extend active vertical combat coverage to both facing directions and 16/32/48/64 px height offsets, standing/crouching and ascent/descent. Include sword and relevant projectiles. Earlier disabled-AI fixtures do not establish a fair active encounter.
 - [ ] **COMBAT-03 / P1 / VERIFY:** Check one damage event per intended window, multi-target contacts, leaving/re-entering reach, simultaneous hits, invulnerability and interrupted attacks. Ensure a late animation callback cannot damage after death or actor removal.
-- [ ] **COMBAT-04 / P1 / VERIFY:** Reconcile the current packaged attack inventory with runtime handlers after each change. Check every referenced ANI exists and its event frames are valid; distinguish metadata that executes from unused configuration.
+- [x] **COMBAT-04 / P1 / DONE:** Reconcile the current packaged attack inventory with runtime handlers after each change. Check every referenced ANI exists and its event frames are valid; distinguish metadata that executes from unused configuration.
 - [ ] **COMBAT-05 / P1 / RESEARCH:** Crab: compare original sprite/PID-derived strike rectangles, continuous contact and re-hit rules with the port's configured sensor. The reconstructed 203/204 window is not complete collision parity.
 - [ ] **COMBAT-06 / P1 / RESEARCH:** Fish: recover swimming-home eligibility and the separate JumpStrike path. Verify attack rectangles and re-hit rules. Captured-X horizontal lunges do not implement every original Fish branch.
 - [ ] **COMBAT-07 / P1 / RESEARCH:** Tiger Guard: recover home/obstacle decisions, per-state hit-reaction flags, knife-chain contact persistence/refacing and edge behavior. Existing three-move timing evidence does not certify full hurt/parry behavior.
@@ -80,7 +83,7 @@ Starting evidence: [boss behavior](docs/validation/BOSS-BEHAVIOR-0.4.38.md). Nat
 - [ ] **INPUT-04 / P0 / VERIFY:** Recheck specifically reported controller pause behavior if a controller is available within authorized scope. Distinguish Start mapping, game pause dispatch and Android system navigation. Do not silently expand this into the deferred broad controller matrix.
 - [ ] **INPUT-05 / P2 / DEFERRED:** Broad Bluetooth/USB controller coverage, reconnection and model matrix. Resume only when requested. Huawei custom-ROM Bluetooth pairing is separate from game input support; red Pro Controller mode worked historically, yellow mode discovery did not.
 - [ ] **UI-01 / P0 / VERIFY:** Check every visible menu action in PL/EN, including return/cancel paths, pause, score and Game Over. Unsupported multiplayer entries were removed; do not restore placeholders.
-- [ ] **UI-02 / P1 / VERIFY:** Confirm the three working difficulty presets and controls settings remain functional and clearly described as port features where appropriate. Do not remove difficulty on the assumption it is a dead option.
+- [x] **UI-02 / P1 / DONE:** Confirm the three working difficulty presets and controls settings remain functional and clearly described as port features where appropriate. Do not remove difficulty on the assumption it is a dead option.
 - [ ] **UI-03 / P0 / VERIFY:** On loss of the last life, distinguish the Game Over title from actionable choices. Instructions must describe the actual touch target. Test tapping each choice and background areas; no crash, ambiguous global-tap wording or inescapable screen.
 - [ ] **UI-04 / P1 / VERIFY:** Re-audit Voice/Ambient options from the [historical comment audit](docs/validation/TODO-AUDIT.md). Establish current independent channel behavior before calling the old finding still present or fixed; hide unsupported controls or implement and verify them.
 
@@ -110,7 +113,7 @@ See [game language boundaries](docs/GAME-LANGUAGE.md).
 - [ ] **PERF-02 / P0 / VERIFY:** Run a 20-30 minute warm-device observation, including dense combat and repeated transitions. Record memory, frame-time p95/p99 and worst stalls. Historical 0.4.25 measurements do not certify 0.4.38 or a later candidate.
 - [ ] **PERF-03 / P1 / VERIFY:** Profile CPU update, rendering, GPU/vsync waiting, audio decoding and loading separately before optimizing. Compare identical scene/data/settings; preserve visual quality, AI cadence and physics. Retain rejected experiments and explain why they were rejected.
 - [ ] **PERF-04 / P1 / VERIFY:** Investigate delayed/low jumping during very long frames observed on the Android 15 emulator. Determine whether this is input sampling, time integration or emulator behavior; do not infer physical-phone failure from it alone.
-- [ ] **ANDROID-01 / P0 / VERIFY:** Publish an exact-build compatibility matrix: device/ROM, Android, ABI, RAM, GPU, installation, gameplay/lifecycle scope and failures. Distinguish compiled, emulator-tested and physical-device-tested.
+- [x] **ANDROID-01 / P0 / DONE:** Publish an exact-build compatibility matrix: device/ROM, Android, ABI, RAM, GPU, installation, gameplay/lifecycle scope and failures. Distinguish compiled, emulator-tested and physical-device-tested.
 - [ ] **ANDROID-02 / P0 / VERIFY:** Recheck Huawei ARM64 first. Obtain explicit allocation before Redmi checks. Test supported ARMv7 runtime on appropriate hardware when available; ARMv7 compilation does not prove runtime performance or compatibility.
 - [ ] **ANDROID-03 / P1 / VERIFY:** Establish final-candidate minimum/newer Android coverage, storage/picker behavior, focus recovery and relevant screen shapes. State missing configurations honestly rather than promising all Android versions.
 - [ ] **ANDROID-04 / P1 / VERIFY:** Recheck native library/package alignment and final ARM behavior on actual 16 KB-page hardware when available. Historical x86_64 Android 15 emulator and static alignment checks do not certify final ARM hardware.
@@ -186,3 +189,7 @@ Remaining limitations and human recheck needed:
 ```
 
 A task is closed only when its stated completion condition has evidence or an explicit recorded scope decision. Keep unresolved user reports visible even when a neighboring issue has been fixed.
+
+Current completion evidence for COMBAT-04 and UI-02: [debug40 inventory and gameplay-options results](docs/validation/UPDATE-0.4.40.md). Other combat/UI gates retain their own wider completion requirements.
+
+ANDROID-01 publication evidence: [current exact-candidate matrix](docs/validation/ANDROID-COMPATIBILITY.md#current-candidate-matrix-0440-dev-2026-11-08). Publishing the matrix does not close its explicitly untested runtime configurations (ANDROID-02/03/04).

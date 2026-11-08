@@ -78,12 +78,29 @@ def assess_fish(log, actor, direction):
 def assess_tiger(log):
     moves = parse(log, 'Pazur original melee:', 'Level14_TigerGuard')
     assert {row['animation'] for row in moves} >= {'strike1', 'strike3', 'frontflip'}, moves
-    # Knife repeats retain the existing decision deadline; each new deadline
-    # denotes an independent attack entry, not a new gate for every knife.
-    decisions = []
-    for row in moves:
-        if not decisions or row['next_entry'] != decisions[-1]['next_entry']:
-            decisions.append(row)
+    # Production labels genuine entries separately from recursive knives and
+    # the single knife after a successful front-flip; deadlines alone can hide
+    # a continuation incorrectly treated as a fresh random decision.
+    assert all(row.get('reason') in ('decision', 'knife_repeat', 'frontflip_crossed')
+               for row in moves), ('Missing move provenance', moves)
+    decisions = [row for row in moves if row['reason'] == 'decision']
+    continuations = []
+    for index, row in enumerate(moves):
+        if row['reason'] == 'decision':
+            continue
+        assert index > 0, row
+        previous = moves[index-1]
+        assert row['next_entry'] == previous['next_entry'], (previous, row)
+        assert row['direction'] == previous['direction'], (previous, row)
+        if row['reason'] == 'frontflip_crossed':
+            assert previous['animation'] == 'frontflip', (previous, row)
+            assert row['animation'] == 'strike1' and int(row['repeats']) == 1, row
+            assert 0 <= int(row['clock'])-int(previous['clock']) < 1000, (previous, row)
+            continuations.append(row)
+        else:
+            assert previous['animation'] == row['animation'] == 'strike1', (previous, row)
+            assert int(row['repeats']) == int(previous['repeats'])-1, (previous, row)
+    assert continuations, 'No successful front-flip-to-single-knife continuation observed'
     assert len(decisions) >= 5, decisions
     for row in decisions:
         delay = int(row['next_entry'])-int(row['clock'])
@@ -98,7 +115,7 @@ def assess_tiger(log):
     assert {int(row['damage']) for row in contacts} >= {15,20}, 'Both knife and lunge must hit in this fixture'
     assert all((int(row['damage']) == 15 and int(row['image']) >= 202) or
                int(row['damage']) == 20 for row in contacts), contacts
-    return dict(passed=True, decisions=decisions, moves=moves, contacts=contacts)
+    return dict(passed=True, decisions=decisions, frontflip_continuations=continuations, moves=moves, contacts=contacts)
 
 
 def main():
@@ -147,13 +164,15 @@ def main():
                         destination = 200050 if distance > 0 else 199950
                         session.command(f'campaignposition {destination} 1045')
                         time.sleep(1)
-                        row = assess_fish(session.logs()[start:], actor, -1 if distance > 0 else 1)
+                        row = assess_fish(session.logs()[start:].rsplit('Pazur probe stage:', 1)[-1], actor, -1 if distance > 0 else 1)
                         row.update(actor=actor, distance=distance)
                         result['cases'].append(row)
             if args.mode in ('all', 'tiger'):
                 start = stage(13, 75)
                 time.sleep(args.tiger_seconds)
-                row = assess_tiger(session.logs()[start:])
+                # Exclude the warm-up actor's last callbacks while the second
+                # setup command was in flight; only the final staged actor counts.
+                row = assess_tiger(session.logs()[start:].rsplit('Pazur probe stage:', 1)[-1])
                 row.update(actor='Level14_TigerGuard')
                 result['cases'].append(row)
             assert 'Fatal signal' not in session.logs() and 'FATAL EXCEPTION' not in session.logs()

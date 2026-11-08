@@ -48,3 +48,11 @@ The new sequential runner records installed APK identity, checks byte-identical 
 - Source history scan reported no private-pattern findings before this batch's commit. Publication checks must be repeated for the new commits.
 
 The [known limitations](../KNOWN-LIMITATIONS.md), [behavior ledger](../ORIGINAL-BEHAVIOR-LEDGER.md) and [source-comment audit](SOURCE-COMMENTS-2026-11-07.md) distinguish completed work from remaining investigation. Level 2 blockage and natural diagonal-combat fairness remain open; broad controller testing remains deferred. English voice data is not supplied. All natural campaign testing remains with the human.
+
+## 2026-11-08 correction: sustained observation was not a performance pass
+
+The later `todo-sustained-huawei-0.4.39` runner reported `passed=true`, but review found that the game entered background at 19:51:05. Its 133 batches account for approximately 740 seconds of the requested 1200 seconds; process survival did not prove continuous gameplay. The original result is preserved with a separate failing revalidation record. Recorded batches also fell below 55 FPS (minimum 43.9; longest interval 554 ms), so the accepted performance floor was not met in the recorded portion either.
+
+The runner now rejects background/pause transitions and missing batch-duration coverage, and supports an explicit `--minimum-batch-fps 55` acceptance criterion. Host regression covers this false positive, incomplete/short runs, low FPS and explicitly recorded skipped gaps. No 20-minute debug39 performance gate is closed by the old report. A fresh exact-candidate observation remains required.
+
+The committed `b63d8a6` source also passed a clean ARM64/ARMv7 build using installed tools and local pinned dependency objects; this is not a clean-machine bootstrap or proof of byte-identical APK output.

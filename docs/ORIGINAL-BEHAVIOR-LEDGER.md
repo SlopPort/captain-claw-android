@@ -42,3 +42,7 @@ Raw executable, disassembly, game assets, saves and recordings remain private. P
 Record the question, exact reference version, eligible initial state, inputs and trace. Separate selection delay, animation wind-up, active window, emission, recovery and next eligibility. Measure original and port under comparable conditions; explicitly report slow frames, protection, teleports or disabled AI. Add positive and negative cases for changed rules. Keep the old finding when a later result narrows it.
 
 An intentional difference may be accepted with stated player impact; an unknown must remain unknown until evidence resolves it. Original parity research does not excuse crashes, save loss or progression softlocks. Natural route acceptance remains the human's task.
+
+## Follow-up specification
+
+The [2026-11-08 follow-up](validation/ORIGINAL-FOLLOWUP-2026-11-08.md) narrows Crab geometry/re-hit boundaries, Fish states, Tiger continuation, Siren fallback, Le Rauxe conditional pauses and Gabriel request lifecycle. Proposed/current-source changes are explicitly separated from measured device results.

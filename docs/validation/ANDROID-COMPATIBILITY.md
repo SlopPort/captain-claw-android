@@ -1,10 +1,28 @@
 # Android compatibility
 
+## Current candidate matrix: 0.4.40-dev, 2026-11-08
+
+Prepared by OpenAI Codex (LLM). Exact debug APK SHA-256: `2383a7d6d789a77c9504b9f459e575e394aca48817e4e704528c3f3b41134f9b`. Supplied Polish game data is used; it is not certified pristine original media. Public signed distribution remains 0.4.32-test.
+
+| Configuration | Evidence for this exact candidate | Missing coverage / limitation |
+| --- | --- | --- |
+| Huawei P9 Lite VNS-L21, LineageOS Android 10, nominal 2 GB RAM, ARM64 | In-place debug update; Tiger continuation/contacts, both Siren variants/directions with real projectile interruption/death, four PL/EN save-error dialogs, touch-layout/difficulty fixture | Not natural campaign completion, every lifecycle/provider path or a proved 55 FPS minimum. GPU model was not separately captured in this batch. |
+| ARMv7 | Native build and packaged ELF32 libraries passed | No physical debug40 ARMv7 runtime yet; older ABI results below are historical. |
+| Minimum Android / API 21 | Manifest minimum remains 21 | No debug40 API-21 runtime trial; successful old x86_64 emulator tests do not certify this ARM candidate. |
+| Newer Android / other vendors | No new exact-candidate runtime claim | Redmi requires a new allocation. Historical Android 16 results below remain tied to their APKs. |
+| 16 KB pages | Static packaged ARM64 ELF checks passed | No debug40 physical ARM 16 KB-page runtime evidence; static alignment alone is insufficient. |
+| Signed production variant | Not the debug artifact above | A separate signed candidate needs its own installation/runtime evidence. A releasecheck identity also does not certify an untouched production package. |
+| Controllers | No broad physical test in this batch | Deferred. Specific prior pause regressions and virtual input are separate from Bluetooth/USB transport coverage. |
+
+See the [exact candidate report](UPDATE-0.4.40.md) and [TODO](../../TODO.md). The prior debug39 sustained result was invalidated after foreground loss/missing coverage; it is not a current performance pass. This matrix publishes evidence and gaps, not universal Android compatibility.
+
+## Historical records
+
 > Historical validation record. Results apply to the builds and scenarios named here, not automatically to the latest APK. See the [README](../../README.md) for current project status.
 
 **2026-10-24 follow-up:** [Redmi / Android 16, exact debug 0.4.29 regression checks](REDMI-0.4.29.md) also passed after the human reallocated the phone. Huawei-only statements below describe the previous batch. No new ARMv7, signed-release, emulator or physical-controller claim is added.
 
-**Latest code 0.4.29:** [Huawei-only regression evidence](USER-REGRESSIONS-0.4.29.md). Native code changed; the 0.4.27 matrix below is historical evidence for its own artifacts. Redmi was not queried or updated.
+**Historical code 0.4.29:** [Huawei-only regression evidence](USER-REGRESSIONS-0.4.29.md). Native code changed; the 0.4.27 matrix below is historical evidence for its own artifacts. Redmi was not queried or updated.
 
 ## Recorded matrix — 0.4.27, 2026-10-23
 

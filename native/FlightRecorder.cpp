@@ -1,5 +1,6 @@
 // Local, bounded diagnostic flight recorder. OpenAI Codex (LLM).
 #include "FlightRecorder.h"
+#include "BuildVersion.h"
 #if defined(__ANDROID__) && !defined(NDEBUG)
 #include "Engine/Actor/Components/PhysicsComponent.h"
 #include "Engine/Actor/Components/AnimationComponent.h"
@@ -124,7 +125,7 @@ private:
         const std::string target=std::string("flight-")+(job.frozen?"event-":"rolling-")+std::to_string(slot)+".txt";
         const auto temporary=target+".tmp";
         std::ofstream output(temporary,std::ios::binary|std::ios::trunc);
-        output<<"Pazur flight recorder 1 build=0.4.36 session="<<session<<" reason="<<job.reason
+        output<<"Pazur flight recorder 1 build="<<PAZUR_APP_VERSION<<" session="<<session<<" reason="<<job.reason
               <<" samples="<<job.records.size()<<" capacity=600 contacts_per_sample=8\n";
         output<<"S tick level x y vx vy flags feet keys step_ms physics_ms animation contacts_total contacts_saved\n";
         output<<"C enabled touching sensor hero_is_a type nx ny left top right bottom\n";

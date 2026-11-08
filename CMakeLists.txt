@@ -65,6 +65,18 @@ list(FILTER GAME_SOURCES EXCLUDE REGEX "/main.cpp$")
 add_library(openclaw SHARED ${GAME_SOURCES} native/android_main.cpp native/TouchControls.cpp native/LavaGeyserComponent.cpp native/OmarEncounterComponent.cpp native/CombatProbe.cpp native/PlatformInput.cpp native/GamepadControls.cpp)
 target_sources(openclaw PRIVATE native/FlightRecorder.cpp native/HapticFeedback.cpp native/ComponentProfiler.cpp native/AquatisArena.cpp native/AudioProbe.cpp native/OriginalMeleeAttack.cpp)
 target_include_directories(openclaw PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/native ${COMPAT} ${OC}/OpenClaw ${OC}/Box2D ${OC}/libwap ${OC}/ThirdParty ${OC}/ThirdParty/Tinyxml)
+# Keep recorder identity tied to the same versionName as the Android package.
+# A generated header limits version-only rebuilds to its actual consumers.
+if(NOT DEFINED PAZUR_APP_VERSION)
+  set(PAZUR_APP_VERSION "unknown")
+endif()
+if(NOT PAZUR_APP_VERSION MATCHES "^[A-Za-z0-9._+-]+$")
+  message(FATAL_ERROR "Invalid PAZUR_APP_VERSION")
+endif()
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/generated)
+configure_file(native/BuildVersion.h.in ${CMAKE_CURRENT_BINARY_DIR}/generated/BuildVersion.h @ONLY)
+target_include_directories(openclaw PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/generated)
+
 target_compile_definitions(openclaw PRIVATE ANDROID SDL_MAIN_HANDLED)
 target_compile_options(openclaw PRIVATE -O2 -Wno-deprecated-declarations)
 if(PAZUR_NATIVE_IPO)

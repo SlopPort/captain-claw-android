@@ -32,6 +32,10 @@ CASES = {
     'ambient': ('ambient_audio_smoke.py',),
     'pause-bonus': ('pause_powerup_smoke.py',),
     'lifecycle': ('lifecycle_smoke.py',),
+    'gameplay-options': ('gameplay_options_smoke.py',),
+    'save-errors': ('save_error_messages_smoke.py',),
+    'siren-interruption': ('siren_interruption_smoke.py',),
+    'flight-recorder': ('check_flight_recorder.py',),
 }
 
 

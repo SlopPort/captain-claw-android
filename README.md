@@ -35,6 +35,7 @@ OpenClaw supplies the existing engine and much of the gameplay. See the [upstrea
 
 Reports identify the exact APK and setup. Results for older builds are not automatic proof for the current source. Start with [known limitations](docs/KNOWN-LIMITATIONS.md) and the [original-behavior ledger](docs/ORIGINAL-BEHAVIOR-LEDGER.md).
 
+- [0.4.40 development follow-up](docs/validation/UPDATE-0.4.40.md): Tiger continuation, Siren interruption/death, recorder identity and localized save failures. This is newer than the public 0.4.32 test download; its sustained FPS gate remains open.
 - [0.4.32 floor/wall/Catnip checks](docs/validation/EDGE-SUPPORT-0.4.32.md) and [REA comparison](docs/ORIGINAL-BEHAVIOR-REA-2.md): reproduced tiny-floor-join snag, support classification and bonus damage.
 - [0.4.29 regressions](docs/validation/USER-REGRESSIONS-0.4.29.md): pause, Catnip pickup audio, Game Over input and a short melee tap during hurt; [Redmi follow-up](docs/validation/REDMI-0.4.29.md).
 - [Current Game Over screen](docs/GAME-OVER-UI.md) and [original-executable behavior investigation](docs/ORIGINAL-BEHAVIOR-REA.md): what was observed, changed and still remains uncertain.

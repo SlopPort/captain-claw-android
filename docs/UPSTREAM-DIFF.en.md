@@ -50,3 +50,7 @@ OpenAI Codex (LLM) added opt-in Siren burst/cooldown behavior and custom moving 
 ## Ambient audio follow-up (0.4.39)
 
 The Android local ambient path now applies master gain once and respects master mute when a new source starts. A production-component/SDL mixer fixture checks live gain and muted entry; per-batch p99 and skipped-gap reporting improve performance evidence without changing physics timing. See [exact scope and results](validation/UPDATE-0.4.39.md). The temporary sensor and scalar mixer diagnostics are adaptation test work, not original game data.
+
+## TODO follow-up (0.4.40)
+
+A recovered successful Tiger front-flip now continues into one knife without another decision gate. Recorder identity is generated from the app version; save failures have actionable PL/EN messages. Tests now distinguish fresh recorder evidence, genuine attack decisions/continuations and continuous foreground performance observations. See [exact artifact, caught fixture failures and remaining gates](validation/UPDATE-0.4.40.md). These changes do not establish full original AI or a natural campaign clear.

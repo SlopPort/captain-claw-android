@@ -52,7 +52,7 @@ void OriginalMeleeAttackAIStateComponent::VOnStateEnter(BaseEnemyAIStateComponen
             repeats = tigerMove == OriginalMeleePolicy::TigerMove::Knife ?
                 Util::GetRandomNumber(2, 4) : 1;
         }
-        BeginCustomMove();
+        BeginCustomMove("decision");
         return;
     }
     MeleeAttackAIStateComponent::VOnStateEnter(previous);
@@ -94,7 +94,7 @@ bool OriginalMeleeAttackAIStateComponent::IsCurrentAnimation(Animation* animatio
     return m_IsActive && animation == m_pAnimationComponent->GetCurrentAnimation().get();
 }
 
-void OriginalMeleeAttackAIStateComponent::BeginCustomMove() {
+void OriginalMeleeAttackAIStateComponent::BeginCustomMove(const char* reason) {
     moveStarted = clock;
     startX = m_pPositionComponent->GetPosition().x;
     soundPlayed = false;
@@ -130,9 +130,9 @@ void OriginalMeleeAttackAIStateComponent::BeginCustomMove() {
     m_pPhysicsComponent->SetVelocity(velocity);
     static int logs = 0;
     if (g_pApp->GetDebugOptions()->bPreviewIncompleteLevel14 && logs++ < 1000)
-        SDL_Log("Pazur original melee: actor=%s animation=%s repeats=%d next_entry=%llu clock=%llu direction=%d",
+        SDL_Log("Pazur original melee: actor=%s animation=%s repeats=%d next_entry=%llu clock=%llu direction=%d reason=%s",
             m_pOwner->GetName().c_str(), customAnimation.c_str(), repeats,
-            (unsigned long long)nextEntry, (unsigned long long)clock, direction);
+            (unsigned long long)nextEntry, (unsigned long long)clock, direction, reason);
 }
 
 void OriginalMeleeAttackAIStateComponent::FinishCustomMove() {
@@ -242,8 +242,11 @@ void OriginalMeleeAttackAIStateComponent::VOnAnimationLooped(Animation* animatio
     }
     if (!IsCurrentAnimation(animation) || animation->GetName() != customAnimation) return;
     if (policy == Policy::Tiger) {
+        // Front-flip completion is positional in original update 0x499020.
+        // A visual loop must not preempt its captured-target crossing.
+        if (tigerMove == OriginalMeleePolicy::TigerMove::FrontFlip) return;
         if (tigerMove == OriginalMeleePolicy::TigerMove::Knife && --repeats > 0)
-            BeginCustomMove();
+            BeginCustomMove("knife_repeat");
         else FinishCustomMove();
     }
     // Fish travel ends at its captured target X, independently of ANI looping.
@@ -285,7 +288,18 @@ void OriginalMeleeAttackAIStateComponent::VUpdate(uint32 ms) {
             (x <= patrol->GetLeftPatrolBorder() || x >= patrol->GetRightPatrolBorder());
         const uint64_t maxTravel = policy == Policy::Tiger &&
             tigerMove == OriginalMeleePolicy::TigerMove::FrontFlip ? 1000 : 2000;
-        if (crossed || outside || clock - moveStarted >= maxTravel)
+        const bool timedOut = clock - moveStarted >= maxTravel;
+        if (policy == Policy::Tiger &&
+            tigerMove == OriginalMeleePolicy::TigerMove::FrontFlip &&
+            crossed && !outside && !timedOut) {
+            // Original 0x499020 -> 0x498ca0(1): successful forward travel
+            // continues into one knife without a new decision or entry gate.
+            // Keep committed targets, facing and nextEntry from this move.
+            tigerMove = OriginalMeleePolicy::TigerMove::Knife;
+            repeats = 1;
+            BeginCustomMove("frontflip_crossed");
+        } else if (crossed || outside || timedOut) {
             FinishCustomMove();
+        }
     }
 }

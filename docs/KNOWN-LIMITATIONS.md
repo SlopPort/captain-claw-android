@@ -1,10 +1,10 @@
 # Known limitations and tested scope
 
-Updated 2026-11-07 by OpenAI Codex (LLM), guided by anonymous human feedback. This page describes the development state, not a 1.0 release guarantee.
+Updated 2026-11-08 by OpenAI Codex (LLM), guided by anonymous human feedback. This page describes the development state, not a 1.0 release guarantee.
 
 ## Which version does this describe?
 
-The allocated Huawei runs ARM64 **0.4.39-dev / versionCode 51**, APK SHA-256 `aa8fa8d8d34d919631dd4249826ce381db68f6c9a218e0a636e7b7c5b797689c`. The [0.4.39 report](validation/UPDATE-0.4.39.md) gives its exact tested scope. The downloadable signed public test remains **0.4.32-test**; fixes in a development report are not automatically included in that older download.
+The allocated Huawei runs ARM64 **0.4.40-dev / versionCode 52**, APK SHA-256 `2383a7d6d789a77c9504b9f459e575e394aca48817e4e704528c3f3b41134f9b`. The [0.4.40 report](validation/UPDATE-0.4.40.md) gives its exact tested scope. The downloadable signed public test remains **0.4.32-test**; fixes in a development report are not automatically included in that older download.
 
 ## Issues still requiring investigation
 
