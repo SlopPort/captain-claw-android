@@ -75,3 +75,30 @@ Passing preparation/reproduction does not require every action to win. The corre
 Pre-reaction samples were 90 HP; further hits can occur before the command arrives. AI stayed active and there was no protection/healing during the observed action. The shared session restored fresh configuration/progress after each case. Differences between attempts also involve input timing and attack selection: the current port randomly selects standing kick/uppercut/swipe without a sword powerup. Do not interpret a kick as a guaranteed sword animation or pin RNG to manufacture a balanced result.
 
 The [original-behavior investigation](../ORIGINAL-BEHAVIOR-REA.md#important-differences-still-requiring-care) already records separate original attack rectangles/damage and warns that target eligibility does not prove contact. It does not establish original-runtime hurt recovery or fairness on the reported staircase. 16/64 px, hero-above cases, relevant projectiles and the natural report remain open; this 48 px observation does not close COMBAT-01/02.
+
+## 64 px: measured reach asymmetry
+
+Eight further active-enemy trials used the corrected pre-spawn facing setup at 64 px (`todo-active-soldier-recovery-0.4.41-h64-*`). All completed as observations with fresh config/progress restoration; they are **not eight winning or fairness passes**. No hero protection or healing occurred during the observed actions.
+
+| Enemy side | Requested reaction | Final HP | Enemy defeated | Observed action |
+| --- | --- | --- | --- | --- |
+| Left | Standing sword | 60 | No | Swipe; no jump |
+| Right | Standing sword | 60 | No | Kick; no jump |
+| Left | Crouching sword | 70 | No | Duck swipe |
+| Right | Crouching sword | 75 | No | Duck swipe |
+| Left | Short jump attack | 60 | No | Standing swipe; no jump observed |
+| Right | Short jump attack | 60 | No | Jump observed; attack animation was kick |
+| Left | Long jump away | 85 | No | Jump swipe; moved 215.0 px away |
+| Right | Long jump away | 75 | No | Jump observed; no attack animation captured; moved 216.9 px away |
+
+Pre-reaction samples were again 90 HP. The right-standing sample shows a concrete geometric difference: Soldier's recorded body spans Y=935..1035, while the hero requests a 50x25 attack centered at Y=1063.9. That request is below the higher target. The enemy's recorded attack area spans Y=964..1005 and contacts the hero body beginning at Y=1003. Thus the enemy can hit in this setup while the sampled standing hero attack does not reach. This is not an integer-overlap error inferred solely from a sprite screenshot. Requests still must be distinguished from actual created/contacting bodies.
+
+### Rechecking cached original evidence
+
+The retained REA/Ghidra attack-construction evidence was read again, not replaced by a new original-runtime experiment. Subject: supplied CrazyHook-distributed CLAW.EXE SHA-256 `33cf6e2663823f073d769c3d05a1ad5e13e3e4993ad2cb6822617737395004c6`, constructor `0x41f270`, evidence `ev_4dac6420a6262ee02313141af6508d5c51f0bd4ba144a87068a3552d9b1717bf`.
+
+The constructor stores different bounds for named animation branches. Its right-facing stored tuples at fields `+0x154/+0x158/+0x15c/+0x160` include swipe `(30,-2,112,19)`, punch `(0,-2,56,19)` and uppercut `(0,-19,56,19)`; horizontal reversal negates and exchanges the horizontal limits. The ordinary swipe branch also stores base damage 5. These are concise independent numeric findings, not redistributed decompiled functions.
+
+The current port instead shares a 50x25 ordinary damage area for swipe/kick/uppercut/duck swipe, centered at offset `(±60,+20)`. Jump swipe shifts that center to `(±65,+10)`. The existing base scale is 10 standing / 5 crouching. This is an established implementation difference; **the original actor-origin mapping, collision consumers and full animation windows still need joining before using those tuples as Android geometry**. Copying constants or globally enlarging the hero box would not establish parity.
+
+The existing original hurt-dispatch finding supports waiting for recovery before attacking; it does not prove that a lower-standing hero must always counter a higher enemy without jumping. The port's pending attack tap is explicitly an accommodation. This reach asymmetry and short-input ordering remain COMBAT-01 research/reproduction work. 16 px, hero-above combinations, projectiles and the natural staircase are still missing from the wider COMBAT-02 acceptance scope.

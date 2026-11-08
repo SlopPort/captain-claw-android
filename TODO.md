@@ -69,6 +69,8 @@ Family evidence: [attack inventory](docs/validation/ENEMY-ATTACK-INVENTORY-0.4.3
 
 Debug41 follow-up: [eight active Soldier reactions on a 32 px step](docs/validation/ACTIVE-SOLDIER-0.4.41.md). Standing counters and jump-away escapes occurred on both sides, but one requested short jump never took off. This does not close COMBAT-01/02 or establish original balance.
 
+The same report now includes corrected-facing 48 px trials and a **64 px reach asymmetry**: sampled standing attacks missed the higher enemy while its attack still contacted Claw; jump-away escape remained possible. Cached original attack-construction evidence confirms different per-attack bounds, but the origin/collision mapping is not joined. Do not close this as a passing balance test or enlarge every hitbox indiscriminately.
+
 ## Bosses and finale
 
 - [ ] **BOSS-01 / P0 / VERIFY:** For each boss, check normal entry, phase transitions, accepted/rejected hits, death, restart and re-entry. Check resources available through the human's actual route; controlled victories do not establish normal ammo availability or balance.
