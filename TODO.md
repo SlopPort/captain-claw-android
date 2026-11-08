@@ -13,7 +13,7 @@ This is the detailed, actionable backlog. The [roadmap](docs/ROADMAP-1.0.md) sum
 
 ## Baseline: do not repeat completed work without a reason
 
-- Current installed Huawei build: **0.4.41-dev, ARM64**. [Exact build/test evidence](docs/validation/UPDATE-0.4.41.md): Huawei and API 21 bounded regressions passed; API 35 menu instrumentation remains unresolved. Public 0.4.31/0.4.32 downloads were withdrawn to private drafts for diagnostic filename privacy. Signed41 is built but unpublished. This is not a finished 1.0 release.
+- Current installed Huawei build: **0.4.41-dev, ARM64**. [Exact build/test evidence](docs/validation/UPDATE-0.4.41.md): Huawei and API 21 bounded regressions passed; API 35 repeats passed after unexplained intermittent failures. [Signed41 test download](https://github.com/SlopPort/captain-claw-android/releases/tag/v0.4.41-test) replaces withdrawn 0.4.31/0.4.32 binaries. [Production identity/runtime limits](docs/validation/RELEASE-0.4.41.md) remain. This is not a finished 1.0 release.
 - [0.4.38 results](docs/validation/UPDATE-0.4.38.md) cover reconstructed Siren, Crab, Fish, Tiger Guard, Gabriel and Red Tail behavior, the Le Rauxe ordinary melee block predicate, and the zero-length line-of-sight guard. These are bounded technical results, not complete original-game parity.
 - [0.4.37](docs/validation/UPDATE-0.4.37.md) corrected effective attack emission frames and deferred frame-zero handling. Do not replace these with arbitrary global attack-speed changes.
 - Prior builds addressed double audio attenuation, Game Over instructions, floor joins, wall-only grounding, leafy-ladder caps, rope interpolation and unsupported menu entries. Their exact-build reports remain evidence; final-build regression checks below remain necessary.

@@ -36,7 +36,7 @@ The subsequent short regression batch also passed touch-jump (53.2 s), save-erro
 
 ## Remaining work and performance scope
 
-The signed production APK has not been published. Old 0.4.31/0.4.32 downloads remain withdrawn to private drafts for diagnostic filename privacy. Resolve or clearly scope the Android 15 failure, finish documentation/checks, then publish only the scanned new signed artifact with matching checksums and accurate limitations.
+The signed production APK is now published as [v0.4.41-test](https://github.com/SlopPort/captain-claw-android/releases/tag/v0.4.41-test), with GitHub's asset digest matching the exact production hash above. [Release provenance and limitations](RELEASE-0.4.41.md). Old 0.4.31/0.4.32 downloads remain withdrawn to private drafts for diagnostic filename privacy. This publication is a development prerelease, not closure of the remaining TODO or exact-production-identity runtime gap.
 
 The 20-minute stationary level-9 heavy-scene test belongs to **debug40**, not debug41: 47.0–60.2 FPS, batch median 53.2, longest reported loop 35 ms. Continuous foreground/batch coverage passed. The user made 55/60 FPS optional; preserve image quality, physics and AI rather than pursuing the target indefinitely. This is not an all-level performance guarantee.
 

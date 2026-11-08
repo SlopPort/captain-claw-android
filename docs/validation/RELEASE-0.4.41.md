@@ -6,7 +6,7 @@ This is a **development prerelease, not 1.0**. Natural campaign completion and s
 
 ## Artifact and provenance
 
-- Intended release tag: `v0.4.41-test`, targeting build-input commit `cf93e5c4d2a4c1b6ee82da4e3e0d1467a357d7e3`.
+- [Public prerelease v0.4.41-test](https://github.com/SlopPort/captain-claw-android/releases/tag/v0.4.41-test), targeting build-input commit `cf93e5c4d2a4c1b6ee82da4e3e0d1467a357d7e3`. GitHub confirmed `isDraft: false`, `isPrerelease: true` and the matching APK asset digest/size. A separate anonymous HTTP download completed and its SHA-256 matched the production artifact below.
 - APK: `captain-claw-android-0.4.41-test.apk`, 34,284,030 bytes.
 - SHA-256: `11c32c781ff183a4bc8846cfbfb6321f0e9700c7ae92752631144136449724cd`.
 - Package `pl.pazur.port`; versionCode 53; versionName `0.4.41-dev`; ARM64 and ARMv7.

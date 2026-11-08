@@ -14,7 +14,7 @@ The [detailed TODO](../TODO.md) tracks remaining work with stable task IDs and c
 
 Start with [contributing](../CONTRIBUTING.en.md), [building](BUILDING.en.md), [installation](INSTALL-EN.md), [release gates](ROADMAP-1.0.md) and [upstream differences](UPSTREAM-DIFF.en.md).
 
-Public APK distribution is temporarily withdrawn as of 2026-11-08: 0.4.31/0.4.32 releases were changed to private drafts after exact-artifact scanning found a build-account path in SDL diagnostics. Files/metadata are retained privately; source/tags remain public. Do not republish those binaries. Debug41 adds compiler filename-prefix mapping and still needs its own scan/runtime/release evidence. The [0.4.32 artifact/signing/runtime record](validation/RELEASE-0.4.32.md) remains historical.
+Public development APK distribution resumed with [v0.4.41-test](https://github.com/SlopPort/captain-claw-android/releases/tag/v0.4.41-test). [Exact artifact, source, signer and limitations](validation/RELEASE-0.4.41.md). Older 0.4.31/0.4.32 releases remain private drafts after diagnostic filename disclosure; do not republish those binaries. Their files/metadata are retained privately and source/tags remain public. The [0.4.32 record](validation/RELEASE-0.4.32.md) is historical.
 The phone's existing debug installation was not migrated or uninstalled.
 
 ## Latest verified behavior
@@ -33,7 +33,7 @@ The debug40 follow-up also passed clean-source ARM64/ARMv7 building from `f11b80
 
 [Enemy attack-speed audit](validation/ENEMY-ATTACK-AUDIT-2026-10-30.md): 55 packaged enemy/encounter prototypes and 76 attacks inventoried, 15 ordinary Huawei cadence cases plus one ranged case measured. Original ANI event mapping is traced: 26 configured actions differ from event-1 markers, 40 match and ten need custom handlers. Red Tail has an ignored nested delay; frame-zero first-hit behavior and unused Gabriel action metadata need follow-up. Exact original timing for every family remains unresolved. This source/documentation batch changes no APK or balance.
 
-Current build/test summary: [debug and signed isolated 0.4.41 checks](validation/UPDATE-0.4.41.md). The signed production APK remains unpublished. API 35 menu instrumentation passed English and Polish repeats after two failures; its intermittent failure remains unexplained. [Debug40](validation/UPDATE-0.4.40.md) and [debug36](validation/UPDATE-0.4.36.md) remain historical evidence.
+Current build/test summary: [debug and signed isolated 0.4.41 checks](validation/UPDATE-0.4.41.md). The signed production APK is a public development prerelease, with its exact identity runtime limitation disclosed. API 35 menu instrumentation passed English and Polish repeats after two failures; its intermittent failure remains unexplained. [Debug40](validation/UPDATE-0.4.40.md) and [debug36](validation/UPDATE-0.4.36.md) remain historical evidence.
 
 
 After reviewing commit 425cdb1 (touch customization and working three-preset difficulty), debug36 removes six unsupported menu actions and compacts the main/single-player/options lists. Controls and Difficulty remain functional port features. [Menu audit](validation/MENU-AUDIT-2026-10-30.md) records physical PL/EN navigation and translation coverage.

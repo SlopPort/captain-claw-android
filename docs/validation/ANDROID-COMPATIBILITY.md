@@ -1,8 +1,23 @@
 # Android compatibility
 
-## Current candidate matrix: 0.4.40-dev, 2026-11-08
+## Current development evidence: 0.4.41-dev, 2026-11-08
 
-Prepared by OpenAI Codex (LLM). Exact debug APK SHA-256: `2383a7d6d789a77c9504b9f459e575e394aca48817e4e704528c3f3b41134f9b`. Supplied Polish game data is used; it is not certified pristine original media. Public 0.4.31/0.4.32 downloads were withdrawn to private drafts on 2026-11-08 for diagnostic filename privacy; debug41 is being prepared.
+Prepared by OpenAI Codex (LLM). [Exact APK hashes, build provenance and test scope](UPDATE-0.4.41.md); [public signed artifact](RELEASE-0.4.41.md). Supplied Polish data is not certified pristine original media. Debug and production signatures/package identities are distinguished below.
+
+| Configuration | Exact-build evidence | Missing coverage / limitation |
+| --- | --- | --- |
+| Huawei P9 Lite VNS-L21, LineageOS Android 10, nominal 2 GB RAM, ARM64 debug41 | In-place update preserved seven external files; menu, jump, Game Over, save-error and ambient regressions; true Game Over corners and bounded active Soldier reactions | Natural campaign and reported natural stair/platform geometry remain open. No private preference XML was present in the upgrade snapshot. |
+| Signed releasecheck41, ARM64 and ARMv7 selected on Huawei | Menu, levels 1/14, music PCM, short jump, staged exit/progress write; signed update fixture preserved six seeded external files | Separate disposable package. ARMv7 selection on a 64-bit phone is not a 32-bit-only phone test. |
+| Signed production41 | Both ABIs, known-pattern privacy, signature, ELF and ZIP alignment passed; six native libraries identical to releasecheck | Exact production package identity not runtime-installed. Source/build hash and publication digest are recorded separately. |
+| API 21 x86_64 emulator, archived-source debug41 | Menu, jump, save-error and lifecycle cases passed | Not ARM hardware or a clean-machine bootstrap. Different exact APK from ARM debug. |
+| API 35 x86_64 emulator, 16 KB pages, archived-source debug41 | Later PL/EN menu repeats, jump, save-error and lifecycle cases passed | Two earlier menu failures remain unexplained. No physical newer-Android/ARM 16 KB certification. |
+| Other vendors / Redmi / physical controllers | Historical evidence only | Redmi is not allocated; broad controller tests deferred. |
+
+No universal Android or all-level FPS guarantee is made. The 20-minute heavy-scene performance evidence is for debug40, not these APKs.
+
+## Historical debug40 matrix
+
+Prepared by OpenAI Codex (LLM). Historical exact debug40 APK SHA-256: `2383a7d6d789a77c9504b9f459e575e394aca48817e4e704528c3f3b41134f9b`. Supplied Polish game data was used; it is not certified pristine original media. These rows retain their original scope and do not describe the newer public signed artifact.
 
 | Configuration | Evidence for this exact candidate | Missing coverage / limitation |
 | --- | --- | --- |
