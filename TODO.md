@@ -109,6 +109,8 @@ Starting evidence: [boss behavior](docs/validation/BOSS-BEHAVIOR-0.4.38.md). Nat
 
 ## Audio, bonus effects and language
 
+Debug43 [fatal-hero and actual Red Tail follow-up](docs/validation/UPDATE-0.4.43.md#fatal-hero-and-actual-red-tail-hurt-follow-up) confirms one current death cue after real fatal enemy damage/normal respawn, and one corrected boss voice after an accepted arena melee hit. These are combined-output/request observations, not subjective listening or full encounter acceptance. Ordinary fatal melee currently uses the death-tile cue; original policy remains unverified. AUDIO-01 stays open for its wider requirements.
+
 - [ ] **AUDIO-01 / P0 / VERIFY:** On the final candidate, audibly verify hero sword/gun/hurt and enemy attack/hurt/death effects at low and high master/effects settings. Check simultaneous sounds and distance attenuation. The double-gain fix is not evidence that every cue plays correctly.
 - [ ] **AUDIO-02 / P0 / VERIFY:** Measure cold and warm Catnip collection. Check one-time decode/load stalls, timer sound, bonus expiry and music restoration. Retain meaningful frame-time evidence around collection rather than only average FPS.
 - [ ] **AUDIO-03 / P1 / VERIFY:** Check mute, volume persistence, background/focus loss and audio device changes without duplicate playback or lost channels. Preserve a user's existing settings.

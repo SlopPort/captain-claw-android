@@ -29,6 +29,7 @@ CASES = {
     'melee-recovery': ('melee_recovery_smoke.py',),
     'audio-low': ('attack_audio_smoke.py', '--sound-volume', '10'),
     'audio-high': ('attack_audio_smoke.py', '--sound-volume', '100'),
+    'fatal-boss-audio': ('fatal_boss_audio_smoke.py',),
     'touch-jump': ('window_touch_regression.py', '--scenario', 'jump'),
     'game-over': ('window_touch_regression.py', '--scenario', 'game-over'),
     'score': ('window_touch_regression.py', '--scenario', 'score'),
