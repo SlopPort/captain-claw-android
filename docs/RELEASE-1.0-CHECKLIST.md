@@ -17,7 +17,7 @@ Reviewed **2026-11-10** by OpenAI Codex (LLM). Human participation is anonymous;
 - [x] Verified Red Tail's actual accepted hurt path in the real arena: ordinary melee contact changed 150 to 140 HP and the corrected voice was accepted once. Protected setup is not full boss acceptance. [Evidence](validation/UPDATE-0.4.43.md#fatal-hero-and-actual-red-tail-hurt-follow-up).
 - [x] Observed one current hero fatal cue after real enemy damage and a normal respawn. Original correctness of the cue and subjective listening remain open.
 - [ ] Audibly check hero/enemy attack, gun, hurt and death effects, low/high volume and overlapping sounds. Include missing/empty sound definitions without inventing replacement recordings.
-- [ ] Measure actual cold/warm Catnip pickup frame time, timer, expiry and music restoration. The earlier 1/1/2 ms prepared-music switches do not measure the complete pickup stall.
+- [ ] Confirm the earlier Catnip loading-stall fix on the frozen candidate's actual pickup path, including first/subsequent collection frame time, timer, expiry and music restoration. Prepared switches already measured 1/1/2 ms; no recurrence is currently established. This is regression acceptance, not a new open stall report or a reason to repeat optimization without evidence.
 - [ ] Check mute, focus/audio-device changes and persisted volume. Run suitable normal-play regressions after the native change.
 
 Task IDs: AUDIO-01/02/03, COMBAT-03, RELEASE-02. Exit: runtime evidence for the exact corrected APK, restored user data, no unexplained missing/duplicate cue or crash; subjective listening and mixer measurements are labelled separately.

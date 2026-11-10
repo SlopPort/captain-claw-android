@@ -37,6 +37,8 @@ The exact packaged audio inventory reports no missing referenced attack sound am
 
 ## Remaining acceptance
 
+The later [menu/settings follow-up](MENU-SETTINGS-0.4.43.md) passed PL/EN navigation/audio sliders, native gameplay-options assertions, own-app focus recovery, score progression and both actual Game Over corners on this exact APK. It includes limited visual review and preserves broader physical-input, locale/display and final signed-artifact requirements.
+
 The exact installed APK additionally passed the sequential `touch-jump`, `game-over`, `ambient` and `save-errors` regressions. Each child restored configuration/progress and retained the installed hash. Private batch: `todo-audio-regression-0.4.43-20261110/results.json`. These scoped cases do not certify every menu, input method or Android version.
 
 Complete subjective low/high-volume listening, other configured enemy families and custom boss paths, original death-cue policy, full cold/warm Catnip pickup stalls and the final signed-candidate matrix. The earlier debug42 20-minute protected observation remains debug42 evidence; it is not automatically transferred to this newer APK. AUDIO-01/02/03 and the wider release checklist remain open.
