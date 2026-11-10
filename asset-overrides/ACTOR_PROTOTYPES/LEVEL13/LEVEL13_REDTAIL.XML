@@ -16,7 +16,7 @@
         <DeathAnimation>killfall</DeathAnimation>
         <Sounds>
             <Sound SoundType="Death" SoundName="/LEVEL13/SOUNDS/REDTAIL/01040007.WAV" />
-            <Sound SoundType="TakeDamage" SoundName="/LEVEL13/SOUNDS/01040006.WAV" />
+            <Sound SoundType="TakeDamage" SoundName="/LEVEL13/SOUNDS/REDTAIL/01040006.WAV" />
             <Sound SoundType="RangedAttack" SoundName="/LEVEL13/SOUNDS/REDTAIL/FLAREGUN3.WAV" />
         </Sounds>
     </EnemyAIComponent>

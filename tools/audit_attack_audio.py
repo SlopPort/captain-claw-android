@@ -5,6 +5,7 @@ not permission to invent replacement recordings or change original sound design.
 """
 import argparse
 import copy
+import hashlib
 import json
 import struct
 import xml.etree.ElementTree as ET
@@ -36,10 +37,12 @@ def event_sound(event,animation):
 
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--report',required=True);args=parser.parse_args()
+    parser.add_argument('--report',required=True)
+    parser.add_argument('--apk',type=Path,default=PORT/'app/build/outputs/apk/debug/app-debug.apk')
+    args=parser.parse_args()
     report=PORT/'reports'/args.report;report.mkdir(parents=True,exist_ok=False)
     assets=PORT.parent/'Assets';definitions={};cache={}
-    with zipfile.ZipFile(PORT/'app/build/outputs/apk/debug/app-debug.apk') as apk:
+    with zipfile.ZipFile(args.apk) as apk:
         with zipfile.ZipFile(BytesIO(apk.read('assets/import-support/ASSETS.ZIP'))) as support:
             for name in support.namelist():
                 if 'ACTOR_PROTOTYPES/' in name.upper() and name.upper().endswith('.XML'):
@@ -50,12 +53,24 @@ def main():
             root=copy.deepcopy(definitions[name]);parent=root.get('Parent')
             cache[name]=merge(copy.deepcopy(resolve(parent)),root) if parent else root
         return cache[name]
-    rows=[]
+    rows=[];reactions=[]
     for prototype in sorted(definitions):
         root=resolve(prototype);enemy=root.find('EnemyAIComponent')
         if enemy is None or 'Base' in prototype:continue
         pattern=root.findtext('AnimationComponent/AnimationPath','')
         sounds=enemy.findall('Sounds/Sound')
+        hurt=[s.get('SoundName').upper() for s in sounds if s.get('SoundType')=='TakeDamage']
+        death=[s.get('SoundName').upper() for s in sounds if s.get('SoundType')=='Death']
+        hurt_animations=[]
+        for entry in root.findall('./TakeDamageAIStateComponent/TakeDamageAnimation'):
+            animation=pattern.rsplit('/',1)[0]+'/'+entry.text.upper()+'.ANI'
+            path=assets/animation.lstrip('/').upper()
+            events=[event_sound(e,animation) for _,e in animation_events(path)] if path.exists() else None
+            hurt_animations.append(dict(animation=animation,events=events,
+                                        duplicates_configured_voice=bool(events and set(events)&set(hurt))))
+        reactions.append(dict(prototype=prototype,hurt=hurt,death=death,hurt_animations=hurt_animations,
+                              missing_hurt=[p for p in hurt if not (assets/p.lstrip('/')).is_file()],
+                              missing_death=[p for p in death if not (assets/p.lstrip('/')).is_file()]))
         for component in root:
             for action in component.findall('Attacks/AttackAction'):
                 name=action.findtext('Animation');animation=pattern.rsplit('/',1)[0]+'/'+name.upper()+'.ANI'
@@ -73,7 +88,8 @@ def main():
         animation='/CLAW/ANIS/'+name+'.ANI';path=assets/animation.lstrip('/')
         references=[event_sound(event,animation) for _,event in animation_events(path)]
         player.append(dict(animation=animation,effects=references,missing=[v for v in references if not (assets/v.lstrip('/')).exists()]))
-    result=dict(player=player,enemies=rows,attack_actions=len(rows),
+    result=dict(apk_sha256=hashlib.sha256(args.apk.read_bytes()).hexdigest(),
+                player=player,enemies=rows,reactions=reactions,attack_actions=len(rows),
                 missing_actions=sum(bool(row['missing']) for row in rows),silent_definitions=sum(row['no_effect_defined'] for row in rows))
     (report/'results.json').write_text(json.dumps(result,indent=2),encoding='utf-8')
     print(json.dumps({key:result[key] for key in ('attack_actions','missing_actions','silent_definitions')}))

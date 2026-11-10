@@ -1,8 +1,14 @@
 # Project TODO and release backlog
 
-Updated **2026-11-08** by OpenAI Codex (LLM), guided by anonymous human requirements and feedback. Adaptation authorship is separate from OpenClaw and dependency authorship.
+Updated **2026-11-10** by OpenAI Codex (LLM), guided by anonymous human requirements and feedback. Adaptation authorship is separate from OpenClaw and dependency authorship.
 
 This is the detailed, actionable backlog. The [roadmap](docs/ROADMAP-1.0.md) summarizes release gates; the [handoff](docs/HANDOFF.md) records current state and operating constraints. An unchecked item means work or evidence is still required, not necessarily that a defect has been proved.
+
+## Current execution plan for 1.0
+
+Follow the [remaining-work checklist](docs/RELEASE-1.0-CHECKLIST.md), reviewed against commits, local changes and saved reports on November 10. It groups this backlog into eight ordered gates: pending audio; reported movement/combat blockers; encounters/original-policy decisions; touch/menus/language; installation/save safety; declared Android coverage/stability; human campaign acceptance; and the exact signed release. Stable task IDs below remain authoritative. Do not restart completed fixtures without a relevant change or missing acceptance condition.
+
+The [debug43 audio correction](docs/validation/UPDATE-0.4.43.md) now has baseline/fixed ARM64 evidence for Soldier hurt/death, Officer impact and hero hurt; wider listening and boss coverage remain open. The saved debug42 20-minute heavy-scene run **has completed successfully**, including runner checks of restored user configuration/progress and unchanged APK; its scope is protected stationary observation, not debug43 or full-campaign acceptance. See the checklist for exact versions, evidence and remaining limits.
 
 ## Completed in the current follow-up
 
@@ -13,7 +19,7 @@ This is the detailed, actionable backlog. The [roadmap](docs/ROADMAP-1.0.md) sum
 
 ## Baseline: do not repeat completed work without a reason
 
-- Current installed Huawei build: **0.4.41-dev, ARM64**. [Exact build/test evidence](docs/validation/UPDATE-0.4.41.md): Huawei and API 21 bounded regressions passed; API 35 repeats passed after unexplained intermittent failures. [Signed41 test download](https://github.com/SlopPort/captain-claw-android/releases/tag/v0.4.41-test) replaces withdrawn 0.4.31/0.4.32 binaries. [Production identity/runtime limits](docs/validation/RELEASE-0.4.41.md) remain. This is not a finished 1.0 release.
+- Latest verified Huawei runtime: **0.4.43-dev, ARM64** ([exact evidence](docs/validation/UPDATE-0.4.43.md)), upgraded in place and fixture-tested on November 10. Earlier debug42 movement/stability and debug41 emulator results remain version-specific. [Signed41 test download](https://github.com/SlopPort/captain-claw-android/releases/tag/v0.4.41-test) and its [production identity/runtime limits](docs/validation/RELEASE-0.4.41.md) remain unchanged. This is not a finished 1.0 release.
 - [0.4.38 results](docs/validation/UPDATE-0.4.38.md) cover reconstructed Siren, Crab, Fish, Tiger Guard, Gabriel and Red Tail behavior, the Le Rauxe ordinary melee block predicate, and the zero-length line-of-sight guard. These are bounded technical results, not complete original-game parity.
 - [0.4.37](docs/validation/UPDATE-0.4.37.md) corrected effective attack emission frames and deferred frame-zero handling. Do not replace these with arbitrary global attack-speed changes.
 - Prior builds addressed double audio attenuation, Game Over instructions, floor joins, wall-only grounding, leafy-ladder caps, rope interpolation and unsupported menu entries. Their exact-build reports remain evidence; final-build regression checks below remain necessary.

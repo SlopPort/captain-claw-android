@@ -6,7 +6,7 @@ The [detailed TODO](../TODO.md) tracks remaining work with stable task IDs and c
 
 ## Current state and boundaries
 
-- Main Huawei installation: **ARM64 debug 0.4.42-dev**. [Current diagnostic evidence and unresolved checks](validation/UPDATE-0.4.42.md). Public signed downloads remain 0.4.41-test; earlier results retain their exact version. Only Huawei is allocated to this task now. **Do not query, install on or otherwise operate Redmi without a new allocation.** Earlier Redmi results below are historical, not permission to use it now.
+- Main Huawei installation: **ARM64 debug 0.4.43-dev**. [Current diagnostic evidence and unresolved checks](validation/UPDATE-0.4.43.md). Public signed downloads remain 0.4.41-test; earlier results retain their exact version. Only Huawei is allocated to this task now. **Do not query, install on or otherwise operate Redmi without a new allocation.** Earlier Redmi results below are historical, not permission to use it now.
 - Huawei supplies internet over USB. Do not reboot it, change USB/tethering/network settings, disconnect it or restart the shared ADB server to repair a test. Select the authorized device with a process-local `ANDROID_SERIAL`; never publish device serials.
 - The human owns natural campaign playtesting. Do not resume autonomous traversal. Technical reproductions of reported bugs are allowed, but teleports, invulnerability and resource edits must be labelled as fixtures, never natural campaign evidence.
 - This is not release 1.0. Full campaign completion, original-game parity and a universal FPS minimum are not established. Broad physical controller testing was deferred; later specific pause/input bug reports remain in scope.
