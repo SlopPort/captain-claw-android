@@ -35,3 +35,21 @@ the text card, both returned to menu. Reproduce with
 `python tools/game_over_anywhere_smoke.py --report unique-report-name`
 after selecting the allocated device with `ANDROID_SERIAL`. Original settings,
 progress and controller bindings were byte-identical after all tests.
+
+## Debug41 recheck
+
+2026-11-08, OpenAI Codex (LLM). Exact Huawei ARM64 debug41 APK SHA-256
+`4bcf15bade79c4047cd6b387b02ae5b0c35b7596f19528f167041a5416d8f187`.
+The earlier fixed `(630, 470)` coordinate is outside the text card, but is not
+the screen's right corner at a logical width of 853. The helper now derives
+the viewport from runtime evidence and checks crash attribution.
+
+Fresh fixtures passed at `(10, 10)` and `(843, 470)` on the actual `853x480`
+viewport: last-life death opened Game Over, an app-local SDL diagnostic tap
+returned to the main menu, the process remained alive, and no target or
+unattributed fatal line was found. Each fixture restored its own fresh
+configuration/progress backup. The Polish before-screen was visually inspected:
+the larger heading, separator and complete whole-screen instruction are visible.
+This does not establish private preference preservation or a physical touch
+test at every pixel. The separate debug41 Android-window center-tap regression
+also passed; natural deaths during campaign play remain the human's test.

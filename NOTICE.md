@@ -8,6 +8,8 @@ The two Android credit cards and their small bitmap alphabet are original genera
 
 The geometric Android application icon (`app/src/main/res/drawable/ic_port.xml`) is original vector artwork by OpenAI Codex (LLM), GPL-3.0. It contains no original Claw artwork or Monolith logo.
 
+The 2 x 2 console placeholder is generated programmatically by `tools/prepare_import_support.py`; it is not the original game's console artwork. Import support obtains its working font from Android's installed system fonts rather than bundling the player's original font.
+
 ## Open-source projects
 
 - **OpenClaw**, pjasicek and contributors: [repository](https://github.com/pjasicek/OpenClaw). This adaptation uses its C++/SDL engine, Box2D/libwap integration, TinyXML, actor models and much of its gameplay. The engine and adaptation use GPL-3.0; see `LICENSE.txt`.

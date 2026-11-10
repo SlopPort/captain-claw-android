@@ -51,9 +51,24 @@ inline int LayoutWidth(const std::string& name) {
     if(name.size()>=5&&name.compare(name.size()-5,5,"_TEXT")==0&&name!="SAVE_GAME_TEXT")return 400;
     return 0;
 }
-inline void Position(const std::string& name,Point& point) {
+inline bool SettingsShortcut(const std::string& name) {
+    return name=="CONTROLS_BUTTON"||name=="DIFFICULTY_BUTTON";
+}
+inline void Position(const std::string& name,Point& point,const std::string& page="") {
     const int width=LayoutWidth(name);
     if(width&&!GridLevel(name)&&!VolumeRow(name))point.SetX((640-width)/2);
+    // Compact action lists after unsupported rows are removed. Grids, audio,
+    // confirmations and the pause menu keep their existing coordinates.
+    static const std::map<std::string,std::map<std::string,int>> rows={
+        {"MenuPage_Main",{{"SINGLE_PLAYER_BUTTON",210},{"OPTIONS_BUTTON",245},{"CREDITS_BUTTON",280},{"HELP_BUTTON",315},{"QUIT_BUTTON",350}}},
+        {"MenuPage_SinglePlayer",{{"NEW_GAME_BUTTON",210},{"LOAD_GAME_BUTTON",245},{"SAVE_GAME_BUTTON",280},{"BACK_BUTTON",315}}},
+        {"MenuPage_Options",{{"DIFFICULTY_BUTTON",225},{"CONTROLS_BUTTON",260},{"AUDIO_BUTTON",295},{"BACK_BUTTON",330}}}
+    };
+    auto layout=rows.find(page);
+    if(layout!=rows.end()) {
+        auto row=layout->second.find(name);
+        if(row!=layout->second.end())point.SetY(row->second);
+    }
 }
 inline std::string Label(const std::string& name,const std::string& path) {
     using Pair=std::pair<const char*,const char*>;

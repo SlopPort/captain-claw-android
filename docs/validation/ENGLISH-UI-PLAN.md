@@ -1,5 +1,7 @@
 # English UI follow-up
 
+> Historical scope and evidence. English UI/native menus are implemented; earlier bitmap limitations below are not current implementation tasks. Consult the [shared-backlog reconciliation](BACKLOG-RECONCILIATION-2026-11-10.md) and LANG-01/02 in [TODO](../../TODO.md) for remaining coverage and lawful English-voice data requirements.
+
 > Historical validation record. Results apply to the builds and scenarios named here, not automatically to the latest APK. See the [README](../../README.md) for current project status.
 
 Requested 2026-10-22. Partial implementation in 0.4.13-dev by OpenAI Codex (LLM). Existing English README and installation instructions are not equivalent to English in-game UI.

@@ -12,6 +12,7 @@ import re
 import subprocess
 import time
 from campaign_session import CampaignSession
+from android_package import installed_apk_sha256
 from gamepad_quit_smoke import adb,REMOTE,PORT
 
 
@@ -73,6 +74,9 @@ def main():
     if 'present' in adb('shell','if [ -e '+REMOTE+marker+' ]; then echo present; fi'):
         raise RuntimeError('Existing off marker: leave its owner in control')
     owned=False;results={}
+    apk_sha=installed_apk_sha256()
+    version=re.search(r'\bversionName=(\S+)',adb('shell','dumpsys','package','pl.pazur.port'))[1]
+    for name,data in files().items():(report/('before-'+name)).write_bytes(data)
     try:
         for enabled,seconds in [(False,25),(True,70)]:
             if not enabled:
@@ -99,6 +103,14 @@ def main():
                 else:
                     assert 3<=len(current)<=4,'Expected rolling slots and a candidate report'
                     assert all(f'flight-rolling-{slot}.txt' in current for slot in (0,1))
+                    changed={name:data for name,data in current.items() if previous.get(name)!=data}
+                    assert all(f'flight-rolling-{slot}.txt' in changed for slot in (0,1)), 'Both rolling files must be freshly written'
+                    current_sessions=set()
+                    for name,data in changed.items():
+                        header=data.splitlines()[0].decode('ascii')
+                        assert ' build='+version+' ' in header, ('Stale or wrong build identity',name,header)
+                        current_sessions.add(re.search(r' session=(\d+) ',header)[1])
+                    assert len(current_sessions)==1, 'Mixed recorder sessions'
                     parsed={}
                     for name,data in current.items():
                         assert data.startswith(b'Pazur flight recorder 1 ') and data.endswith(b'end\n')
@@ -108,14 +120,18 @@ def main():
                         parsed[name]=dict(samples=len(samples),bytes=len(data),first_tick=int(samples[0][1]),last_tick=int(samples[-1][1]))
                         (report/name).write_bytes(data)
                     assert any(v['samples']==600 for k,v in parsed.items() if 'rolling' in k),'Ring did not fill'
-                    assert any(b'reason=blocked-candidate' in v for k,v in current.items() if 'event' in k),'No candidate freeze'
-                    assert any(int(v.split()[9])&2 for data in current.values() for v in data.decode().splitlines() if v.startswith('S ') and not v.startswith('S tick')),'Right input not recorded'
+                    assert any(b'reason=blocked-candidate' in v for k,v in changed.items() if 'event' in k),'No candidate freeze'
+                    assert any(int(v.split()[9])&2 for data in changed.values() for v in data.decode().splitlines() if v.startswith('S ') and not v.startswith('S tick')),'Right input not recorded'
                     row['files']=parsed
+                    row['new_session']=next(iter(current_sessions))
+                    row['changed_files']=sorted(changed)
+                    row['build_version_verified']=version
                 results['on' if enabled else 'off']=row
                 print(json.dumps(dict(enabled=enabled,**row)),flush=True)
     finally:
         if owned:adb('shell','rm','-f',REMOTE+marker)
-    results.update(passed=True,natural_campaign=False,apk_sha256=hashlib.sha256((PORT/'app/build/outputs/apk/debug/app-debug.apk').read_bytes()).hexdigest())
+    assert installed_apk_sha256()==apk_sha, 'Package changed during recorder test'
+    results.update(passed=True,natural_campaign=False,apk_sha256=apk_sha,build_version=version)
     (report/'results.json').write_text(json.dumps(results,indent=2),encoding='utf-8')
 
 

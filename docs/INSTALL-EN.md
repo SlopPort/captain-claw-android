@@ -6,9 +6,9 @@ You do not need a GitHub account, USB debugging, ADB or Android Studio to instal
 
 ## 1. Get the two files ready
 
-**Download the test APK:** open [v0.4.32-test](https://github.com/SlopPort/captain-claw-android/releases/tag/v0.4.32-test), expand **Assets**, and download **`captain-claw-android-0.4.32-test.apk`**. The release also supplies `SHA256SUMS.txt`. This is a development test, not version 1.0. GitHub's source-code archives are not the APK.
+**Current development test:** [0.4.41 release](https://github.com/SlopPort/captain-claw-android/releases/tag/v0.4.41-test). Open **Assets** and download **captain-claw-android-0.4.41-test.apk**. The older 0.4.31/0.4.32 downloads were withdrawn for diagnostic filename privacy; use this replacement. Back up progress before updating. This is not a finished 1.0 release; [limitations](validation/RELEASE-0.4.41.md) remain.
 
-- **App installer:** the APK from the test release above, or one you [build from source](BUILDING.en.md). GitHub's **Code → Download ZIP** downloads source code; it cannot be installed on a phone.
+- **App installer:** the `.apk` file from the release above, or one you [build from source](BUILDING.en.md). GitHub's **Code → Download ZIP** downloads source code; it cannot be installed on a phone.
 - **Game data:** `CLAW.REZ` from your own PC game folder, or a `game-data.zip` prepared with this project's tools. Do not unpack or rename it.
 
 **Which data file should I use?**

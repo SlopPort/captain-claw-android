@@ -1,10 +1,45 @@
 # Android compatibility
 
+## Current development evidence: 0.4.41-dev, 2026-11-08
+
+**Installed development update:** Huawei now runs ARM64 debug43. Its [exact artifact and bounded tests](UPDATE-0.4.43.md) are separate from the debug41 compatibility matrix below. No new emulator, physical ARMv7 or 16 KB ARM runtime coverage is implied.
+
+Prepared by OpenAI Codex (LLM). [Exact APK hashes, build provenance and test scope](UPDATE-0.4.41.md); [public signed artifact](RELEASE-0.4.41.md). Supplied Polish data is not certified pristine original media. Debug and production signatures/package identities are distinguished below.
+
+| Configuration | Exact-build evidence | Missing coverage / limitation |
+| --- | --- | --- |
+| Huawei P9 Lite VNS-L21, LineageOS Android 10, nominal 2 GB RAM, ARM64 debug41 | In-place update preserved seven external files; menu, jump, Game Over, save-error and ambient regressions; true Game Over corners and bounded active Soldier reactions | Natural campaign and reported natural stair/platform geometry remain open. No private preference XML was present in the upgrade snapshot. |
+| Signed releasecheck41, ARM64 and ARMv7 selected on Huawei | Menu, levels 1/14, music PCM, short jump, staged exit/progress write; signed update fixture preserved six seeded external files | Separate disposable package. ARMv7 selection on a 64-bit phone is not a 32-bit-only phone test. |
+| Signed production41 | Both ABIs, known-pattern privacy, signature, ELF and ZIP alignment passed; six native libraries identical to releasecheck | Exact production package identity not runtime-installed. Source/build hash and publication digest are recorded separately. |
+| API 21 x86_64 emulator, archived-source debug41 | Menu, jump, save-error and lifecycle cases passed | Not ARM hardware or a clean-machine bootstrap. Different exact APK from ARM debug. |
+| API 35 x86_64 emulator, 16 KB pages, archived-source debug41 | Later PL/EN menu repeats, jump, save-error and lifecycle cases passed | Two earlier menu failures remain unexplained. No physical newer-Android/ARM 16 KB certification. |
+| Other vendors / Redmi / physical controllers | Historical evidence only | Redmi is not allocated; broad controller tests deferred. |
+
+No universal Android or all-level FPS guarantee is made. The 20-minute heavy-scene performance evidence is for debug40, not these APKs.
+
+## Historical debug40 matrix
+
+Prepared by OpenAI Codex (LLM). Historical exact debug40 APK SHA-256: `2383a7d6d789a77c9504b9f459e575e394aca48817e4e704528c3f3b41134f9b`. Supplied Polish game data was used; it is not certified pristine original media. These rows retain their original scope and do not describe the newer public signed artifact.
+
+| Configuration | Evidence for this exact candidate | Missing coverage / limitation |
+| --- | --- | --- |
+| Huawei P9 Lite VNS-L21, LineageOS Android 10, nominal 2 GB RAM, ARM64 | In-place debug update; Tiger continuation/contacts, both Siren variants/directions with real projectile interruption/death, four PL/EN save-error dialogs, touch-layout/difficulty fixture | Not natural campaign completion, every lifecycle/provider path or a proved 55 FPS minimum. GPU model was not separately captured in this batch. |
+| ARMv7 | Native build and packaged ELF32 libraries passed | No physical debug40 ARMv7 runtime yet; older ABI results below are historical. |
+| Minimum Android / API 21 | Separate debug40 x86_64 APK starts the engine; English menu navigation/audio-control fixture passed | The subsequent Polish menu trial failed focus/input after returning from native settings; no target crash was recorded and data restoration passed. Investigation remains open. This emulator artifact does not certify ARM hardware. See the exact report for its different SHA-256. |
+| Newer Android / other vendors | Separate debug40 x86_64 Android 15/API35 emulator passed PL/EN menus, six jump cases and four save-error dialogs after fixture lifecycle correction | Physical newer-Android ARM candidate remains untested. Redmi requires allocation. [Exact emulator evidence](MENU-INSTRUMENTATION-2026-11-08.md). |
+| 16 KB pages | Static ARM64 checks; separate x86_64 APK ran the above fixtures on API35 with measured page size 16384 | Emulator results do not certify physical ARM 16 KB-page hardware. |
+| Signed production variant | Not the debug artifact above | A separate signed candidate needs its own installation/runtime evidence. A releasecheck identity also does not certify an untouched production package. |
+| Controllers | No broad physical test in this batch | Deferred. Specific prior pause regressions and virtual input are separate from Bluetooth/USB transport coverage. |
+
+See the [exact candidate report](UPDATE-0.4.40.md) and [TODO](../../TODO.md). The prior debug39 sustained result was invalidated after foreground loss/missing coverage; it is not a current performance pass. This matrix publishes evidence and gaps, not universal Android compatibility.
+
+## Historical records
+
 > Historical validation record. Results apply to the builds and scenarios named here, not automatically to the latest APK. See the [README](../../README.md) for current project status.
 
 **2026-10-24 follow-up:** [Redmi / Android 16, exact debug 0.4.29 regression checks](REDMI-0.4.29.md) also passed after the human reallocated the phone. Huawei-only statements below describe the previous batch. No new ARMv7, signed-release, emulator or physical-controller claim is added.
 
-**Latest code 0.4.29:** [Huawei-only regression evidence](USER-REGRESSIONS-0.4.29.md). Native code changed; the 0.4.27 matrix below is historical evidence for its own artifacts. Redmi was not queried or updated.
+**Historical code 0.4.29:** [Huawei-only regression evidence](USER-REGRESSIONS-0.4.29.md). Native code changed; the 0.4.27 matrix below is historical evidence for its own artifacts. Redmi was not queried or updated.
 
 ## Recorded matrix — 0.4.27, 2026-10-23
 

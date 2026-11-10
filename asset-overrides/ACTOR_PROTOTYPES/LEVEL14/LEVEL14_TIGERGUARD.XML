@@ -40,17 +40,20 @@
     </IdleAction>
   </PatrolEnemyAIStateComponent>
   <MeleeAttackAIStateComponent>
+    <!-- Original chooses moves independently of whether Claw is crouching. -->
+    <OriginalAttackPolicy>TigerMoves</OriginalAttackPolicy>
     <StatePriority>20</StatePriority>
-    <AttackDelay>150</AttackDelay>
+    <!-- Timing is governed by the custom 1250-2000 ms decision gate. -->
+    <AttackDelay>0</AttackDelay>
     <Attacks>
       <AttackAction>
-        <Animation>strike2</Animation>
-        <AttackAnimFrameIdx>2</AttackAnimFrameIdx>
+        <Animation>strike1</Animation>
+        <AttackAnimFrameIdx>1</AttackAnimFrameIdx>
         <AttackType>0</AttackType>
         <AttackFxImageSet>NONE</AttackFxImageSet>
-        <AttackSpawnPositionOffset x="-30" y="0" />
-        <AttackAreaSize width="130" height="50" />
-        <Damage>10</Damage>
+        <AttackSpawnPositionOffset x="-31.5" y="-29.5" />
+        <AttackAreaSize width="63" height="57" />
+        <Damage>15</Damage>
         <AgroSensorFixture>
           <FixtureType>EnemyAIMeleeSensor</FixtureType>
           <CollisionShape>Rectangle</CollisionShape>
@@ -66,33 +69,6 @@
       </AttackAction>
     </Attacks>
   </MeleeAttackAIStateComponent>
-  <DuckMeleeAttackAIStateComponent>
-    <StatePriority>15</StatePriority>
-    <AttackDelay>250</AttackDelay>
-    <Attacks>
-      <AttackAction>
-        <Animation>strike1</Animation>
-        <AttackAnimFrameIdx>1</AttackAnimFrameIdx>
-        <AttackType>0</AttackType>
-        <AttackFxImageSet>NONE</AttackFxImageSet>
-        <AttackSpawnPositionOffset x="-30" y="25" />
-        <AttackAreaSize width="130" height="50" />
-        <Damage>10</Damage>
-        <AgroSensorFixture>
-          <FixtureType>EnemyAIDuckMeleeSensor</FixtureType>
-          <CollisionShape>Rectangle</CollisionShape>
-          <IsSensor>true</IsSensor>
-          <Size width="165" height="25" />
-          <Offset x="0" y="20" />
-          <CollisionFlag>4</CollisionFlag>
-          <CollisionMask>2</CollisionMask>
-          <Friction>0.000000</Friction>
-          <Density>0.000000</Density>
-          <Restitution>0</Restitution>
-        </AgroSensorFixture>
-      </AttackAction>
-    </Attacks>
-  </DuckMeleeAttackAIStateComponent>
   <ParryEnemyAIStateComponent>
     <StatePriority>0</StatePriority>
     <ParryChances>
@@ -105,24 +81,4 @@
     <ParryAnimFrameIdx>0</ParryAnimFrameIdx>
     <ParryAnimation>block</ParryAnimation>
   </ParryEnemyAIStateComponent>
-  <RollEnemyAIStateComponent>
-    <StatePriority>100</StatePriority>
-    <RollSpeed>2.6</RollSpeed>
-    <ForwardRollAnimation>frontflip</ForwardRollAnimation>
-    <BackwardRollAnimation>backflip</BackwardRollAnimation>
-    <RollSensorFixtureDef>
-      <FixtureType>Trigger_RollAreaSensor</FixtureType>
-      <CollisionShape>Rectangle</CollisionShape>
-      <IsSensor>true</IsSensor>
-      <Size width="230" height="60" />
-      <Offset x="0" y="0" />
-      <CollisionFlag>4</CollisionFlag>
-      <CollisionMask>2</CollisionMask>
-      <Friction>0.000000</Friction>
-      <Density>0.000000</Density>
-      <Restitution>0.000000</Restitution>
-    </RollSensorFixtureDef>
-    <JumpSpeed>5</JumpSpeed>
-    <ReuseTime>2400</ReuseTime>
-  </RollEnemyAIStateComponent>
 </Actor>

@@ -6,9 +6,11 @@ An Android adaptation of [OpenClaw](https://github.com/pjasicek/OpenClaw), using
 
 ## Install and play
 
+**Current test download:** [0.4.41 APK and checksum](https://github.com/SlopPort/captain-claw-android/releases/tag/v0.4.41-test). This replaces withdrawn 0.4.31/0.4.32 APKs that contained a build-account directory path in SDL diagnostics. The new artifact passed known-pattern privacy checks; [test scope and remaining limitations](docs/validation/RELEASE-0.4.41.md) are explicit. Back up saves before updating; do not uninstall blindly to bypass a signature mismatch.
+
 You need this port's **APK** (the Android installer) and your own complete **`CLAW.REZ`** (the PC game's data file). A prepared `game-data.zip` also works.
 
-1. Download **`captain-claw-android-0.4.32-test.apk`** from [the test release](https://github.com/SlopPort/captain-claw-android/releases/tag/v0.4.32-test), under **Assets**, or [build one](docs/BUILDING.en.md). GitHub's **Source code (zip)** is source code, not an Android installer or game data. A finished 1.0 APK is not announced here.
+1. Open the [test release](https://github.com/SlopPort/captain-claw-android/releases/tag/v0.4.41-test), expand **Assets**, and download **captain-claw-android-0.4.41-test.apk**. GitHub's **Source code (zip)** is source code, not an Android installer or game data. This is a development test, not a finished 1.0 release. Developers can also [build from source](docs/BUILDING.en.md).
 2. Copy the APK and `CLAW.REZ` to **Downloads** on your phone.
 3. Open the APK in the phone's **Files** app and install it.
 4. Open **Kapitan Pazur**, tap **Choose game data**, and select `CLAW.REZ`. Wait for the import; the game starts automatically.
@@ -33,8 +35,9 @@ OpenClaw supplies the existing engine and much of the gameplay. See the [upstrea
 
 ## Test status and limitations
 
-Reports identify the exact APK and setup. Results for older builds are not automatic proof for the current source.
+Reports identify the exact APK and setup. Results for older builds are not automatic proof for the current source. Start with [known limitations](docs/KNOWN-LIMITATIONS.md) and the [original-behavior ledger](docs/ORIGINAL-BEHAVIOR-LEDGER.md).
 
+- [0.4.41 test release evidence](docs/validation/RELEASE-0.4.41.md): exact artifact/source identity, privacy fix, signing, runtime coverage and missing checks. [Debug40 follow-up](docs/validation/UPDATE-0.4.40.md) retains the earlier Tiger, Siren, audio and save-error evidence for its own build.
 - [0.4.32 floor/wall/Catnip checks](docs/validation/EDGE-SUPPORT-0.4.32.md) and [REA comparison](docs/ORIGINAL-BEHAVIOR-REA-2.md): reproduced tiny-floor-join snag, support classification and bonus damage.
 - [0.4.29 regressions](docs/validation/USER-REGRESSIONS-0.4.29.md): pause, Catnip pickup audio, Game Over input and a short melee tap during hurt; [Redmi follow-up](docs/validation/REDMI-0.4.29.md).
 - [Current Game Over screen](docs/GAME-OVER-UI.md) and [original-executable behavior investigation](docs/ORIGINAL-BEHAVIOR-REA.md): what was observed, changed and still remains uncertain.
@@ -46,6 +49,8 @@ The low-end target is Huawei P9 Lite, Android 10, 2 GB RAM. Many measured scenes
 To report a problem, give the APK version, phone model, Android version, level, your action and the result. Do not attach game archives, signing keys or personal information. See [testing](docs/TESTING.md) for technical checks.
 
 ## Build or contribute
+
+See the [detailed TODO and release backlog](TODO.md) for remaining work, priorities and completion criteria.
 
 Read the [build guide](docs/BUILDING.en.md), [contribution guide](CONTRIBUTING.en.md) and [current handoff](docs/HANDOFF.md). Dependencies are pinned in `sources.lock.json`. Bootstrap downloads open-source dependencies and applies patches, not the commercial game.
 

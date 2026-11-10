@@ -1,10 +1,14 @@
 # Project handoff
 
-Current state: **2026-10-25**. Adaptation code, documentation, investigation and automated tests were performed by OpenAI Codex (LLM), guided by anonymous human requirements and feedback. OpenClaw and dependency authorship remain separate.
+Current state: **2026-11-10**. Adaptation code, documentation, investigation and automated tests were performed by OpenAI Codex (LLM), guided by anonymous human requirements and feedback. OpenClaw and dependency authorship remain separate.
+
+The [detailed TODO](../TODO.md) tracks remaining work with stable task IDs and completion criteria. Read the [known limitations](KNOWN-LIMITATIONS.md) and [original-behavior ledger](ORIGINAL-BEHAVIOR-LEDGER.md) before changing balance or claiming parity.
+
+Read the [shared-backlog reconciliation](validation/BACKLOG-RECONCILIATION-2026-11-10.md) before selecting work. It separates completed implementations, genuinely missing scenarios, external dependencies and one final release gate. Do not restart old fixtures merely because a version/documentation/diagnostic label changed. MOVE-05, UI-03 and COMBAT-09 now have completed bounded scope with evidence.
 
 ## Current state and boundaries
 
-- Main Huawei installation: **ARM64 debug 0.4.35-dev**. Only Huawei is allocated to this task now. **Do not query, install on or otherwise operate Redmi without a new allocation.** Earlier Redmi results below are historical, not permission to use it now.
+- Main Huawei installation: **ARM64 debug 0.4.43-dev**. [Current diagnostic evidence and unresolved checks](validation/UPDATE-0.4.43.md). Public signed downloads remain 0.4.41-test; earlier results retain their exact version. Only Huawei is allocated to this task now. **Do not query, install on or otherwise operate Redmi without a new allocation.** Earlier Redmi results below are historical, not permission to use it now.
 - Huawei supplies internet over USB. Do not reboot it, change USB/tethering/network settings, disconnect it or restart the shared ADB server to repair a test. Select the authorized device with a process-local `ANDROID_SERIAL`; never publish device serials.
 - The human owns natural campaign playtesting. Do not resume autonomous traversal. Technical reproductions of reported bugs are allowed, but teleports, invulnerability and resource edits must be labelled as fixtures, never natural campaign evidence.
 - This is not release 1.0. Full campaign completion, original-game parity and a universal FPS minimum are not established. Broad physical controller testing was deferred; later specific pause/input bug reports remain in scope.
@@ -12,11 +16,38 @@ Current state: **2026-10-25**. Adaptation code, documentation, investigation and
 
 Start with [contributing](../CONTRIBUTING.en.md), [building](BUILDING.en.md), [installation](INSTALL-EN.md), [release gates](ROADMAP-1.0.md) and [upstream differences](UPSTREAM-DIFF.en.md).
 
-Public test distribution: [v0.4.32-test](https://github.com/SlopPort/captain-claw-android/releases/tag/v0.4.32-test),
-with [exact artifact/signing/runtime limits](validation/RELEASE-0.4.32.md).
+Public development APK distribution resumed with [v0.4.41-test](https://github.com/SlopPort/captain-claw-android/releases/tag/v0.4.41-test). [Exact artifact, source, signer and limitations](validation/RELEASE-0.4.41.md). Older 0.4.31/0.4.32 releases remain private drafts after diagnostic filename disclosure; do not republish those binaries. Their files/metadata are retained privately and source/tags remain public. The [0.4.32 record](validation/RELEASE-0.4.32.md) is historical.
 The phone's existing debug installation was not migrated or uninstalled.
 
 ## Latest verified behavior
+
+Debug43 [audio correction and actual fatal/boss paths](validation/UPDATE-0.4.43.md), [PL/EN menus/settings and Game Over/score](validation/MENU-SETTINGS-0.4.43.md), and [previously missing mid-ladder hurt/death cases](validation/LADDER-DAMAGE-0.4.43.md) passed their stated scopes on Huawei. The saved debug42 protected 20-minute scene also completed successfully; it is not a debug43 or full combat/memory pass. Current exact identities and remaining acceptance are in the [1.0 checklist](RELEASE-1.0-CHECKLIST.md).
+
+## Historical implementation and validation snapshots
+
+The records below retain the versions, download state and test limits from their dates. Phrases about an older public release do not override the current signed41 distribution above. Historical untested scenarios are not automatically still missing: consult the reconciliation and current TODO first.
+
+The debug40 follow-up also passed clean-source ARM64/ARMv7 building from `f11b80f`, PL/EN menu/shared-sound regressions, short touch jumps, ambient mixing, focused Game Over/score paths, 10%/100% selected attack audio and virtual Start/Catnip-music transitions. Exact scope is in the report below. Its valid 120-second heavy level-9 observation ranged from **48.0 to 59.6 FPS** across 300-loop batches and **failed the 55 FPS floor**. Do not describe the performance target as achieved. Broader TODO items remain open where these fixtures cover only part of acceptance.
+
+[Debug 0.4.40](validation/UPDATE-0.4.40.md) verifies Tiger front-flip continuation, actual Siren interruption/death, localized save-failure messages and working gameplay options. Recorder identity follows the APK version. The debug39 sustained result was invalidated after backgrounding/missing coverage; do not quote it as a performance pass. Remaining original-policy details are in the [follow-up](validation/ORIGINAL-FOLLOWUP-2026-11-08.md).
+
+
+[Debug 0.4.39](validation/UPDATE-0.4.39.md) fixes local ambient double attenuation and muted entry, adds p99/skipped-gap evidence and a sequential restoration-verifying regression runner. Exact candidate checks are versioned; do not treat an in-progress batch as complete. Public signed distribution remains 0.4.32-test.
+
+
+[Debug 0.4.38](validation/UPDATE-0.4.38.md) reconstructs Siren bursts, Crab active windows, Fish target-crossing lunges, Tiger Guard moves, Gabriel command phases and Red Tail shared timing. Le Rauxe now uses the recovered cached 100/1001 ordinary melee block predicate. The exact installed r9 APK passed the six main Huawei fixture groups. The report records intermediate failures, source-only newline cleanup and remaining original-AI/collision boundaries. Public signed distribution remains 0.4.32-test; this is not 1.0 or a natural campaign clear.
+
+[Debug 0.4.37](validation/UPDATE-0.4.37.md) corrects 28 effective emission-frame configurations, makes Red Tail's configured delay effective, and fixes deferred first-frame attacks. Final Huawei tests passed ten ordinary cases, three synthetic first-frame delays and two real boss arenas. [Original custom-handler findings](validation/ORIGINAL-CUSTOM-EVENTS-0.4.37.md) identify the remaining full-AI/window work. Public signed distribution remains 0.4.32-test.
+
+[Enemy attack-speed audit](validation/ENEMY-ATTACK-AUDIT-2026-10-30.md): 55 packaged enemy/encounter prototypes and 76 attacks inventoried, 15 ordinary Huawei cadence cases plus one ranged case measured. Original ANI event mapping is traced: 26 configured actions differ from event-1 markers, 40 match and ten need custom handlers. Red Tail has an ignored nested delay; frame-zero first-hit behavior and unused Gabriel action metadata need follow-up. Exact original timing for every family remains unresolved. This source/documentation batch changes no APK or balance.
+
+Historical debug41 build/test summary: [debug and signed isolated 0.4.41 checks](validation/UPDATE-0.4.41.md). The signed production APK is a public development prerelease, with its exact identity runtime limitation disclosed. API 35 menu instrumentation passed English and Polish repeats after two failures; its intermittent failure remains unexplained. [Debug40](validation/UPDATE-0.4.40.md) and [debug36](validation/UPDATE-0.4.36.md) remain historical evidence.
+
+
+After reviewing commit 425cdb1 (touch customization and working three-preset difficulty), debug36 removes six unsupported menu actions and compacts the main/single-player/options lists. Controls and Difficulty remain functional port features. [Menu audit](validation/MENU-AUDIT-2026-10-30.md) records physical PL/EN navigation and translation coverage.
+
+The forest update addresses leafy-ladder cap geometry and interpolates rope carrying with a rope-specific clock; [forest evidence](validation/FOREST-MOTION-2026-10-30.md) preserves caught intermediate failures and validation scope. [Le Rauxe investigation](validation/LERAUX-ORIGINAL-2026-10-30.md) distinguishes original pause-branch evidence from debug36's boss-only 300–600 ms cadence approximation. The ordinary melee block predicate was subsequently recovered in debug38; full encounter parity remains unresolved. Public signed distribution remains 0.4.32-test; debug36 is not a public signed release.
+
 
 Debug35 adds an automatic, bounded local [background gameplay recorder](BACKGROUND-DEBUGGING.md). It retains movement/action/contact history and candidate wall-push reports without enabling combat fixtures. [Physical evidence and limits](validation/FLIGHT-RECORDER-0.4.35.md) distinguish candidate detection from a proved bug. The level 2 blockage remains open. Public signed distribution remains 0.4.32-test.
 
@@ -49,7 +80,7 @@ Versioned reports keep their exact-build scope. Prior compatibility results do n
 - **0.4.26:** [import/picker checks](validation/IMPORT-FLOW-0.4.26.md) and [signed candidate evidence](validation/RELEASE-0.4.26.md).
 - **0.4.25:** [readiness and retained failures](validation/READINESS-0.4.25.md), [Redmi Android 16 results](validation/REDMI-0.4.25.md), [twenty-minute Huawei observation](validation/SUSTAINED-HUAWEI-0.4.25.md) and [bounded full-disk tests](validation/IMPORT-FULL-DISK.md).
 
-The accepted performance target is at least 55 FPS in the measured heavy Huawei scene, with 60 FPS an optimization target. This is not a proved minimum for every frame or level. Preserve image quality and report stalls separately.
+The desired performance target is 55 FPS in the measured heavy Huawei scene, with 60 FPS desirable. On 2026-11-08 the human allowed accepting lower FPS if sensible measurement-led optimizations do not help; 55 FPS is no longer a mandatory release floor. Neither target is a proved minimum for every frame or level. Preserve image quality and report stalls separately.
 
 ## Historical natural route and test ownership
 

@@ -1,4 +1,4 @@
-# Level 2 platform blockage â€” open investigation
+# Level 2 platform blockage - open investigation
 
 OpenAI Codex (LLM), 2026-10-25, following an anonymous human report and private video. This report does not claim a collision fix.
 

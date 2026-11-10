@@ -1,5 +1,7 @@
 # Comment and performance audit — 0.4.7
 
+> Historical findings, not a current work queue. The later shared Voice/Ambient menu decision and other fixes supersede open wording below. Check the [current reconciliation](BACKLOG-RECONCILIATION-2026-11-10.md) and [TODO](../../TODO.md) before acting; do not recreate already completed fixes from this report.
+
 OpenAI Codex (LLM) reviewed selected engine paths on 2026-10-20. This is not evidence that the game is bug-free or that a full playthrough passed. Paths below are relative to `upstream/OpenClaw/OpenClaw/Engine/`. Findings describe this historical checkpoint; later changes are documented separately.
 
 | Finding | Assessment and action |

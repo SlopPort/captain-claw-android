@@ -27,6 +27,28 @@ public class GameActivity extends SDLActivity {
         super.attachBaseContext(AppLanguage.wrap(context));
     }
     public static native void nativePadButton(int device, int key, boolean down);
+    public int getTouchLayout() {
+        return getSharedPreferences("controls",MODE_PRIVATE).getInt("touch_layout",0);
+    }
+    public int[] getControlOptions() {
+        android.content.SharedPreferences prefs=getSharedPreferences("controls",MODE_PRIVATE);
+        int[] options=new int[18];
+        options[0]=prefs.getInt("movement",0);
+        options[1]=prefs.getInt("deadzone",14);
+        options[2]=prefs.getInt("difficulty",1);
+        for(int i=0;i<5;i++) {
+            options[3+i*3]=prefs.getInt("button_size_"+i,100);
+            options[4+i*3]=prefs.getInt("button_x_"+i,0);
+            options[5+i*3]=prefs.getInt("button_y_"+i,0);
+        }
+        return options;
+    }
+    public void openDifficultySettings() {
+        runOnUiThread(()->startActivity(new android.content.Intent(this,ControllerSettingsActivity.class).putExtra("difficulty_only",true)));
+    }
+    public void openControlSettings() {
+        runOnUiThread(()->startActivity(new android.content.Intent(this,ControllerSettingsActivity.class)));
+    }
     @Override public void onBackPressed() {
         // Let the game open its pause menu or return to the previous menu page.
         SDLActivity.onNativeKeyDown(KeyEvent.KEYCODE_ESCAPE);

@@ -1,3 +1,6 @@
+#include "Engine/Actor/Components/RopeComponent.h"
+#include "GameplayBalance.h"
+#include "TouchControls.h"
 #include "CombatProbe.h"
 #include "CombatPrototypes.h"
 #include "ComponentProfiler.h"
@@ -39,6 +42,14 @@ std::map<SDL_Keycode, Uint32> heldKeys;
 Uint32 scheduledSwordAt=0;
 Uint32 meleeAfterHitUntil=0;
 int meleeAfterHitHealth=0;
+// Opt-in, owner-scoped input experiment. Observe actual health loss before
+// starting the existing key scheduler; never manufacture damage or recovery.
+struct JumpAfterHit {
+    WeakActorPtr owner;
+    Uint32 until=0;
+    int health=0, holdMs=0, attackDelayMs=0;
+    std::string direction;
+} jumpAfterHit;
 struct JumpTrace {
     bool armed=false, airborne=false, received=false;
     std::string label;
@@ -105,6 +116,7 @@ void status() {
 }
 
 bool PazurCombatProbe::Handle(const std::vector<std::string>& args, const ActorMap& actors) {
+    if (args.empty()) return false;
     if(args[0]=="combatmeleeafterhit") {
         // One ordinary SDL tap after real enemy damage; no health editing or
         // direct attack invocation. Avoid USB latency during the hurt window.
@@ -113,7 +125,6 @@ bool PazurCombatProbe::Handle(const std::vector<std::string>& args, const ActorM
         meleeAfterHitHealth=hp->GetHealth();meleeAfterHitUntil=SDL_GetTicks()+3000;
         SDL_Log("Pazur melee after hit: armed hp=%d",meleeAfterHitHealth);return true;
     }
-    if (args.empty()) return false;
     auto logic = g_pApp->GetGameLogic();
     // Virtual input must remain releasable in menus where no hero exists.
     if (PazurGamepad::DebugCommand(args)) return true;
@@ -151,6 +162,36 @@ bool PazurCombatProbe::Handle(const std::vector<std::string>& args, const ActorM
     auto claw = logic->GetClawActor();
     if (!claw) return false;
     auto physics = logic->VGetGamePhysics();
+    if(args[0]=="combatjumpafterhit" && args.size()==4) {
+        int hold,delay;
+        try {
+            size_t end=0;
+            hold=std::stoi(args[1],&end);if(end!=args[1].size())return false;
+            delay=std::stoi(args[2],&end);if(end!=args[2].size())return false;
+        } catch(const std::exception&) {return false;}
+        if(hold<20 || hold>1000 || delay<0 || delay>1000 ||
+            (args[3]!="left" && args[3]!="right"))return false;
+        auto hp=claw->GetRawComponent<HealthComponent>(true);
+        if(hp->GetHealth()<=0)return false;
+        ResetKeys();
+        jumpAfterHit.owner=claw;jumpAfterHit.health=hp->GetHealth();
+        jumpAfterHit.holdMs=hold;jumpAfterHit.attackDelayMs=delay;jumpAfterHit.direction=args[3];
+        jumpAfterHit.until=SDL_GetTicks()+5000;
+        SDL_Log("Pazur jump after hit: armed hp=%d hold_ms=%d attack_delay_ms=%d",jumpAfterHit.health,hold,delay);
+        return true;
+    }
+    if(args[0]=="ambientfixture" && args.size()==1) {
+        // Opt-in technical fixture: a real sensor/production ambient component,
+        // with a user-supplied stock sound loop. Never write it to map/save data.
+        LocalAmbientSoundDef sound;
+        sound.sound="/CLAW/SOUNDS/SWORDSWISH.WAV";
+        sound.volume=100;sound.soundAreaSize=Point(600,600);
+        auto xml=ActorTemplates::CreateXmlData_LocalAmbientSound(
+            ActorPrototype_LocalAmbientSound,claw->GetPositionComponent()->GetPosition(),sound);
+        auto actor=logic->VCreateActor(xml,nullptr);delete xml;
+        SDL_Log("Pazur ambient fixture: actor=%u",actor?actor->GetGUID():0);
+        return true;
+    }
     if(args[0]=="campaignposition" && (args.size()==3 || args.size()==4)) {
         // Explicit setup fixture: ordinary console teleport retains terminal
         // fall velocity, making subsequent button-contact tests USB dependent.
@@ -252,6 +293,23 @@ bool PazurCombatProbe::Handle(const std::vector<std::string>& args, const ActorM
             claw->GetRawComponent<PowerupComponent>(true)->HasPowerup(PowerupType_Catnip));
         return true;
     }
+    if(args[0]=="gameplayoptionscheck") {
+        auto health=claw->GetRawComponent<HealthComponent>(true);
+        const int originalHealth=health->GetHealth(),originalDifficulty=PazurBalance::Difficulty();
+        bool passed=PazurTouch::CheckInputOptions();
+        const int damages[]={5,10,15},heals[]={15,10,5};
+        for(int difficulty=0;difficulty<3;difficulty++) {
+            PazurBalance::Difficulty()=difficulty;
+            health->SetCurrentHealth(50);health->SetInvulnerable(false);
+            health->AddHealth(-10,DamageType_Bullet,Point(0,0),INVALID_ACTOR_ID);
+            const int damaged=health->GetHealth();
+            health->AddHealth(PazurBalance::Healing(10,difficulty),DamageType_None,Point(0,0),INVALID_ACTOR_ID);
+            passed=passed&&damaged==50-damages[difficulty]&&health->GetHealth()==damaged+heals[difficulty];
+            SDL_Log("Pazur balance fixture: difficulty=%d damage=%d healing=%d",difficulty,50-damaged,health->GetHealth()-damaged);
+        }
+        health->SetCurrentHealth(originalHealth);PazurBalance::Difficulty()=originalDifficulty;
+        SDL_Log("Pazur gameplay options fixture: passed=%d",passed);return true;
+    }
     if(args[0]=="combatlastlife") {
         // Enter the normal last-life death/animation/menu path, not a fake UI.
         claw->GetRawComponent<LifeComponent>(true)->SetCurrentLives(0);
@@ -347,6 +405,19 @@ bool PazurCombatProbe::Handle(const std::vector<std::string>& args, const ActorM
         SDL_Log("Pazur edge fixture: left=205872 right=206128 top=768 catch=2368");
         return true;
     }
+    if (args[0]=="ropestatus") {
+        for (const auto& pair : actors) {
+            auto rope=pair.second;
+            if (!rope->GetRawComponent<RopeComponent>(false)) continue;
+            auto animation=rope->GetRawComponent<AnimationComponent>(true)->GetCurrentAnimation();
+            const auto p=rope->GetPositionComponent()->GetPosition();
+            const auto c=claw->GetPositionComponent()->GetPosition();
+            SDL_Log("Pazur rope status: id=%u x=%.1f y=%.1f frame=%u phase=%.4f attached=%d hero=%.2f,%.2f",
+                rope->GetGUID(),p.x,p.y,animation->GetCurrentAnimationFrame()->idx,
+                animation->GetFrameProgress(),claw->GetRawComponent<ClawControllableComponent>(true)->VIsAttachedToRope(),c.x,c.y);
+        }
+        return true;
+    }
     if (args[0]=="ladderstatus") {
         auto pc=claw->GetPhysicsComponent();
         auto anim=claw->GetRawComponent<AnimationComponent>(true);
@@ -405,6 +476,15 @@ bool PazurCombatProbe::Handle(const std::vector<std::string>& args, const ActorM
         heldKeys[found->second]=SDL_GetTicks()+(std::max)(20,(std::min)(6000,std::stoi(args[2])));
         return true;
     }
+    if (args[0] == "combatrayzero" && args.size() == 1) {
+        const auto position = claw->GetPositionComponent()->GetPosition();
+        for (const auto& end : {position, position + Point(0.000001, 0)}) {
+            const auto result = physics->VRayCast(position, end, CollisionFlag_Solid);
+            assert(!result.foundIntersection);
+        }
+        SDL_Log("Pazur zero ray regression: exact and float-collapsed rays passed");
+        return true;
+    }
     if (args[0] == "combatstatus") { status(); return true; }
     if (args[0] == "combatjumpmeasure" && args.size()==2) {
         jumpTrace=JumpTrace{};
@@ -413,11 +493,14 @@ bool PazurCombatProbe::Handle(const std::vector<std::string>& args, const ActorM
         jumpTrace.baseY=claw->GetPositionComponent()->GetY();
         return true;
     }
-    if ((args[0] == "combatstage" || args[0] == "combatdummy") && args.size() == 4) {
+    if (((args[0] == "combatstage" || args[0] == "combatstagefixed" || args[0] == "combatdummy") && args.size() == 4) ||
+        (args[0] == "combatstagezero" && args.size() == 5)) {
         if (claw->GetRawComponent<ClawControllableComponent>(true)->IsDying()) {
             SDL_Log("Pazur probe rejected: player is dying; start a fresh process");
             return true;
         }
+        const int zeroDelay = args[0] == "combatstagezero" ? std::stoi(args[4]) : -1;
+        if (zeroDelay < -1 || zeroDelay > 2000) return true;
         ResetKeys();
         const int index = std::stoi(args[1]);
         if (index < -1 || index >= int(sizeof(combatPrototypes)/sizeof(combatPrototypes[0]))) return true;
@@ -471,6 +554,11 @@ bool PazurCombatProbe::Handle(const std::vector<std::string>& args, const ActorM
             if (auto patrol = xml->FirstChildElement("PatrolEnemyAIStateComponent")) {
                 for (const auto& value : {std::make_pair("LeftPatrolBorder",199200), std::make_pair("RightPatrolBorder",200800)})
                     if (auto e=patrol->FirstChildElement(value.first)) e->FirstChild()->SetValue(std::to_string(value.second));
+                // Fixed-position technical timing fixture; never changes saved XML.
+                if (args[0]=="combatstagefixed") {
+                    if (auto e=patrol->FirstChildElement("IsAlwaysIdle")) e->FirstChild()->SetValue("true");
+                    if (auto e=patrol->FirstChildElement("PatrolSpeed")) e->FirstChild()->SetValue("0");
+                }
                 if (args[0]=="combatdummy") {
                     if (auto e=patrol->FirstChildElement("IsAlwaysIdle")) e->FirstChild()->SetValue("true");
                     if (auto e=patrol->FirstChildElement("PatrolSpeed")) e->FirstChild()->SetValue("0");
@@ -484,6 +572,20 @@ bool PazurCombatProbe::Handle(const std::vector<std::string>& args, const ActorM
                         name=="PunkRatAIStateComponent" || name=="RollEnemyAIStateComponent") xml->RemoveChild(e);
                     e=next;
                 }
+            }
+            if (zeroDelay >= 0) {
+                // Synthetic frame-zero regression fixture, never persisted to game data.
+                auto melee = xml->FirstChildElement("MeleeAttackAIStateComponent");
+                assert(melee);
+                melee->FirstChildElement("Attacks")->FirstChildElement("AttackAction")
+                    ->FirstChildElement("AttackAnimFrameIdx")->FirstChild()->SetValue("0");
+                auto delay = melee->FirstChildElement("AttackDelay");
+                if (!delay) {
+                    delay = new TiXmlElement("AttackDelay");
+                    delay->LinkEndChild(new TiXmlText("0"));
+                    melee->LinkEndChild(delay);
+                }
+                delay->FirstChild()->SetValue(std::to_string(zeroDelay));
             }
             target = logic->VCreateActor(xml,nullptr);
             delete xml;
@@ -522,6 +624,7 @@ bool PazurCombatProbe::Handle(const std::vector<std::string>& args, const ActorM
 }
 
 void PazurCombatProbe::ResetKeys() {
+    jumpAfterHit.until=0;
     scheduledSwordAt=0;
     for (const auto& key : heldKeys) keyEvent(key.first,false);
     heldKeys.clear();
@@ -549,6 +652,24 @@ void PazurCombatProbe::Poll() {
         !g_pApp->GetGameLogic()) return;
     const bool playing=g_pApp->GetGameLogic()->IsRunning() &&
         g_pApp->GetGameLogic()->GetGameState()==GameState_IngameRunning;
+    if(jumpAfterHit.until) {
+        auto claw=g_pApp->GetGameLogic()->GetClawActor();
+        if(!playing || !claw || jumpAfterHit.owner.lock()!=claw ||
+            (Sint32)(now-jumpAfterHit.until)>=0)jumpAfterHit.until=0;
+        else {
+            auto hp=claw->GetRawComponent<HealthComponent>(true);
+            if(hp->GetHealth()<=0)jumpAfterHit.until=0;
+            else if(hp->GetHealth()<jumpAfterHit.health) {
+                const auto command="combatjumpattack "+std::to_string(jumpAfterHit.holdMs)+" "+
+                    std::to_string(jumpAfterHit.attackDelayMs)+" "+jumpAfterHit.direction+" "+std::to_string(jumpAfterHit.holdMs);
+                jumpAfterHit.until=0;
+                jumpTrace=JumpTrace{};jumpTrace.armed=true;jumpTrace.label="afterhit";
+                jumpTrace.baseY=claw->GetPositionComponent()->GetY();
+                CommandHandler::HandleCommand(command.c_str(),g_pApp->GetHumanView()->GetConsole().get());
+                SDL_Log("Pazur jump after hit: sent hp=%d tick=%u",hp->GetHealth(),jumpTrace.inputTime);
+            }
+        }
+    }
     if(meleeAfterHitUntil) {
         if(!playing || (Sint32)(now-meleeAfterHitUntil)>=0)meleeAfterHitUntil=0;
         else {
@@ -663,15 +784,18 @@ void PazurCombatProbe::Poll() {
         }
     }
     if (playing && jumpTrace.armed && jumpTrace.received) {
+        // Inputs may have been emitted earlier in this Poll. A timestamp
+        // captured before emission can underflow unsigned elapsed time.
+        const auto sampleNow=SDL_GetTicks();
         auto claw=g_pApp->GetGameLogic()->GetClawActor();
         const double rise=jumpTrace.baseY-claw->GetPositionComponent()->GetY();
         jumpTrace.rise=(std::max)(jumpTrace.rise,rise);
         if (rise>2 && !jumpTrace.airborne) {
             jumpTrace.airborne=true;
             ++jumpTrace.jumps;
-            if (jumpTrace.takeoffMs<0) jumpTrace.takeoffMs=now-jumpTrace.inputTime;
+            if (jumpTrace.takeoffMs<0) jumpTrace.takeoffMs=sampleNow-jumpTrace.inputTime;
         } else if (rise<1) jumpTrace.airborne=false;
-        if (now-jumpTrace.inputTime>=2200) {
+        if (sampleNow-jumpTrace.inputTime>=2200) {
             SDL_Log("Pazur jump trace: label=%s queue_ms=%u takeoff_ms=%d rise=%.1f hold_ms=%u jumps=%d",
                 jumpTrace.label.c_str(),jumpTrace.queueMs,jumpTrace.takeoffMs,jumpTrace.rise,
                 jumpTrace.releaseMs,jumpTrace.jumps);

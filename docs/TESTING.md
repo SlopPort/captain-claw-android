@@ -56,3 +56,13 @@ Raw results go to ignored `reports/`, not public source commits. They may contai
 ## Preserve the current human save
 
 Use the backup captured immediately before an owned test, not an old report archive. The human may progress between test batches. A mismatch against a historical save is not permission to overwrite newer progress. Verify restoration against the current fixture backup and retain all evidence when a comparison fails.
+
+## Repeat a bounded regression batch
+
+`tools/run_regression_batch.py --report UNIQUE --cases floor-seams wall-jump forest rope melee-recovery` runs only the named existing fixtures, sequentially. Set process-local `ANDROID_SERIAL` to an allocated device first. Do not play manually while it runs. The runner refuses an existing diagnostic mailbox, records the installed APK hash, keeps private emergency copies of config/progress and verifies byte-identical restoration and unchanged APK after each child. It stops on failure instead of repairing saves or counting later checks as passes.
+
+Available cases also include `audio-low`, `audio-high`, `ambient`, `touch-jump`, `game-over`, `score`, `menus`, `pause-bonus` and `lifecycle`. Touch/menu/lifecycle cases need the rebuilt default test APK installed first; `ambient` needs 0.4.39's opt-in fixture. Each child report states its setup. Virtual input is not physical controller transport coverage. No case counts as campaign completion.
+
+A failed driver can reflect test setup or evidence collection rather than a game defect. Preserve its log, diagnose it, and use a new report name for a corrected run. The rope test observes game-thread takeoff because a delayed ADB status can arrive after a complete short jump and legitimate reattachment.
+
+For sustained acceptance, pass `--minimum-batch-fps 55` explicitly when that is the agreed floor. The performance runner verifies active foreground continuity and checks whether rounded 300-loop batch durations cover the observation, allowing only partial boundary batches. An alive background process is a failed sustained test. Skipped long loops remain separate evidence; a passing batch floor is not a minimum for every frame. `python tools/test_performance_evidence.py` covers the previously observed false positive.

@@ -12,6 +12,7 @@ import subprocess
 import time
 import xml.etree.ElementTree as ET
 from gamepad_quit_smoke import adb, REMOTE, PORT
+from performance_evidence import assess_observation
 
 
 def main():
@@ -26,9 +27,15 @@ def main():
     parser.add_argument('--cyclic-pegs',action='store_true',help='Controlled ordinary-jump trials on actual level-one cyclic platforms')
     parser.add_argument('--pair-filter',choices=('on','off'),help='Compare early Box2D pair rejection in the same APK; restores fallback marker')
     parser.add_argument('--expect-logical-size',type=int,nargs=2,metavar=('W','H'),help='Reject comparisons made with another settled viewport')
+    parser.add_argument('--minimum-batch-fps',type=float,help='Explicit acceptance floor for every recorded 300-loop batch')
     args=parser.parse_args()
+    if args.minimum_batch_fps is not None and not 0 < args.minimum_batch_fps < 1000:parser.error('Invalid minimum batch FPS')
     if args.quiet_diagnostics and (not args.observe or args.cyclic_pegs):parser.error('Quiet diagnostics requires observation only')
-    report=PORT/'reports'/args.report;report.mkdir(parents=True,exist_ok=True)
+    report=(PORT/'reports'/args.report).resolve()
+    if not report.is_relative_to((PORT/'reports').resolve()):
+        parser.error('Report must stay under reports')
+    # Never overwrite a failed or previously successful observation's evidence.
+    report.mkdir(parents=True,exist_ok=False)
     pair_marker='physics-pairs-unfiltered'
     if args.pair_filter and subprocess.run(['adb','shell','test','-e',REMOTE+pair_marker],capture_output=True).returncode==0:
         raise RuntimeError('Existing pair-filter fallback marker; leave it untouched')
@@ -98,7 +105,6 @@ def main():
             command('benchmarkquiet')
             assert 'Pazur benchmark quiet:' in logs(),'Quiet mode not entered'
             time.sleep(10) # Let mixed initial batches and pending diagnostic events settle.
-        start=len(logs())
         if args.cyclic_pegs:
             assert args.level==1 and not args.protect_player and not args.scene
             for source,target in [((4651,4034),(4545,3971)),((4545,3971),(4453,3902))]:
@@ -112,6 +118,9 @@ def main():
                 adb('pull',REMOTE+'level-test.png',str(report/('peg-'+str(source[0])+'.png')))
         battery_before=adb('shell','dumpsys','battery')
         (report/'battery-before.txt').write_text(battery_before,encoding='utf-8')
+        # Platform setup/trials have their own evidence; their earlier batches
+        # must not count toward the timed observation below.
+        start=len(logs())
         measurement_started=time.monotonic()
         deadline=measurement_started+args.seconds
         # Short back-and-forth keeps the player near the spawn platform while
@@ -140,9 +149,12 @@ def main():
             r'Pazur probe status: claw=(\d+) duck=\d x=([\d.-]+) y=([\d.-]+)',log)]
         moved=bool(snapshots) and any(abs(v['x']-snapshots[0]['x'])>10 or abs(v['y']-snapshots[0]['y'])>10 for v in snapshots)
         alive=pid in adb('shell','pidof','pl.pazur.port',check=False).split()
-        passed=alive and (moved or args.observe) and len(rows)>=3 and 'Fatal signal' not in log and 'FATAL EXCEPTION' not in log
+        measured_seconds=time.monotonic()-measurement_started
+        continuity=assess_observation(rows,args.seconds,measured_seconds,log[start:],args.minimum_batch_fps)
+        passed=alive and (moved or args.observe) and len(rows)>=3 and 'Fatal signal' not in log and 'FATAL EXCEPTION' not in log and continuity['passed']
         result={'level':args.level,'actions':actions,'frame_samples':rows,'passed':passed,
-            'requested_observation_seconds':args.seconds,'measured_observation_seconds':time.monotonic()-measurement_started,
+            'continuity_verdict':continuity,
+            'requested_observation_seconds':args.seconds,'measured_observation_seconds':measured_seconds,
             'observed_positions':snapshots,'movement_observed':moved,
             'fixture':'controlled real-map scene' if args.scene else 'real map start',
             'observation_only':args.observe,'scene':args.scene,
@@ -151,6 +163,10 @@ def main():
             'early_pair_filtering':args.pair_filter,
             'player_invincible_fixture':args.protect_player,'teleported':bool(args.scene),'ammo_modified':False,
             'apk_sha256':None}
+        # Quantiles are per 300-interval batch, not pooled frame telemetry.
+        result['frame_sample_p99_ms']=[int(value) for value in re.findall(r'Pazur frame sample: fps=[\d.]+ p95=\d+ ms max=\d+ ms p99=(\d+) ms',log[start:])]
+        result['skipped_frame_gaps_ms']=[int(value) for value in re.findall(r'Pazur frame gap: interval=(\d+) ms simulation_skipped=1',log[start:])]
+        result['frame_quantile_scope']='300-loop batches; skipped >1000 ms intervals listed separately'
         # A concurrent emulator build can replace the local build output with
         # another ABI. Identify the installed binary, not a workstation path.
         installed=adb('shell','pm','path','pl.pazur.port').strip().splitlines()[0]
@@ -192,7 +208,8 @@ def main():
         adb('shell','screencap','-p',REMOTE+'level-test.png')
         adb('pull',REMOTE+'level-test.png',str(report/'after.png'))
         print(json.dumps(result),flush=True)
-        assert result['passed'],'Incomplete trial or crashed process; see report'
+        assert result['passed'],('Performance acceptance failed; see results.json for '
+                                 'continuity, FPS-floor and crash evidence')
     finally:
         if reader is not None:
             reader.terminate();reader.wait(timeout=5);log_output.close()

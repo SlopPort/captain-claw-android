@@ -12,6 +12,7 @@
     <instrumentation android:name="pl.pazur.port.LateSaveActivityTest" android:targetPackage="pl.pazur.port" />
     <instrumentation android:name="pl.pazur.port.SaveFramingTest" android:targetPackage="pl.pazur.port" />
     <instrumentation android:name="pl.pazur.port.InstallGuideTest" android:targetPackage="pl.pazur.port" />
+    <instrumentation android:name="pl.pazur.port.SaveErrorMessagesTest" android:targetPackage="pl.pazur.port" />
     <application>
         <provider android:name="pl.pazur.port.ImportStreamProvider" android:authorities="pl.pazur.port.test.importstream" android:exported="true" />
     </application>

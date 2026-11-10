@@ -33,11 +33,13 @@ def main():
     parser.add_argument('--height',type=int,choices=(16,32,48,64),default=48)
     parser.add_argument('--prototype',default='ActorPrototype_Level1_Officer',help='Exact prototype from native/CombatPrototypes.h; loads its own source level')
     parser.add_argument('--jump-direction-ms',type=int,choices=range(20,2001),metavar='20..2000',default=250)
-    parser.add_argument('--attack-delay-ms',type=int,choices=range(20,1001),metavar='20..1000',default=80)
+    parser.add_argument('--attack-delay-ms',type=int,choices=(0,*range(20,1001)),metavar='0|20..1000',default=80,
+                        help='For jump: 0 sends only jump/movement, without the scheduled sword input')
     parser.add_argument('--jump-hold-ms',type=int,choices=range(20,1001),metavar='20..1000',default=250)
     parser.add_argument('--actions',nargs='+',choices=('standing','jump','duck','escape'),default=['standing','jump'])
     parser.add_argument('--passive',action='store_true',help='Disable enemy offensive AI to separate geometric misses from interrupted hero input; parry remains')
     parser.add_argument('--react-after-hit',action='store_true',help='Wait for an actual enemy hit before sending the requested reaction; never restores health')
+    parser.add_argument('--measure-jump',action='store_true',help='For jump/escape, additionally capture existing per-update displacement measurement; not physical touch latency')
     parser.add_argument('--above',choices=('enemy','hero'),help='Run only one vertical relation')
     parser.add_argument('--side',type=int,choices=(-1,1),help='Run only one enemy side')
     args=parser.parse_args()
@@ -60,6 +62,11 @@ def main():
             for action in args.actions:
                 label=f'{args.report}-{above}-{side}-{action}'
                 with CampaignSession(label,level=level) as session:
+                    # Establish facing before the enemy can stagger Claw. A
+                    # short direction tap after damage can be rejected and
+                    # produce an away-facing attack, not a vertical reach miss.
+                    facing='right' if side>0 else 'left'
+                    session.command(f'combatkey {facing} 100');time.sleep(.25)
                     command='combatstairs' if above=='enemy' else 'combatheroabove'
                     setup_start=len(session.logs())
                     session.command(f'{command} {enemy} {side*80} {args.height}'+(' passive' if args.passive else ''))
@@ -91,6 +98,8 @@ def main():
                         if reaction_state is None:raise AssertionError('No live after-hit state observed')
                     start=len(session.logs())
                     direction='right' if side>0 else 'left'
+                    if args.measure_jump and action in ('jump','escape'):
+                        session.command('combatjumpmeasure vertical-'+action)
                     session.command('laddertrace vertical-'+action+' 2600')
                     if action in ('jump','escape'):
                         if action=='escape':direction='left' if side>0 else 'right'
@@ -104,6 +113,15 @@ def main():
                     session.command('combatkey release 0');time.sleep(1.2)
                     final=state(session);session.capture('after')
                     evidence=session.logs()[start:]
+                    jump_measurement=None
+                    if args.measure_jump and action in ('jump','escape'):
+                        session.wait('Pazur jump trace: label=vertical-'+action+' ',after=start,seconds=5)
+                        evidence=session.logs()[start:]
+                        measurements=re.findall(r'Pazur jump trace: label=vertical-'+action+r' queue_ms=(\d+) takeoff_ms=(-?\d+) rise=([\d.]+) hold_ms=(\d+) jumps=(\d+)',evidence)
+                        assert len(measurements)==1,'Missing/duplicate per-update jump measurement'
+                        q,t,h,d,j=measurements[0]
+                        jump_measurement=dict(queue_ms=int(q),takeoff_ms=int(t),rise=float(h),hold_ms=int(d),jumps=int(j),
+                                              scope='Upward displacement from baseline; not alone proof of jump-state acceptance or physical input latency')
                     contacts=[dict(source=int(source),target=target,damage=int(damage),
                                    area=list(map(int,area.split(','))),body=list(map(int,body.split(','))),
                                    integer_overlap=overlap=='1')
@@ -127,6 +145,11 @@ def main():
                         if name==initial['enemy']]
                     defeated=bool(re.search(r'Pazur enemy defeated: '+re.escape(initial['enemy'])+r'\s*$',evidence,re.M))
                     row=dict(apk_sha256=apk_sha256,prototype=args.prototype,source_level=level,above=above,side=side,step_height=args.height,action=action,
+                             facing_input_before_spawn=facing,
+                             jump_motion_measurement=jump_measurement,
+                             requested_posture_observed=(bool(re.search(r'jumping=1',evidence)) if action in ('jump','escape') else
+                                 bool(re.search(r'animation=duckswipe\b',evidence)) if action=='duck' else
+                                 bool(re.search(r'animation=(swipe|kick|uppercut)\b',evidence))),
                              initial=initial,after=after,final=final,enemy_defeated=defeated,
                              player_damage=initial['player_hp']-final['player_hp'],
                              enemy_damage_observed=defeated or 0<=final['enemy_hp']<initial['enemy_hp'],

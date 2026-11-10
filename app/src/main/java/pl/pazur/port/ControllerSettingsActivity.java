@@ -43,6 +43,12 @@ public class ControllerSettingsActivity extends LocalizedActivity {
     }
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
+        if(getIntent().getBooleanExtra("difficulty_only",false)) {
+            LinearLayout difficulty=new LinearLayout(this);difficulty.setOrientation(LinearLayout.VERTICAL);difficulty.setPadding(24,24,24,24);
+            GameplaySettingsUi.difficulty(this,difficulty);
+            Button done=new Button(this);done.setText(R.string.return_game);done.setOnClickListener(v->finish());difficulty.addView(done);
+            setContentView(difficulty);return;
+        }
         try (InputStream input=new FileInputStream(file())) {
             Properties values=new Properties();values.load(input);
             for(int i=0;i<7;i++) {
@@ -57,6 +63,22 @@ public class ControllerSettingsActivity extends LocalizedActivity {
         TextView intro=new TextView(this);
         intro.setText(getString(R.string.controller_intro));
         intro.setTextSize(18);layout.addView(intro);
+        TextView touchTitle=new TextView(this);touchTitle.setText(R.string.touch_layout_title);
+        touchTitle.setTextSize(20);layout.addView(touchTitle);
+        RadioGroup layouts=new RadioGroup(this);
+        String[] titles=getResources().getStringArray(R.array.touch_layout_names);
+        String[] descriptions=getResources().getStringArray(R.array.touch_layout_descriptions);
+        int selected=getSharedPreferences("controls",MODE_PRIVATE).getInt("touch_layout",0);
+        for(int i=0;i<titles.length;i++) {
+            RadioButton choice=new RadioButton(this);choice.setId(2000+i);
+            choice.setText(titles[i]+"\n"+descriptions[i]);layouts.addView(choice);
+        }
+        layouts.check(2000+(selected>=0&&selected<titles.length?selected:0));
+        layouts.setOnCheckedChangeListener((group,id)-> {
+            if(!getSharedPreferences("controls",MODE_PRIVATE).edit().putInt("touch_layout",id-2000).commit())
+                showError(new IOException(getString(R.string.settings_save_error)));
+        });layout.addView(layouts);
+        GameplaySettingsUi.controls(this,layout);
         for(int i=0;i<7;i++) {
             final int index=i;rows[i]=new Button(this);
             rows[i].setOnClickListener(v -> beginCapture(index));layout.addView(rows[i]);

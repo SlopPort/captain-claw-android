@@ -47,7 +47,7 @@
     <Attacks>
       <AttackAction>
         <Animation>strike1</Animation>
-        <AttackAnimFrameIdx>2</AttackAnimFrameIdx>
+        <AttackAnimFrameIdx>1</AttackAnimFrameIdx>
         <AttackType>0</AttackType>
         <AttackFxImageSet>NONE</AttackFxImageSet>
         <AttackSpawnPositionOffset x="-30" y="0" />
