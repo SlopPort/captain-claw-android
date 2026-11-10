@@ -2,6 +2,8 @@
 
 Reviewed **2026-11-10** by OpenAI Codex (LLM). Human participation is anonymous; upstream authorship remains separate. This is the execution plan for the existing [detailed TODO](../TODO.md), not a replacement for its task IDs or an assertion of completion.
 
+Read the [shared-backlog reconciliation](validation/BACKLOG-RECONCILIATION-2026-11-10.md) first. Completed implementation/fixture scopes are not new work. Steps below identify remaining scenarios and roll up into **one frozen-candidate acceptance run** under step 8. Do not rerun whole areas after version-only, documentation or unrelated diagnostic changes; a new relevant production change or report must justify earlier repetition.
+
 ## Verified starting point
 
 - Latest committed work reviewed: `4c24060` and `af143ee`. Debug42 adds synchronized jump/attack-after-damage diagnostics and bounded movement, pause, audio and data-safety evidence. See [debug42](validation/UPDATE-0.4.42.md) and [movement/lifecycle results](validation/MOVEMENT-LIFECYCLE-0.4.42.md).
@@ -27,7 +29,7 @@ Task IDs: AUDIO-01/02/03, COMBAT-03, RELEASE-02. Exit: runtime evidence for the 
 - [ ] Capture the level-2 leftward platform blockage near (2460, 4956) while blocked, before jumping away; reproduce, fix and retest both directions. Earlier failed reproductions do not close the report.
 - [ ] Recheck both reported level-1 snag locations, stopping/reversing/crouching at joins and edges. Reject wall footholds, false support and unintended second jumps.
 - [ ] Reproduce the lower-standing hero's active stair encounter. Distinguish reach mismatch, recovery/input suppression and repeated stagger. Verify an actual counter or escape on the reported terrain, not only an isolated step.
-- [ ] Finish ladder transfers and jump/hurt/death/pause combinations, leafy tops, vine visual/slow-frame behavior, disappearing-platform phases and moving/crumbling supports.
+- [ ] Finish uncovered natural ladder-transfer/geometry cases, vine visual/slow-frame behavior, disappearing-platform phases and moving/crumbling supports. The named bounded bottom/mid-ladder jump/hurt/death/pause/restore cases are complete (MOVE-05); do not restart them as a new fix.
 - [ ] Check checkpoint death/reload with held inputs and different nearby terrain. The existing checkpoint-1 walking result remains a bounded pass.
 - [ ] Cover active attacks with both facings, above/below offsets, standing/crouching/ascent/descent, projectiles, simultaneous contacts and interrupted/dead attackers.
 
@@ -47,7 +49,7 @@ Task IDs: COMBAT-05–10, BOSS-01–07, ORIGINAL-02. Exit: no encounter softlock
 
 - [ ] Verify short/held/repeated jump input, Catnip and slow frames; simultaneous stick/jump/attack/fire; release outside controls, cancellation and finger crossing.
 - [ ] Check layouts and HUD on small/wide displays, both languages, safe areas and persisted bindings/layout.
-- [ ] Check every visible PL/EN menu route, pause, score and Game Over, including foreground/background touch targets and return/cancel. Keep unsupported entries removed.
+- [ ] Review unvisited menu/subpage/message and language/display combinations. Current PL/EN navigation, sliders, score transition and the reported Game Over title/whole-screen-exit defect are already checked; UI-03 is complete. Reuse that implementation and reserve one final regression for step 8.
 - [ ] Audit all app-owned messages, import errors, help and long labels. Explain that English UI does not translate Polish recordings.
 - [ ] Recheck the specific reported physical-controller pause issue if a controller is available within scope. Broad model/transport testing stays deferred.
 
@@ -57,7 +59,7 @@ Task IDs: INPUT-01–04, UI-01/03, LANG-01. English recorded voices require a la
 
 - [ ] Have a novice follow the English guide, and check applicable Polish instructions, on a clean setup using owned game data.
 - [ ] Exercise actual large-file DocumentsUI selection and relevant providers, plus real save export/import and restoration of progress.
-- [ ] Recheck corrupt/cancelled/interrupted/low-space imports on the release candidate. A previous valid installation must remain usable; clean temporary staging safely.
+- [ ] At the coordinated step-8 gate, run existing corrupt/cancelled/interrupted/low-space acceptance checks once for the frozen candidate. Recovery and validation already exist; this is not a request to rebuild the importer. Any new provider UX work belongs to the preceding picker task.
 - [ ] Verify a correctly signed in-place upgrade retaining game data, saves, language, bindings and layout. Seed or observe real existing preferences; an empty preference directory is not coverage.
 - [ ] Check background/resume, screen lock, process death, resource recreation and repeated level reloads without stale input, duplicate callbacks or retained actors.
 

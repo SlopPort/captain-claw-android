@@ -1,5 +1,7 @@
 # Vertical combat follow-up
 
+> Historical coverage plan, not a fresh test queue. Active offset/facing and recovery observations now exist; consult the [shared-backlog reconciliation](BACKLOG-RECONCILIATION-2026-11-10.md) and COMBAT-01/02 in [TODO](../../TODO.md) for the actual remainder before repeating the matrix.
+
 Requested 2026-10-22, after the current campaign/compatibility work. Prepared by OpenAI Codex (LLM). This is a test plan, not completed evidence.
 
 Existing 0.4.2 combat tests and the level-one officer/stairs report provide starting evidence, but do not establish fairness for every vertical offset. Use actual attack contacts and active body bounds; proximity alone does not establish a hit.

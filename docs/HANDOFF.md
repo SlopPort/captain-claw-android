@@ -1,8 +1,10 @@
 # Project handoff
 
-Current state: **2026-11-08**. Adaptation code, documentation, investigation and automated tests were performed by OpenAI Codex (LLM), guided by anonymous human requirements and feedback. OpenClaw and dependency authorship remain separate.
+Current state: **2026-11-10**. Adaptation code, documentation, investigation and automated tests were performed by OpenAI Codex (LLM), guided by anonymous human requirements and feedback. OpenClaw and dependency authorship remain separate.
 
 The [detailed TODO](../TODO.md) tracks remaining work with stable task IDs and completion criteria. Read the [known limitations](KNOWN-LIMITATIONS.md) and [original-behavior ledger](ORIGINAL-BEHAVIOR-LEDGER.md) before changing balance or claiming parity.
+
+Read the [shared-backlog reconciliation](validation/BACKLOG-RECONCILIATION-2026-11-10.md) before selecting work. It separates completed implementations, genuinely missing scenarios, external dependencies and one final release gate. Do not restart old fixtures merely because a version/documentation/diagnostic label changed. MOVE-05, UI-03 and COMBAT-09 now have completed bounded scope with evidence.
 
 ## Current state and boundaries
 
@@ -19,6 +21,12 @@ The phone's existing debug installation was not migrated or uninstalled.
 
 ## Latest verified behavior
 
+Debug43 [audio correction and actual fatal/boss paths](validation/UPDATE-0.4.43.md), [PL/EN menus/settings and Game Over/score](validation/MENU-SETTINGS-0.4.43.md), and [previously missing mid-ladder hurt/death cases](validation/LADDER-DAMAGE-0.4.43.md) passed their stated scopes on Huawei. The saved debug42 protected 20-minute scene also completed successfully; it is not a debug43 or full combat/memory pass. Current exact identities and remaining acceptance are in the [1.0 checklist](RELEASE-1.0-CHECKLIST.md).
+
+## Historical implementation and validation snapshots
+
+The records below retain the versions, download state and test limits from their dates. Phrases about an older public release do not override the current signed41 distribution above. Historical untested scenarios are not automatically still missing: consult the reconciliation and current TODO first.
+
 The debug40 follow-up also passed clean-source ARM64/ARMv7 building from `f11b80f`, PL/EN menu/shared-sound regressions, short touch jumps, ambient mixing, focused Game Over/score paths, 10%/100% selected attack audio and virtual Start/Catnip-music transitions. Exact scope is in the report below. Its valid 120-second heavy level-9 observation ranged from **48.0 to 59.6 FPS** across 300-loop batches and **failed the 55 FPS floor**. Do not describe the performance target as achieved. Broader TODO items remain open where these fixtures cover only part of acceptance.
 
 [Debug 0.4.40](validation/UPDATE-0.4.40.md) verifies Tiger front-flip continuation, actual Siren interruption/death, localized save-failure messages and working gameplay options. Recorder identity follows the APK version. The debug39 sustained result was invalidated after backgrounding/missing coverage; do not quote it as a performance pass. Remaining original-policy details are in the [follow-up](validation/ORIGINAL-FOLLOWUP-2026-11-08.md).
@@ -33,7 +41,7 @@ The debug40 follow-up also passed clean-source ARM64/ARMv7 building from `f11b80
 
 [Enemy attack-speed audit](validation/ENEMY-ATTACK-AUDIT-2026-10-30.md): 55 packaged enemy/encounter prototypes and 76 attacks inventoried, 15 ordinary Huawei cadence cases plus one ranged case measured. Original ANI event mapping is traced: 26 configured actions differ from event-1 markers, 40 match and ten need custom handlers. Red Tail has an ignored nested delay; frame-zero first-hit behavior and unused Gabriel action metadata need follow-up. Exact original timing for every family remains unresolved. This source/documentation batch changes no APK or balance.
 
-Current build/test summary: [debug and signed isolated 0.4.41 checks](validation/UPDATE-0.4.41.md). The signed production APK is a public development prerelease, with its exact identity runtime limitation disclosed. API 35 menu instrumentation passed English and Polish repeats after two failures; its intermittent failure remains unexplained. [Debug40](validation/UPDATE-0.4.40.md) and [debug36](validation/UPDATE-0.4.36.md) remain historical evidence.
+Historical debug41 build/test summary: [debug and signed isolated 0.4.41 checks](validation/UPDATE-0.4.41.md). The signed production APK is a public development prerelease, with its exact identity runtime limitation disclosed. API 35 menu instrumentation passed English and Polish repeats after two failures; its intermittent failure remains unexplained. [Debug40](validation/UPDATE-0.4.40.md) and [debug36](validation/UPDATE-0.4.36.md) remain historical evidence.
 
 
 After reviewing commit 425cdb1 (touch customization and working three-preset difficulty), debug36 removes six unsupported menu actions and compacts the main/single-player/options lists. Controls and Difficulty remain functional port features. [Menu audit](validation/MENU-AUDIT-2026-10-30.md) records physical PL/EN navigation and translation coverage.
