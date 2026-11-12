@@ -121,7 +121,29 @@ def main():
                     save(root / 'active.json', dict(request=path.name, started=time.time()))
                     response = rpc('tools/call', request)
                     save(path.with_name(path.name.replace('.request.', '.response.')), response)
-                    if response.get('error') or response.get('result', {}).get('isError'):
+                    recovered = False
+                    if response.get('result', {}).get('isError'):
+                        texts = response['result'].get('content', [])
+                        error = json.loads(next(x['text'] for x in texts if x['type'] == 'text')).get('error', {})
+                        limits = error.get('details', {}).get('reported_limits', {})
+                        retained = limits.get('evidence_id')
+                        if error.get('code') == 'resource_constraint' and limits.get('boundary') == 'mcp-response' and retained:
+                            # The analysis completed; export retained Evidence
+                            # before closing this ephemeral session. No truncation
+                            # or repeated decompilation is used for recovery.
+                            bundle_path = root/(path.stem+'.evidence-bundle.json')
+                            exported = rpc('tools/call', dict(name='export_evidence_bundle',
+                                arguments=dict(path=str(bundle_path), overwrite=False)))
+                            save(root/(path.stem+'.export.json'), exported)
+                            if exported.get('error') or exported.get('result', {}).get('isError'):
+                                raise RuntimeError('Retained Evidence export failed')
+                            bundle = json.loads(bundle_path.read_text(encoding='utf-8'))
+                            record = next(r for r in bundle['records'] if r['evidence_id'] == retained)
+                            if record['operation'] != request['name']:
+                                raise RuntimeError('Retained operation mismatch')
+                            save(root/(path.stem+'.retained-evidence.json'), record)
+                            recovered = True
+                    if response.get('error') or (response.get('result', {}).get('isError') and not recovered):
                         raise RuntimeError('REA request failed; saved response requires review before resuming')
                     save(root / 'active.json', dict(completed=path.name, finished=time.time()))
         except Exception as error:

@@ -15,6 +15,8 @@ PORT = Path(__file__).resolve().parents[1]
 
 def evidence(path):
     response = json.loads(path.read_text(encoding='utf-8'))
+    if 'evidence_id' in response and 'normalized_result' in response:
+        return response # Exact complete record exported by REA after a transport budget failure.
     if response.get('error') or response.get('worker_error'):
         raise ValueError('Failed REA response')
     result = response['result']
@@ -76,7 +78,7 @@ def main():
     rows = []
     dossiers = {}
     failed_responses = []
-    for path in root.glob('*.response.json'):
+    for path in list(root.glob('*.response.json'))+list(root.glob('*.retained-evidence.json')):
         try: value = evidence(path)
         except (ValueError, KeyError, StopIteration):
             failed_responses.append(path.name); continue
