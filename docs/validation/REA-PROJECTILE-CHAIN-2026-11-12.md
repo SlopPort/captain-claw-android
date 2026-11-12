@@ -22,6 +22,8 @@ Only slots actually joined to these call paths are classified here. Reading adja
 
 The `0x4cf5d0` return has instruction Evidence `ev_872900809a8920a1da3addf123bd75cbd00707e676c9533114c1f16684698e04`. Its tiny bounded contract is reviewed; this does not close projectile behavior. The return-only target at `0x4ce9b0` has Evidence `ev_81403d4061986144978ada2a4987387daec47861ee34eda5918fa19642eddb18`.
 
+Subsequent call-gap reconciliation closes the six Bullet calls through the return-only slots. Five other wrapper call sites retain a partial contract, rather than an unknown target. This is scoped to the observed installed vtable; arbitrary runtime hook changes remain outside that conclusion.
+
 ## Geometry and state entry
 
 The unowned method **`0x475d50`** was inspected through 45 actual REA instructions. When graph metadata is available, it writes the same image-derived bounds into two owner records beginning at `+0x134` and `+0x154`. The four calculations match the independently observed graph-bound helper `0x406490`: two differences supply the lower bounds and two sums minus one supply the inclusive upper bounds. Helper Evidence: `ev_de4fac249559bd2437d3654a0645d9cb125b1418b3122ab6d169a74f4b7c9630`. First-instruction Evidence for the unowned initializer: `ev_2044628ecf458a8e5567f93ad9aafd8dcc178b703df8073bdac92199ec1616db`.

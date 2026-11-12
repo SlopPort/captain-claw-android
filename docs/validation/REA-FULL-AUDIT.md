@@ -97,6 +97,8 @@ The [registration coverage follow-up](REA-REGISTRY-COVERAGE-2026-11-12.md) now a
 
 The [projectile method-chain follow-up](REA-PROJECTILE-CHAIN-2026-11-12.md) joins the constructor-installed vtable, two further unowned methods, image-derived geometry, falling-state dispatch and shared motion boundaries. Fifteen more functions received partial reviews. Joining the actual initial allocation handler narrows the earlier null-result concern to a configuration-dependent candidate; it is not a proved ordinary out-of-memory crash. Supplemental decoded regions are now counted separately from inventoried function bodies.
 
+The [terrain/contact follow-up](REA-TERRAIN-CONTACTS-2026-11-12.md) joins another 15 function reviews and three additional forwarding regions. It distinguishes movement-rectangle sampling from hit/attack/bump dispatch, records direction-dependent terrain modes and preserves receiver, stride and lifetime uncertainties. These findings do not close natural snag/combat reports or certify original repeated-hit policy.
+
 ### Complete acquisition of the initial function inventory
 
 All initial **4,012 internal entries** now have body evidence: **4,011 complete REA dossier responses**, plus the instruction/body/reference evidence for the single decompiler failure at `0x4f5a42`. That alternate evidence describes a 467-byte body; it is not a recovered pseudocode result. The raw error remains visible. Its instruction Evidence is `ev_e056ddc361d87956c916cf1ff6d6dd036dc83124624bbb52f4602d3c5c777246`.
