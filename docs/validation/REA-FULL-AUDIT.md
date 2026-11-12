@@ -93,6 +93,8 @@ Ghidra failed decompilation at **`0x4f5a42`** with its reported low-level overla
 
 ## Current next action
 
+The [registration coverage follow-up](REA-REGISTRY-COVERAGE-2026-11-12.md) now accounts for all 212 literal registration rows and 209 distinct callback addresses. It identifies 163 callback addresses outside acquired bodies, verifies 162 decoded/unowned entries, retains one unavailable decode and records a bounded partial Bullet-wrapper review. These new seeds do not automatically become complete functions or semantic passes. Four missing defined names were recovered from bounded REA reads.
+
 ### Complete acquisition of the initial function inventory
 
 All initial **4,012 internal entries** now have body evidence: **4,011 complete REA dossier responses**, plus the instruction/body/reference evidence for the single decompiler failure at `0x4f5a42`. That alternate evidence describes a 467-byte body; it is not a recovered pseudocode result. The raw error remains visible. Its instruction Evidence is `ev_e056ddc361d87956c916cf1ff6d6dd036dc83124624bbb52f4602d3c5c777246`.

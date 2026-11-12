@@ -1,0 +1,62 @@
+"""Coverage-contract checks: unknown flows/names must not become complete code.
+
+OpenAI Codex (LLM). Synthetic protocol facts, no commercial executable data.
+"""
+from pathlib import Path
+import sys
+import unittest
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]/'tools'))
+from rea_code_region import successors
+from rea_registry_seeds import registrations
+
+
+class RegionFlowTests(unittest.TestCase):
+    def instruction(self, kind, conditional=False, destinations=(), status='decoded'):
+        return dict(address='0x1000', length=2, status=status,
+                    flow=dict(kind=kind, conditional=conditional, direct_destinations=list(destinations)))
+
+    def test_conditional_includes_taken_and_fallthrough(self):
+        edges, gaps = successors(self.instruction('jump', True, ['0x1010']))
+        self.assertEqual(set(edges), {0x1002, 0x1010}); self.assertFalse(gaps)
+
+    def test_unconditional_jump_does_not_invent_fallthrough(self):
+        self.assertEqual(successors(self.instruction('jump', False, ['0x1010'])), ([0x1010], []))
+
+    def test_computed_jump_without_targets_retains_gap(self):
+        edges, gaps = successors(self.instruction('jump'))
+        self.assertFalse(edges); self.assertIn('jump-destination-unresolved', gaps)
+
+    def test_call_is_not_a_callee_body_or_proven_return(self):
+        edges, gaps = successors(self.instruction('call', destinations=['0x8000']))
+        self.assertEqual(edges, [0x1002]); self.assertTrue(gaps)
+
+    def test_undecodable_does_not_guess_next_instruction(self):
+        edges, gaps = successors(self.instruction('unavailable', status='undecodable'))
+        self.assertFalse(edges); self.assertIn('instruction-not-decoded', gaps)
+
+    def test_return_and_terminal_stop(self):
+        for kind in ('return', 'terminal'):
+            self.assertEqual(successors(self.instruction(kind)), ([], []))
+
+
+class RegistryTests(unittest.TestCase):
+    def assembly(self, callback='0x2000'):
+        return ['0x1000: PUSH 0x0', '0x1002: PUSH 0x3000', '0x1007: PUSH '+callback,
+                '0x100c: MOV EDX, dword ptr [ECX]', '0x100e: CALL dword ptr [EDX + 0x1c]']
+
+    def test_missing_defined_string_preserves_callback(self):
+        row = registrations(self.assembly(), [])[0]
+        self.assertEqual(row['callback'], '0x2000'); self.assertIsNone(row['name'])
+
+    def test_register_argument_is_not_invented_literal(self):
+        row = registrations(self.assembly('EAX'), [])[0]
+        self.assertNotIn('callback', row)
+
+    def test_string_must_match_actual_push_source_and_address(self):
+        row = registrations(self.assembly(), [dict(source_address='0x1002', address='0x3333', value='example')])[0]
+        self.assertNotIn('callback', row)
+
+
+if __name__ == '__main__':
+    unittest.main()
