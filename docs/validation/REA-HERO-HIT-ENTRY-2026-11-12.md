@@ -4,7 +4,7 @@ OpenAI Codex (LLM) performed this bounded static review of the supplied EXE iden
 
 ## Faster acquisition with explicit evidence layers
 
-The registered `CaptainClawHit` entry `0x41e210` is outside the initial Ghidra function inventory. An earlier private Capstone decode of the same target was retained as a hypothesis/reference; it was not relabelled REA instruction Evidence or a complete review.
+The registered `CaptainClawHit` entry `0x41e210` is outside the initial Ghidra function inventory. An earlier private Capstone decode of the same target was retained as a hypothesis/reference; it was not relabelled REA instruction Evidence or a complete review. The [subsequent table follow-up](REA-HERO-SOUND-TABLES-2026-11-12.md) resolves the four computed transfers described in this initial checkpoint and extends the entry to 666 decoded starts, with 44 call-contract gaps still open.
 
 REA now supplied an exact complete 2,224-byte read beginning at that entry: `ev_921afbdac125960c66a578c3192625b01c3f588e361cadb538830c97af14f7f3`. The [independent traversal tool](../../tools/rea_decode_region.py) uses installed Capstone 5.0.7 in x86-32 mode. Its bounded worklist decoded **475 instruction starts**, with **four unresolved computed jumps and 26 call-contract gaps**. Calls are not followed or assumed to return with certainty; possible fallthrough is retained with an explicit gap. Unsupported exception/privileged flow, overlaps, undecodable bytes and outside edges stay visible. Traversal completion does not mean semantic or full-function completion.
 
@@ -18,7 +18,7 @@ The optional host tool requires Python and locally installed Capstone (this run:
 python tools/rea_decode_region.py --report AUDIT_FOLDER --bytes-response READ_BYTES_RESPONSE.json --seed 0x41e210
 ```
 
-Existing output is preserved rather than silently overwritten. Additional seed/dispatch-table coverage requires an explicit reviewed follow-up; this run leaves its four computed transfers unresolved.
+Existing output is preserved rather than silently overwritten. Additional seed/dispatch-table coverage requires an explicit reviewed follow-up. The initial snapshot left four computed transfers unresolved; the linked follow-up records their guards/targets and preserves that snapshot separately.
 
 ## Incoming partner and distinct source paths
 
@@ -30,7 +30,7 @@ A different shared damage path sets the same 850 value, but clears both bits `4 
 
 For the common health-decrement path, a positive damage value is subtracted from hero `+0x128`. Nonpositive resulting health goes to the death helper. **Only after that subtraction** does the surviving path check whether auxiliary state is already `0x1f` and skip repeated reaction setup. Being in the hurt animation is therefore not itself proved to reject all damage. Actual earlier manager masks and source-specific branches determine whether this path can be reached again.
 
-The four unresolved computed jumps include random-choice table branches. Their complete targets, effect/audio helpers, death handling, all source categories and exceptional paths remain unjoined. No Soldier/Officer category mapping or natural diagonal encounter is certified here.
+The initial four unresolved computed jumps include random-choice table branches. The linked follow-up joins their targets and a bounded sound-request chain. Effect/audio backend dependencies, death handling, all source categories and exceptional paths remain incomplete. No Soldier/Officer category mapping or natural diagonal encounter is certified here.
 
 ## Joining mask restoration
 
@@ -48,4 +48,4 @@ The current port's `ClawControllableComponent` initializes its take-damage durat
 
 Changing the port's single timer to 850 would not by itself reproduce the source-specific bit clearing, notification order, hurt-state timing or permitted sources. Preserve the existing behavior until source categories, mask setup/reset paths, actual health acceptance and human stair tests are joined. This report does not supersede existing input-buffer or foot-support fixes, and does not claim a newly reproduced stun-lock bug.
 
-The hero entry region and two inventoried hero functions receive **partial** reviews. Full enemy/boss hit receivers, original runtime behavior, the unresolved jumps/calls and the whole machine-code audit remain open.
+The hero entry region and two inventoried hero functions receive **partial** reviews. Full enemy/boss hit receivers, original runtime behavior, the remaining call contracts and the whole machine-code audit remain open.
