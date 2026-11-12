@@ -28,6 +28,34 @@ def evidence(path):
     return value
 
 
+def validate_independent_region(region, source):
+    """Validate the REA byte carrier without relabelling its local decoder."""
+    if (source.get('operation') != 'read_bytes'
+            or source['subject']['digest']['sha256'] != region['target_sha256']
+            or source['evidence_id'] != region['byte_source']['evidence_id']):
+        raise ValueError('Different independent-decoder byte source')
+    value = source['normalized_result']
+    data = bytes.fromhex(value['bytes_hex'])
+    if (not value['complete'] or len(data) != value['requested_bytes']
+            or len(data) != value['returned_bytes']
+            or hashlib.sha256(data).hexdigest() != region['byte_source']['sha256']):
+        raise ValueError('Incomplete/changed independent-decoder bytes')
+    base = int(value['address'], 16)
+    if int(region['start'], 16) != base or int(region['end'], 16) != base+len(data)-1:
+        raise ValueError('Different independent-decoder interval')
+    for item in region['instructions'].values():
+        instruction = item['instruction']
+        if item['byte_evidence_id'] != source['evidence_id']:
+            raise ValueError('Different instruction byte carrier')
+        if instruction['status'] != 'decoded':
+            continue
+        offset = int(instruction['address'], 16)-base
+        size = instruction['length']
+        if (not 1 <= size <= 15 or offset < 0 or offset+size > len(data)
+                or bytes.fromhex(instruction['bytes']) != data[offset:offset+size]):
+            raise ValueError('Instruction not backed by exact REA bytes')
+
+
 def pe_inventory(data):
     if data[:2] != b'MZ': raise ValueError('Not a DOS/PE image')
     offset = struct.unpack_from('<I', data, 60)[0]
@@ -165,10 +193,17 @@ def main():
                 bytes=hi-lo, file_offset=section['raw_offset']+lo-start,
                 classification=('unclassified outside acquired bodies; inventory acquisition complete'
                     if not missing_bodies else 'unclassified; includes not-yet-acquired functions')) for lo, hi in gaps]))
-    regions = []; decoded_starts = set(); decoded_bytes = set()
+    regions = []; decoded_starts = set(); decoded_bytes = set(); decode_sources = {}
     for path in root.glob('region-*.json'):
         region = json.loads(path.read_text(encoding='utf-8'))
         if region['target_sha256'] != digest: raise ValueError('Different code-region target')
+        decoder = region.get('decoder', 'ghidra-via-rea')
+        if decoder == 'capstone-independent':
+            source_path = (root/region['byte_source']['path']).resolve()
+            if source_path.parent != root: raise ValueError('Byte source outside report')
+            validate_independent_region(region, evidence(source_path))
+        elif decoder != 'ghidra-via-rea':
+            raise ValueError('Unknown region decoder')
         for item in region['instructions'].values():
             instruction = item['instruction']
             if instruction['status'] != 'decoded': continue
@@ -176,8 +211,10 @@ def main():
             if len(bytes.fromhex(instruction['bytes'])) != instruction['length']:
                 raise ValueError('Region instruction byte count mismatch')
             decoded_starts.add(address)
+            decode_sources.setdefault(decoder, set()).add(address)
             decoded_bytes.update(range(address, address+instruction['length']))
         regions.append(dict(path=path.name, seed=region['seed'],
+            decoder=decoder, decoder_version=region.get('decoder_version'),
             semantic_status=region['semantic_status'],
             observed_instructions=len(region['instructions']), pending=len(region['pending']),
             remaining_gaps=len(region['gaps'])))
@@ -209,6 +246,7 @@ def main():
         instruction_byte_coverage=None,
         supplemental_code_regions=regions,
         region_unique_decoded_instruction_starts=len(decoded_starts),
+        region_decode_sources={name:len(starts) for name,starts in sorted(decode_sources.items())},
         region_decoded_bytes_outside_acquired_bodies=outside_body_bytes,
         limitations=['Function discovery is not an exhaustive classification of executable bytes.',
             'External functions are imports, not implementations recovered from this file.',

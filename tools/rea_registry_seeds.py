@@ -8,7 +8,7 @@ import argparse
 import hashlib
 import json
 import re
-from rea_audit_inventory import PORT, evidence
+from rea_audit_inventory import PORT, evidence, validate_independent_region
 
 
 def registrations(assembly, strings):
@@ -46,6 +46,7 @@ def join_review_status(rows, ledger, regions):
     functions = {row['address']: row for row in ledger}
     for row in rows:
         row.pop('semantic_review_source', None)
+        row.pop('semantic_review_decoder', None)
         address = row.get('callback')
         decision = functions.get(address)
         source = 'function-ledger'
@@ -58,6 +59,8 @@ def join_review_status(rows, ledger, regions):
         row['semantic_status'] = status
         if status != 'unreviewed':
             row['semantic_review_source'] = source
+            if source == 'bounded-region':
+                row['semantic_review_decoder'] = decision.get('decoder', 'ghidra-via-rea')
 
 
 def main():
@@ -93,6 +96,12 @@ def main():
     for path in root.glob('region-*.json'):
         region = json.loads(path.read_text(encoding='utf-8'))
         if region['target_sha256'] != digest: raise ValueError('Different region target')
+        if region.get('decoder') == 'capstone-independent':
+            byte_source = (root/region['byte_source']['path']).resolve()
+            if byte_source.parent != root: raise ValueError('Byte carrier outside report')
+            validate_independent_region(region, evidence(byte_source))
+        if region['seed'] in regions:
+            raise ValueError('Multiple region decisions for one seed require explicit reconciliation')
         regions[region['seed']] = region
     entries = {p['address'] for p in ledger}
     ranges = []

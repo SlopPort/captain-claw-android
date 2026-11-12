@@ -80,4 +80,6 @@ Target-selection evidence:
 
 ## Follow-up investigation
 
+The [2026-11-12 hero-hit follow-up](validation/REA-HERO-HIT-ENTRY-2026-11-12.md) joins a separate auxiliary category-filter countdown set to 850 in selected hit paths. It does not reinterpret player-data `+0x114 = 1500` as immunity, or establish universal wall-clock protection. Its new independent byte decode remains explicitly distinguished from REA/Ghidra instruction Evidence.
+
 [The second REA pass](ORIGINAL-BEHAVIOR-REA-2.md) recovered the Soldier constructor, level factors, Catnip amplification and jump sustain behavior. The dispatcher/hit-entry limits above still apply; constructor analysis is not a complete enemy reconstruction.

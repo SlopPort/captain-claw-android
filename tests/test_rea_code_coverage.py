@@ -53,6 +53,11 @@ class RegistryTests(unittest.TestCase):
         self.assertEqual(rows[0]['semantic_status'], 'partial')
         self.assertEqual(rows[0]['semantic_review_source'], 'bounded-region')
 
+    def test_independent_region_does_not_become_native_instruction_review(self):
+        rows = [dict(callback='0x2000')]
+        join_review_status(rows, [], {'0x2000': dict(semantic_status='partial', decoder='capstone-independent')})
+        self.assertEqual(rows[0]['semantic_review_decoder'], 'capstone-independent')
+
     def test_acquisition_without_review_stays_unreviewed(self):
         rows = [dict(callback='0x2000', status='literal-callback-observed')]
         join_review_status(rows, [dict(address='0x2000', dossier={'acquired': True})], {})
