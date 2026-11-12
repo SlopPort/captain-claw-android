@@ -5,6 +5,7 @@ An independent PE header inventory accounts for executable ranges separately
 from Ghidra's detected functions, including executable zero-fill sections.
 """
 import argparse
+import bisect
 import hashlib
 import json
 from pathlib import Path
@@ -164,6 +165,29 @@ def main():
                 bytes=hi-lo, file_offset=section['raw_offset']+lo-start,
                 classification=('unclassified outside acquired bodies; inventory acquisition complete'
                     if not missing_bodies else 'unclassified; includes not-yet-acquired functions')) for lo, hi in gaps]))
+    regions = []; decoded_starts = set(); decoded_bytes = set()
+    for path in root.glob('region-*.json'):
+        region = json.loads(path.read_text(encoding='utf-8'))
+        if region['target_sha256'] != digest: raise ValueError('Different code-region target')
+        for item in region['instructions'].values():
+            instruction = item['instruction']
+            if instruction['status'] != 'decoded': continue
+            address = int(instruction['address'], 16)
+            if len(bytes.fromhex(instruction['bytes'])) != instruction['length']:
+                raise ValueError('Region instruction byte count mismatch')
+            decoded_starts.add(address)
+            decoded_bytes.update(range(address, address+instruction['length']))
+        regions.append(dict(path=path.name, seed=region['seed'],
+            semantic_status=region['semantic_status'],
+            observed_instructions=len(region['instructions']), pending=len(region['pending']),
+            remaining_gaps=len(region['gaps'])))
+    gap_ranges = sorted((int(gap['start'], 16), int(gap['end_inclusive'], 16))
+        for section in body_map for gap in section['ranges_outside_acquired_bodies'])
+    gap_starts = [span[0] for span in gap_ranges]
+    outside_body_bytes = 0
+    for address in decoded_bytes:
+        index = bisect.bisect_right(gap_starts, address)-1
+        if index >= 0 and address <= gap_ranges[index][1]: outside_body_bytes += 1
     summary = dict(target_sha256=digest, target_bytes=len(binary),
         rea_inventory_evidence=listing['evidence_id'], provider=listing['provider'],
         analysis_profile=listing['analysis_profile'],
@@ -183,6 +207,9 @@ def main():
         trailing_file_bytes=layout['trailing_file_bytes'],
         acquired_function_body_executable_bytes=sum(s['acquired_body_union_bytes'] for s in body_map),
         instruction_byte_coverage=None,
+        supplemental_code_regions=regions,
+        region_unique_decoded_instruction_starts=len(decoded_starts),
+        region_decoded_bytes_outside_acquired_bodies=outside_body_bytes,
         limitations=['Function discovery is not an exhaustive classification of executable bytes.',
             'External functions are imports, not implementations recovered from this file.',
             'Automated extraction does not prove semantic understanding or port equivalence.',

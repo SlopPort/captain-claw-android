@@ -29,7 +29,7 @@ For input codes 0..80, the recovered table selects separate paths for **0, 29, 3
 
 The code-0 path requests a **376-byte object**, invokes constructor `0x411650` on a nonzero result, calls a virtual slot and stores the resulting instance. Other paths invoke further virtual slots or forward through `0x4def40`. Constructor, virtual-method identities, message lifecycle and the forwarded routine remain unjoined. Eleven call sites retain explicit contract/returnability gaps after resolving the table.
 
-The callback also contains an explicit zero-allocation-result branch that reaches a virtual access through zero. Whether the allocator can actually return zero under this installation's configuration remains unestablished. This is a **static failure-path candidate**, not an observed crash, a new Android defect or an instruction to reproduce that behavior in the port.
+The callback also contains an explicit zero-allocation-result branch that reaches a virtual access through zero. The later [constructor/handler join](REA-PROJECTILE-CHAIN-2026-11-12.md) shows that the initial configured allocation handler enters a C++ throw path; ordinary null return is therefore not established. Runtime callback replacement and exception handling remain open. This is a **narrowed static failure-path candidate**, not an observed crash, a new Android defect or an instruction to reproduce that behavior in the port.
 
 The wrapper remains a **partial semantic review**. It does not determine projectile speed, damage, hit rectangles, re-hit policy or lifetime. The port's `ActorFactory.cpp` and `AIComponents/ProjectileAIComponent.cpp` use XML component construction, physics and events; architectural correspondence is not behavioral equivalence.
 
