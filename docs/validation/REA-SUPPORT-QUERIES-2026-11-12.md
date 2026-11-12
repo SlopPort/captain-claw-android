@@ -18,7 +18,7 @@ Evidence: `ev_67a9371a07c6152c4c322fdc417ca5b7dd3948f524e2073bc94013de3a2732d2`.
 
 ## Joined movement caller
 
-`0x4cca90` invokes side collision queries according to X direction and the upper query for a decreasing Y request. It checks requested ladder entry before the support query: one flag selects a probe above the top, another below the bottom; category 3 selects mode 6. Flag `0x10` can request centering using another helper's interval. That interval helper's contract remains incomplete.
+`0x4cca90` invokes side collision queries according to X direction and the upper query for a decreasing Y request. It checks requested ladder entry before the support query: one flag selects a probe above the top, another below the bottom; category 3 selects mode 6. Flag `0x10` can request centering using another helper's interval. The [later ladder/carrier review](REA-LADDER-CARRIERS-2026-11-12.md) joins that interval to the full tile width and describes the separate object-support predicates; flag setup and carrier lifetime remain incomplete.
 
 An owner flag chooses between terrain support `0x4cd350` and a separate object-support helper. The caller finally writes resolved X/Y into owner `+0x5c/+0x60`. These are joined operations, not a full interpretation of all movement flags and modes.
 
@@ -48,4 +48,4 @@ Original ladder-top support is derived from category transitions. In the port, `
 
 A private search of 4,005 cached initial dossiers found 21 candidates combining literal `+0x4c` access with selected virtual slots. This is a heuristic, not exhaustive receiver-aware call resolution. Three inspected candidates were unrelated: `0x4d0d30` traverses named resource entries, while `0x4d6680`/`0x4d6aa0` invoke stream-like operations on a supplied receiver. They do not establish calls to the tile boundary family. Raw candidate contexts stay private; unresolved boundary-method callers remain unresolved.
 
-The four terrain/movement functions above have partial reviews. Remaining dependencies include receiver/layout validity, all stride and mode mutations, centering/object-support helpers, complete hero states, actual map placement and runtime acceptance. The full machine-code audit is not complete.
+The four terrain/movement functions above have partial reviews. The subsequent ladder/carrier report joins the centering and object-support helper bodies. Remaining dependencies include receiver/layout validity, all stride and mode mutations, carrier lifetime/updates, complete hero states, actual map placement and runtime acceptance. The full machine-code audit is not complete.
