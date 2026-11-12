@@ -122,11 +122,22 @@ def main():
                     response = rpc('tools/call', request)
                     save(path.with_name(path.name.replace('.request.', '.response.')), response)
                     recovered = False
+                    incomplete = False
                     if response.get('result', {}).get('isError'):
                         texts = response['result'].get('content', [])
                         error = json.loads(next(x['text'] for x in texts if x['type'] == 'text')).get('error', {})
                         limits = error.get('details', {}).get('reported_limits', {})
                         retained = limits.get('evidence_id')
+                        diagnostics = error.get('details', {}).get('diagnostics', {})
+                        if (request['name'] == 'analyze_function' and error.get('code') == 'execution_failure'
+                                and diagnostics.get('remote_code') == 'decompile_failed'):
+                            # A known per-function decompiler failure is a ledger
+                            # gap, not a reason to abandon unrelated functions or
+                            # repeat the same unsupported decompilation.
+                            save(root/(path.stem+'.incomplete.json'), dict(
+                                procedure=request['arguments']['procedure'],
+                                reason='decompile_failed', response=path.name.replace('.request.', '.response.')))
+                            incomplete = True
                         if error.get('code') == 'resource_constraint' and limits.get('boundary') == 'mcp-response' and retained:
                             # The analysis completed; export retained Evidence
                             # before closing this ephemeral session. No truncation
@@ -143,7 +154,7 @@ def main():
                                 raise RuntimeError('Retained operation mismatch')
                             save(root/(path.stem+'.retained-evidence.json'), record)
                             recovered = True
-                    if response.get('error') or (response.get('result', {}).get('isError') and not recovered):
+                    if response.get('error') or (response.get('result', {}).get('isError') and not (recovered or incomplete)):
                         raise RuntimeError('REA request failed; saved response requires review before resuming')
                     save(root / 'active.json', dict(completed=path.name, finished=time.time()))
         except Exception as error:

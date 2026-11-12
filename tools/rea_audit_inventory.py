@@ -77,12 +77,35 @@ def main():
     if unknown_reviews: raise ValueError('Review outside inventoried function set')
     rows = []
     dossiers = {}
+    alternatives = {}
+    instruction_bodies = {}
     failed_responses = []
+    error_evidence = {}
     for path in list(root.glob('*.response.json'))+list(root.glob('*.retained-evidence.json')):
         try: value = evidence(path)
         except (ValueError, KeyError, StopIteration):
-            failed_responses.append(path.name); continue
-        if value.get('operation') != 'analyze_function': continue
+            failed_responses.append(path.name)
+            response = json.loads(path.read_text(encoding='utf-8'))
+            for item in response.get('result', {}).get('content', []):
+                if item.get('type') != 'text': continue
+                try: error = json.loads(item['text']).get('error', {})
+                except (ValueError, AttributeError): continue
+                retained = error.get('details', {}).get('reported_limits', {}).get('evidence_id')
+                if retained: error_evidence[path.name] = retained
+            continue
+        operation = value.get('operation')
+        if operation in ('procedure_info', 'read_function_instructions', 'procedure_references'):
+            if value['subject']['digest']['sha256'] != digest: raise ValueError('Different alternate-evidence target')
+            normalized = value['normalized_result']
+            procedure = normalized if operation == 'procedure_info' else normalized['procedure']
+            address = procedure.get('address', procedure.get('entrypoint'))
+            if address not in addresses: raise ValueError('Alternate evidence outside inventory')
+            alternatives.setdefault(address, []).append(dict(path=path.name,
+                evidence_id=value['evidence_id'], operation=operation))
+            if operation == 'read_function_instructions':
+                instruction_bodies[address] = dict(body=procedure['body'])
+            continue
+        if operation != 'analyze_function': continue
         if value['subject']['digest']['sha256'] != digest: raise ValueError('Different dossier target')
         address = value['normalized_result']['procedure']['address']
         if address not in addresses: raise ValueError('Dossier outside inventory')
@@ -103,15 +126,21 @@ def main():
             external=metadata.get('external'), thunk=metadata.get('thunk'),
             thunk_target=metadata.get('thunk_target'),
             semantic_status=review.get('semantic_status', 'unreviewed'), review=review,
-            dossier=dossiers.get(address)))
+            dossier=dossiers.get(address), alternative_evidence=alternatives.get(address, [])))
     layout = pe_inventory(binary)
+    internal_addresses = {p['address'] for p in rows if p['external'] is False}
+    acquired_bodies = dict(instruction_bodies)
+    acquired_bodies.update(dossiers)
+    missing_bodies = sorted(internal_addresses-set(acquired_bodies))
+    acquired_ids = {dossier['evidence_id'] for dossier in dossiers.values()}
+    recovered_errors = [name for name, retained in error_evidence.items() if retained in acquired_ids]
     body_map = []
     for section in layout['sections']:
         if not section['executable'] or not section['raw_size']: continue
         start = int(section['va'], 16)
         end = start+section['raw_size']
         intervals = []
-        for dossier in dossiers.values():
+        for dossier in acquired_bodies.values():
             body = dossier['body']
             if not body.get('available'): continue
             for span in body['ranges']:
@@ -133,7 +162,8 @@ def main():
         body_map.append(dict(section=section['name'], acquired_body_union_bytes=covered,
             ranges_outside_acquired_bodies=[dict(start=hex(lo), end_inclusive=hex(hi-1),
                 bytes=hi-lo, file_offset=section['raw_offset']+lo-start,
-                classification='unclassified; includes not-yet-acquired functions') for lo, hi in gaps]))
+                classification=('unclassified outside acquired bodies; inventory acquisition complete'
+                    if not missing_bodies else 'unclassified; includes not-yet-acquired functions')) for lo, hi in gaps]))
     summary = dict(target_sha256=digest, target_bytes=len(binary),
         rea_inventory_evidence=listing['evidence_id'], provider=listing['provider'],
         analysis_profile=listing['analysis_profile'],
@@ -143,6 +173,11 @@ def main():
         semantically_reviewed=sum(p['semantic_status'] == 'reviewed' for p in rows),
         partially_reviewed=sum(p['semantic_status'] == 'partial' for p in rows),
         acquired_dossiers=len(dossiers), failed_responses=failed_responses,
+        functions_with_instruction_only_evidence=len(set(instruction_bodies)-set(dossiers)),
+        known_internal_entries_without_body_evidence=missing_bodies,
+        body_acquisition_complete_for_current_inventory=not missing_bodies,
+        recovered_transport_responses=recovered_errors,
+        unrecovered_response_errors=[name for name in failed_responses if name not in recovered_errors],
         executable_file_bytes=sum(s['raw_size'] for s in layout['sections'] if s['executable']),
         executable_zero_fill_bytes=sum(s['executable_zero_fill_bytes'] for s in layout['sections']),
         trailing_file_bytes=layout['trailing_file_bytes'],
