@@ -1,6 +1,6 @@
 # Project TODO and release backlog
 
-Updated **2026-11-10** by OpenAI Codex (LLM), guided by anonymous human requirements and feedback. Adaptation authorship is separate from OpenClaw and dependency authorship.
+Updated **2026-11-12** by OpenAI Codex (LLM), guided by anonymous human requirements and feedback. Adaptation authorship is separate from OpenClaw and dependency authorship.
 
 This is the detailed, actionable backlog. The [roadmap](docs/ROADMAP-1.0.md) summarizes release gates; the [handoff](docs/HANDOFF.md) records current state and operating constraints. An unchecked item means work or evidence is still required, not necessarily that a defect has been proved.
 
@@ -172,6 +172,8 @@ For each level record: APK/data edition and difficulty, entry resources, checkpo
 - [ ] **CAMP-15 / P0 / VERIFY:** Human confirms all 14 rows, normal resource continuity and no progression-blocking issue. Link reports rather than asserting completion from the table itself.
 
 ## Original-game investigation and upstream maintenance
+
+- [ ] **ORIGINAL-04 / P1 / RESEARCH (active explicit goal, 2026-11-12):** Audit the entire supplied executable through REA, with a complete function and executable-range coverage ledger, semantic review, port comparisons and explicit unresolved dependencies. [Scope, initial inventory and completion contract](docs/validation/REA-FULL-AUDIT.md). Enumeration/decompilation is not semantic completion; earlier focused findings must be migrated with evidence rather than restarted blindly.
 
 - [x] **ORIGINAL-01 / P1 / DONE:** Keep a behavior comparison ledger: observation, supplied-binary finding, inference, intentional port difference or unknown. Include exact binary/data version and evidence limits for each conclusion.
 - [ ] **ORIGINAL-02 / P1 / RESEARCH:** Where feasible, capture controlled original Windows behavior for jump height, ledges, ladders, hurt recovery and boss timing using a matching edition. No original-runtime timing has been established by static analysis alone.

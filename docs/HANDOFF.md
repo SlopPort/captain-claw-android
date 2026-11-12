@@ -1,6 +1,8 @@
 # Project handoff
 
-Current state: **2026-11-10**. Adaptation code, documentation, investigation and automated tests were performed by OpenAI Codex (LLM), guided by anonymous human requirements and feedback. OpenClaw and dependency authorship remain separate.
+Current state: **2026-11-12**. Adaptation code, documentation, investigation and automated tests were performed by OpenAI Codex (LLM), guided by anonymous human requirements and feedback. OpenClaw and dependency authorship remain separate.
+
+**Active explicit goal:** [full machine-code audit using REA](validation/REA-FULL-AUDIT.md), with a complete function/executable-range ledger and semantic port comparisons. Fresh enumeration matches 4,405 entries (4,012 internal, 393 imports); acquisition is not semantic completion. Raw evidence remains private. Prior debug44 importer-language working-tree changes are unfinished and must be preserved; no new phone installation is claimed. Natural campaign, controller and device-allocation boundaries remain in force.
 
 The [detailed TODO](../TODO.md) tracks remaining work with stable task IDs and completion criteria. Read the [known limitations](KNOWN-LIMITATIONS.md) and [original-behavior ledger](ORIGINAL-BEHAVIOR-LEDGER.md) before changing balance or claiming parity.
 
