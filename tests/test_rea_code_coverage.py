@@ -8,7 +8,7 @@ import unittest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]/'tools'))
 from rea_code_region import successors
-from rea_registry_seeds import registrations
+from rea_registry_seeds import registrations, join_review_status
 
 
 class RegionFlowTests(unittest.TestCase):
@@ -41,6 +41,30 @@ class RegionFlowTests(unittest.TestCase):
 
 
 class RegistryTests(unittest.TestCase):
+    def test_explicit_function_review_survives_regeneration(self):
+        rows = [dict(callback='0x2000')]
+        join_review_status(rows, [dict(address='0x2000', semantic_status='partial')], {})
+        self.assertEqual(rows[0]['semantic_status'], 'partial')
+        self.assertEqual(rows[0]['semantic_review_source'], 'function-ledger')
+
+    def test_region_review_keeps_distinct_provenance(self):
+        rows = [dict(callback='0x2000')]
+        join_review_status(rows, [], {'0x2000': dict(semantic_status='partial')})
+        self.assertEqual(rows[0]['semantic_status'], 'partial')
+        self.assertEqual(rows[0]['semantic_review_source'], 'bounded-region')
+
+    def test_acquisition_without_review_stays_unreviewed(self):
+        rows = [dict(callback='0x2000', status='literal-callback-observed')]
+        join_review_status(rows, [dict(address='0x2000', dossier={'acquired': True})], {})
+        self.assertEqual(rows[0]['semantic_status'], 'unreviewed')
+        self.assertNotIn('semantic_review_source', rows[0])
+
+    def test_removed_decision_does_not_keep_stale_source(self):
+        rows = [dict(callback='0x2000', semantic_review_source='bounded-region')]
+        join_review_status(rows, [], {})
+        self.assertEqual(rows[0]['semantic_status'], 'unreviewed')
+        self.assertNotIn('semantic_review_source', rows[0])
+
     def assembly(self, callback='0x2000'):
         return ['0x1000: PUSH 0x0', '0x1002: PUSH 0x3000', '0x1007: PUSH '+callback,
                 '0x100c: MOV EDX, dword ptr [ECX]', '0x100e: CALL dword ptr [EDX + 0x1c]']

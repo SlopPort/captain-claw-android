@@ -36,6 +36,30 @@ def registrations(assembly, strings):
     return rows
 
 
+def join_review_status(rows, ledger, regions):
+    """Copy explicit decisions, never infer review from decoding/registration.
+
+    The caller validates target identity for both supplied review sources.
+    Keeping the decision source prevents a bounded region review from being
+    presented as an inventoried complete function.
+    """
+    functions = {row['address']: row for row in ledger}
+    for row in rows:
+        row.pop('semantic_review_source', None)
+        address = row.get('callback')
+        decision = functions.get(address)
+        source = 'function-ledger'
+        if decision is None:
+            decision = regions.get(address, {})
+            source = 'bounded-region'
+        status = decision.get('semantic_status', 'unreviewed')
+        if status not in ('unreviewed', 'partial', 'reviewed', 'blocked'):
+            raise ValueError('Unknown semantic review status')
+        row['semantic_status'] = status
+        if status != 'unreviewed':
+            row['semantic_review_source'] = source
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--report', required=True)
@@ -63,6 +87,13 @@ def main():
             row.update(name=name.decode('ascii'), name_state='bounded-read-nul-terminated',
                        name_evidence_id=name_evidence['evidence_id'])
     ledger = json.loads((root/'function-ledger.json').read_text(encoding='utf-8'))
+    inventory = json.loads((root/'inventory-summary.json').read_text(encoding='utf-8'))
+    if inventory['target_sha256'] != digest: raise ValueError('Different review target')
+    regions = {}
+    for path in root.glob('region-*.json'):
+        region = json.loads(path.read_text(encoding='utf-8'))
+        if region['target_sha256'] != digest: raise ValueError('Different region target')
+        regions[region['seed']] = region
     entries = {p['address'] for p in ledger}
     ranges = []
     for procedure in ledger:
@@ -79,6 +110,7 @@ def main():
         row.update(inventoried_entry=address in entries, acquired_body_owners=owners,
                    semantic_status='unreviewed', evidence_id=source['evidence_id'])
         if not owners and address not in entries: seeds.add(address)
+    join_review_status(rows, ledger, regions)
     for address in sorted(seeds, key=lambda value: int(value, 16)):
         path = root/('030-registry-seed-'+address+'.response.json')
         if not path.exists(): continue
