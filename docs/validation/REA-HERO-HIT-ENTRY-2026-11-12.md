@@ -30,7 +30,7 @@ A different shared damage path sets the same 850 value, but clears both bits `4 
 
 For the common health-decrement path, a positive damage value is subtracted from hero `+0x128`. Nonpositive resulting health goes to the death helper. **Only after that subtraction** does the surviving path check whether auxiliary state is already `0x1f` and skip repeated reaction setup. Being in the hurt animation is therefore not itself proved to reject all damage. Actual earlier manager masks and source-specific branches determine whether this path can be reached again.
 
-The initial four unresolved computed jumps include random-choice table branches. The linked follow-up joins their targets and a bounded sound-request chain. Effect/audio backend dependencies, death handling, all source categories and exceptional paths remain incomplete. No Soldier/Officer category mapping or natural diagonal encounter is certified here.
+The initial four unresolved computed jumps include random-choice table branches. The linked follow-up joins their targets and a bounded sound-request chain. Effect/audio backend dependencies, death handling, all source categories and exceptional paths remain incomplete. The later [Soldier receiver follow-up](REA-SOLDIER-HIT-ACCEPTANCE-2026-11-12.md) joins category 4 at Soldier initialization; later mutations, Officer mapping and natural diagonal encounters remain uncertified.
 
 ## Joining mask restoration
 
