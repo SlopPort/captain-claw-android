@@ -16,6 +16,15 @@ Point-query routine `0x421ad0` clamps map coordinates, handles sentinel tile ent
 
 The object initializer `0x4c7540` sets terrain sampling fields `+0xf8` and `+0xfc` to **10**. Evidence: `ev_534f2436e15c8638296980bec04822c15475e1f9a931382e15bb3a7aa83a48c9`. This closes the default value for that initialization path; it does not prove every subsequent mutation or sampling endpoint. Identical offsets in player auxiliary data and motion-state structures are different fields.
 
+### Additional double-tile boundary queries
+
+Two further unowned methods were decoded through REA rather than assumed absent because Ghidra did not enumerate them. Both use four stack arguments and signed comparisons. Names below describe the observed contract, not recovered original symbols.
+
+- Vtable slot `+0x20`, `0x4d7500`: when Y lies within inclusive top/bottom and X is at least left, a point to the right of the inside region yields the right bound and inside attribute through two output pointers. A point at/between left and right yields `left - 1` and the outside attribute only when left is positive. Otherwise it returns false without writing either output. Successful branches return 1. Entry evidence: `ev_1ac28ff01b5d26adafe1b128a94df4822ae25c9ffe18db219660e052f1b972e5`.
+- Slot `+0x24`, `0x4d7560`, applies the same coordinate branches but additionally requires the selected region's attribute to equal the third argument. It writes only the selected bound through the fourth argument when successful. Entry evidence: `ev_a028bc3a09aa37e7d0fc000480610dbb9a30ff33749bf670bf0d7ebceb05bd89`.
+
+These bounded methods reinforce the distinction between an inclusive right bound and the last outside cell `left - 1`. Their callers, output-pointer validity and complete directional-query family remain unjoined. They must not be described as a new hero movement rule: the four terrain edge consumers already inspected call point-query slot `+0x18`, not these two slots. The port uses Box2D fixtures instead of a direct implementation of these virtual query contracts.
+
 ## Reproducible converter comparison
 
 The [host harness](../../tests/tile_partition_audit.cpp) compiles the actual current `ParseCollisionRectanglesFromTile` and `IsInBetween` definitions extracted from OpenClaw's `Engine/Util/Util.cpp`. Its independent reference predicate follows the observed inclusive comparisons. It uses synthetic 64×64 descriptions with solid inside and clear outside; no original resources are required.
